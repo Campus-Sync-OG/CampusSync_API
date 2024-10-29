@@ -7,7 +7,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'users', // refers to the users table
+          model: 'users', 
           key: 'id',
         },
       },
@@ -26,7 +26,7 @@ module.exports = {
       parent_user_id: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'users', // refers to the users table
+          model: 'users',
           key: 'id',
         },
         allowNull: true,
