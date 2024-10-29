@@ -1,22 +1,50 @@
 'use strict';
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('staff', {
+      user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users', // refers to the users table
+          key: 'id',
+        },
+      },
+      staff_name: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      designation: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+      department: {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      },
+      hire_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      contact_number: {
+        type: Sequelize.STRING(20),
+        allowNull: true,
+      },
+      created_at: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
+      },
+      updated_at: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
+      },
+    });
   },
 
-  async down (queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('staff_profiles');
   }
 };

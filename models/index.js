@@ -2,9 +2,9 @@ const sequelize = require('../config/sequelize');
 const DataTypes = require('sequelize').DataTypes;
 
 const User = require('./users');
-const StudentProfile = require('./student');
-const ParentProfile = require('./parent');
-const StaffProfile = require('./staff');
+const StudentProfile = require('./studentProfile');
+const ParentProfile = require('./parentProfile');
+const StaffProfile = require('./staffProfile');
 const Attendance = require('./attendance');
 
 // User and StudentProfile Association
