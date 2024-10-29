@@ -4,8 +4,8 @@ const sequelize = require("../config/sequelize");
 const User = sequelize.define(
   "users",
   {
-    id: {
-      type: DataTypes.STRING(100),
+    user_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       unique: true,
     },

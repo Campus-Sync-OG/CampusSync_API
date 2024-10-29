@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'users', // refers to the users table
-          key: 'id',
+          key: 'user_id',
         },
       },
       subject: {

@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'users',
-          key: 'id',
+          key: 'user_id',
         },
       },
       date: {
