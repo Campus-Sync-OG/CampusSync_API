@@ -1,4 +1,4 @@
-const Sequelize = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../config/sequelize");
 
 const User = sequelize.define(
@@ -8,6 +8,8 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       unique: true,
+      primaryKey: true,       // Primary key added
+      autoIncrement: true,    // Auto-increment added
     },
     email: {
       type: DataTypes.STRING(100),
