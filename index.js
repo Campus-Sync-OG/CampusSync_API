@@ -3,7 +3,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
-
+const studentRoutes=require("./routes/studentRoutes");
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
@@ -12,6 +12,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to admin panel");
 });
 app.use("/api/", userRoutes);
+app.use("/api/student", studentRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });

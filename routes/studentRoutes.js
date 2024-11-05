@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const studentProfileController = require('./controllers/studentProfileController');
+const studentProfileController = require('../controllers/studentController');
+
 
 // Route to get all student profiles
-router.get('/profiles', studentProfileController.getAllProfiles);
+router.get('/list', studentProfileController.getAllProfiles);
 
 // Route to get a single student profile by ID
 router.get('/profiles/:id', studentProfileController.getProfileById);
