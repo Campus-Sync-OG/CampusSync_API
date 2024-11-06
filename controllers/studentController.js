@@ -3,7 +3,7 @@ const StudentProfile = require("../models/studentProfile");
 exports.getAllProfiles = async (req, res) => {
   try {
     const profiles = await StudentProfile.findAll();
-    res.status(200).json(profiles);
+    res.status(200).json(list);
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve student profiles" });
   }
