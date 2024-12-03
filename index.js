@@ -4,7 +4,7 @@ const app = express();
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const studentRoutes=require("./routes/studentRoutes");
-const authRoutes = require('./routes/authRoutes');
+
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/", userRoutes);
 app.use("/api/student", studentRoutes);
-app.use('/auth', authRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });

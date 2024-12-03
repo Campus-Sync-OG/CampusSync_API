@@ -6,10 +6,13 @@ module.exports = {
       user_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        primaryKey: true, // Set user_id as the primary key
         references: {
-          model: 'users', 
+          model: 'users', // Reference the users table
           key: 'user_id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       student_name: {
         type: Sequelize.STRING(100),
@@ -29,6 +32,8 @@ module.exports = {
           model: 'users',
           key: 'user_id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
         allowNull: true,
       },
       admission_date: {
@@ -58,5 +63,5 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('student');
-  }
+  },
 };

@@ -1,93 +1,60 @@
-const StudentProfile = require("../models/studentProfile");
+const StudentProfile = require('../models/studentProfile');
 
-exports.getAllProfiles = async (req, res) => {
+// Get all students
+exports.getAllStudents = async (req, res) => {
   try {
-    const profiles = await StudentProfile.findAll();
-    res.status(200).json(list);
+    const students = await StudentProfile.findAll(); // Fetch all students
+    res.status(200).json(students); // Corrected from `student` to `students`
   } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve student profiles" });
+    res.status(500).json({ error: error.message });
   }
 };
 
-exports.getProfileById = async (req, res) => {
-  const { id } = req.params;
+// Get a single student by ID
+exports.getStudentById = async (req, res) => {
   try {
-    const profile = await StudentProfile.findByPk(id);
-    if (profile) {
-      res.status(200).json(profile);
-    } else {
-      res.status(404).json({ error: "Student profile not found" });
+    const student = await StudentProfile.findOne({ where: { user_id: req.params.id } });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
     }
+    res.status(200).json(student);
   } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve student profile" });
+    res.status(500).json({ error: error.message });
   }
 };
 
-exports.createProfile = async (req, res) => {
-  const {
-    user_id,
-    student_name,
-    class: studentClass,
-    section,
-    parent_user_id,
-    admission_date,
-  } = req.body;
+// Create a new student
+exports.createStudent = async (req, res) => {
   try {
-    const newProfile = await StudentProfile.create({
-      user_id,
-      student_name,
-      class: studentClass,
-      section,
-      parent_user_id,
-      admission_date,
-    });
-    res.status(201).json(newProfile);
+    const student = await StudentProfile.create(req.body);
+    res.status(201).json(student);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create student profile" });
+    res.status(400).json({ error: error.message });
   }
 };
 
-exports.updateProfile = async (req, res) => {
-  const { id } = req.params;
-  const {
-    user_id,
-    student_name,
-    class: studentClass,
-    section,
-    parent_user_id,
-    admission_date,
-  } = req.body;
+// Update a student by ID
+exports.updateStudent = async (req, res) => {
   try {
-    const profile = await StudentProfile.findByPk(id);
-    if (profile) {
-      await profile.update({
-        user_id,
-        student_name,
-        class: studentClass,
-        section,
-        parent_user_id,
-        admission_date,
-      });
-      res.status(200).json(profile);
-    } else {
-      res.status(404).json({ error: "Student profile not found" });
+    const updated = await StudentProfile.update(req.body, { where: { user_id: req.params.id } });
+    if (updated[0] === 0) {
+      return res.status(404).json({ message: 'Student not found' });
     }
+    res.status(200).json({ message: 'Student updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update student profile" });
+    res.status(400).json({ error: error.message });
   }
 };
 
-exports.deleteProfile = async (req, res) => {
-  const { id } = req.params;
+// Delete a student by ID
+exports.deleteStudent = async (req, res) => {
   try {
-    const profile = await StudentProfile.findByPk(id);
-    if (profile) {
-      await profile.destroy();
-      res.status(200).json({ message: "Student profile deleted successfully" });
-    } else {
-      res.status(404).json({ error: "Student profile not found" });
+    const deleted = await StudentProfile.destroy({ where: { user_id: req.params.id } });
+    if (!deleted) {
+      return res.status(404).json({ message: 'Student not found' });
     }
+    res.status(200).json({ message: 'Student deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete student profile" });
+    res.status(500).json({ error: error.message });
   }
 };
