@@ -2,23 +2,18 @@ const sequelize = require('../config/sequelize');
 const DataTypes = require('sequelize').DataTypes;
 
 const User = require('./users');
-const StudentProfile = require('./studentProfile');
-const ParentProfile = require('./parentProfile');
-const StaffProfile = require('./staffProfile');
+const Student = require('./student');
 const Attendance = require('./attendance');
 
-// User and StudentProfile Association
-User.hasOne(StudentProfile, { foreignKey: 'user_id', as: 'student' });
-StudentProfile.belongsTo(User, { foreignKey: 'user_id', as: 'users' });
+User.hasMany(Student,{foreignKey:'user_class_teacher_id',as:'student'});
+Student.belongsTo(User,{foreignKey:'user_class_teacher_id',as:'classTeacher'});
 
-// User and ParentProfile Association
-User.hasOne(ParentProfile, { foreignKey: 'user_id', as: 'parent' });
-ParentProfile.belongsTo(User, { foreignKey: 'user_id', as: 'users' });
 
-// User and StaffProfile Association
-User.hasOne(StaffProfile, { foreignKey: 'user_id', as: 'staff' });
-StaffProfile.belongsTo(User, { foreignKey: 'user_id', as: 'staff' });
+Student.hasMany(Attendance, {foreignKey: 'studentId',as: 'attendanceRecords',});
+Attendance.belongsTo(Student, { foreignKey: 'studentId', as: 'student',});
 
-// Attendance Association (Student -> Attendance)
-User.hasMany(Attendance, { foreignKey: 'student_id', as: 'attendance' });
-Attendance.belongsTo(User, { foreignKey: 'student_id', as: 'student' });
+module.exports = {
+    User,
+    Student,
+    Attendance,
+  };

@@ -1,24 +1,23 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
-    "database": "campusync",
+    "username": "postgres",
+    "password": "0000",
+    "database": "school_db",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres"
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "campusync",
+    "username": "postgres",
+    "password": "0000",
+    "database": "school_db",
     "host": "127.0.0.1",
-    "dialect": "mysql"
-   
+    "dialect": "postgres"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "campusync",
+    "username": "postgres",
+    "password": "0000",
+    "database": "school_db",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres"
   }
 }

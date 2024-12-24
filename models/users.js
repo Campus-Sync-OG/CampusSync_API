@@ -1,41 +1,38 @@
-const { Sequelize } = require("sequelize");
-const sequelize = require("../config/sequelize");
+const { Sequelize } = require('sequelize');
+const sequelize = require('../config/sequelize');
 
-const User = sequelize.define(
-  "users",
-  {
-    user_id: {
-      type: Sequelize.DataTypes.INTEGER,
-      allowNull: false,
-      unique: true,
-      primaryKey: true,       // Primary key added
-      autoIncrement: true,    // Auto-increment added
-    },
-    email: {
-      type: Sequelize.DataTypes.STRING(100),
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
-      },
-    },
-    password: {
-      type: Sequelize.DataTypes.STRING(255),
-      allowNull: false,
-    },
-    role: {
-      type: Sequelize.DataTypes.ENUM("student", "parent", "staff"),
-      allowNull: false,
-    },
-    status: {
-      type: Sequelize.DataTypes.ENUM("active", "inactive"),
-      defaultValue: "active",
+const { v4: uuidv4 } = require('uuid');
+
+const User = sequelize.define('User', {
+  id: {
+    type: Sequelize.DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: uuidv4, // Automatically generates a UUID for each new user
+  },
+  name: {
+    type: Sequelize.DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: Sequelize.DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true,
     },
   },
-  {
-    timestamps: true,
-    underscored: true,
-  }
-);
+  password: {
+    type: Sequelize.DataTypes.STRING,
+    allowNull: false,
+  },
+  dept: {
+    type: Sequelize.DataTypes.STRING,
+    allowNull: true,
+  },
+}, {
+  timestamps: true,
+  underscored: true,
+  tableName: 'users',
+});
 
 module.exports = User;

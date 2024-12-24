@@ -1,33 +1,45 @@
-const Sequelize = require('sequelize');
-const Attendance = sequelize.define('attendance', {
+const { Sequelize,DataTypes } = require('sequelize');
+const { v4: uuidv4 } = require('uuid');
+const sequelize = require('../config/sequelize');
+const Student = require('./student'); // Ensure this matches your actual file structure
+
+const Attendance = sequelize.define(
+  'Attendance',
+  {
+    id: {
+      type: Sequelize.DataTypes.UUID,
+      defaultValue: uuidv4, // Automatically generate UUIDs
+      primaryKey: true,
+      allowNull: false,
+    },
     student_id: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.DataTypes.UUID,
       references: {
-        model: 'users',
-        key: 'id'
+        model: 'student',
+        key: 'id',
       },
       allowNull: false,
     },
-    date: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
     status: {
-      type: DataTypes.ENUM('present', 'absent', 'late'),
+      type:Sequelize. DataTypes.BOOLEAN, // Assuming status is an integer (e.g., 1 for present, 0 for absent)
       allowNull: false,
     },
-    class: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
+    report_date: {
+      type: Sequelize.DataTypes.DATEONLY, // Represents only the date (no time)
+      allowNull: false,
     },
-    section: {
-      type: DataTypes.STRING(10),
-      allowNull: true,
-    }
-  }, {
-    timestamps: true,
-    underscored: true,
-  });
-  
-  module.exports = Attendance;
-  
+    user_class_teacher_id: {
+      type: Sequelize.DataTypes.UUID,
+      allowNull: false,
+    },
+  },
+  {
+    timestamps: true, // Automatically includes createdAt and updatedAt fields
+    underscored: false, // Use camel case for column names
+    tableName: 'attendance', // Ensure this matches your database table name
+  }
+);
+
+
+
+module.exports = Attendance;

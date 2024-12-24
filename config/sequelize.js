@@ -1,8 +1,8 @@
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize('campusync', 'root', '', {
+const sequelize = new Sequelize('school_db', 'postgres', '0000', {
   host: '127.0.0.1',
-  dialect: 'mysql'
+  dialect: 'postgres'
 });
 
 sequelize.authenticate()
