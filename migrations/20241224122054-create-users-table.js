@@ -9,7 +9,7 @@ module.exports = {
         defaultValue: Sequelize.UUIDV4, // Automatically generates UUID
         allowNull: false,
       },
-      name: {
+      uname: {
         type: Sequelize.STRING,
         allowNull: false,
       },

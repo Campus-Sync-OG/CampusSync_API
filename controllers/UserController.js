@@ -1,5 +1,4 @@
-const  User  = require('../models/users'); // Assuming User model is exported properly from models/index.js
-
+const User = require('../models/users'); // Assuming User model is exported properly from models/index.js
 const bcrypt = require('bcrypt');
 
 // Utility function for error responses
@@ -11,13 +10,13 @@ const handleErrorResponse = (res, error) => {
 module.exports = {
   // Create a new user
   createUser: async (req, res) => {
-    const { name, email, password, dept } = req.body;
+    const { uname, email, password, dept } = req.body;
     try {
       // Hash the password for security
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await User.create({
-        name,
+        uname,
         email,
         password: hashedPassword,
         dept,
@@ -66,7 +65,7 @@ module.exports = {
   // Update a user
   updateUser: async (req, res) => {
     const { id } = req.params;
-    const { name, email, password, dept } = req.body;
+    const { uname, email, password, dept } = req.body;
     try {
       const user = await User.findByPk(id);
 
@@ -75,7 +74,7 @@ module.exports = {
       }
 
       const updatedData = {
-        name: name || user.name,
+        uname: uname || user.uname,
         email: email || user.email,
         dept: dept || user.dept,
       };
