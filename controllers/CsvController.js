@@ -11,9 +11,7 @@ module.exports = {
   uploadStudentCSV: [
     upload.single('file'),
     async (req, res) => {
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded.' });
-      }
+      if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
 
       const filePath = path.join(__dirname, '..', req.file.path);
 
@@ -21,99 +19,41 @@ module.exports = {
         const rows = await new Promise((resolve, reject) => {
           const data = [];
           fs.createReadStream(filePath)
-            .pipe(
-              csvParser({
-                mapHeaders: ({ header }) => header.trim().toLowerCase(),
-              })
-            )
+            .pipe(csvParser({ mapHeaders: ({ header }) => header.trim().toLowerCase() }))
             .on('data', (row) => {
-              const uname = String(row.uname || '').trim();
-              const name = String(row.name || '').trim();
-              const username = String(row.username || '').trim();
-              const password = String(row.password || '').trim();
-              const roll_no = parseInt((row.roll_no || '').trim(), 10);
-              const classNumber = parseInt((row.class || '').trim(), 10);
-              const section = String(row.section || '').trim();
-
-              console.log('Parsed Row from CSV:', {
-                uname,
-                name,
-                username,
-                password,
-                roll_no,
-                class: classNumber,
-                section,
-              });
-
-              if (
-                uname &&
-                name &&
-                username &&
-                password &&
-                !isNaN(roll_no) &&
-                !isNaN(classNumber) &&
-                section
-              ) {
-                data.push({
-                  uname,
-                  name,
-                  username,
-                  password,
-                  roll_no,
-                  classNumber,
-                  section,
-                });
+              const { uname, name, username, password, roll_no, class: classNumber, section } = row;
+              const parsedRow = {
+                uname: String(uname || '').trim(),
+                name: String(name || '').trim(),
+                username: String(username || '').trim(),
+                password: String(password || '').trim(),
+                roll_no: parseInt((roll_no || '').trim(), 10),
+                class: parseInt((classNumber || '').trim(), 10),
+                section: String(section || '').trim(),
+              };
+              if (parsedRow.uname && parsedRow.name && parsedRow.username && parsedRow.password && !isNaN(parsedRow.roll_no) && !isNaN(parsedRow.class) && parsedRow.section) {
+                data.push(parsedRow);
               } else {
-                console.warn('Invalid row (missing required fields or invalid data):', {
-                  uname,
-                  name,
-                  username,
-                  password,
-                  roll_no,
-                  class: classNumber,
-                  section,
-                });
+                console.warn('Invalid row (missing required fields or invalid data):', parsedRow);
               }
             })
             .on('end', () => resolve(data))
-            .on('error', (err) => reject(err));
+            .on('error', reject);
         });
 
-        for (const update of rows) {
-          const { uname, name, username, password, roll_no, classNumber, section } = update;
-
+        await Promise.all(rows.map(async ({ uname, name, username, password, roll_no, class: classNumber, section }) => {
           try {
             const user = await User.findOne({ where: { uname } });
-            if (!user) {
+            if (user) {
+              await Student.upsert({ name, username, password, roll_no, class: classNumber, section, user_class_teacher_id: user.id });
+              console.log(`Successfully upserted student record for ${name}`);
+            } else {
               console.warn(`User not found for uname: ${uname}`);
-              continue;
             }
-
-            console.log('Upserting student data:', {
-              name,
-              username,
-              password,
-              roll_no,
-              class: classNumber,
-              section,
-              user_class_teacher_id: user.id,
-            });
-
-            await Student.upsert({
-              name,
-              username,
-              password,
-              roll_no,
-              class: classNumber,
-              section,
-              user_class_teacher_id: user.id,
-            });
-
-            console.log(`Successfully upserted student record for ${name}`);
           } catch (error) {
             console.error('Error inserting/updating student data:', error);
           }
-        }
+        }));
 
         fs.unlinkSync(filePath);
         res.status(200).json({ message: 'CSV processed successfully and data updated.' });
