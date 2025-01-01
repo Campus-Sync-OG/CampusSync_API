@@ -4,7 +4,7 @@ const studentController = require('../controllers/StudentController');
 const csvController=require('../controllers/CsvController');
 
 // Create a new student
-router.post('/students', studentController.createStudent);
+router.post('/create', studentController.createStudent);
 
 // Get all students
 router.get('/students', studentController.getAllStudents);
