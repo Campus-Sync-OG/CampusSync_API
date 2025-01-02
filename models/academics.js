@@ -1,59 +1,45 @@
-'use strict';
-const { Model } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
+const { v4: uuidv4 } = require('uuid');
 
-module.exports = (sequelize, DataTypes) => {
-  class Academic extends Model {
-    static associate(models) {
-      Academic.belongsTo(models.Student, {
-        foreignKey: 'student_id',
-        onDelete: 'CASCADE',
-      });
-    }
-  }
+const Academic = sequelize.define('Academic', {
+  id: {
+    type: Sequelize.DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: uuidv4, 
+  },
+  student_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  subject: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  marks_obtain: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  total_marks: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  grade: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  term: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  exam_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+}, {
+  timestamps: false, // Automatically adds `createdAt` and `updatedAt` fields
+  underscored: true, // Since the diagram explicitly includes `created_at`
+  tableName: 'academics',
+});
 
-  Academic.init(
-    {
-      id: {
-        type: DataTypes.BIGINT,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      student_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-      },
-      subject: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      marks_obtain: {
-        type: DataTypes.BIGINT,
-        allowNull: false,
-      },
-      total_marks: {
-        type: DataTypes.BIGINT,
-        allowNull: false,
-      },
-      grade: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      term: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      exam_date: {
-        type: DataTypes.BIGINT,
-        allowNull: false,
-      },
-    },
-    {
-      sequelize,
-      modelName: 'Academic',
-      tableName: 'academics',
-      timestamps: true,
-    }
-  );
-
-  return Academic;
-};
+module.exports = Academic;

@@ -1,14 +1,14 @@
-const Academic = require('../models/academics'); // Ensure this matches your file structure
-const Student = require('../models/student'); // Ensure this matches your file structure
+const Academic = require('../models/academics');
+const Student = require('../models/student');
 
 // Create an academic record
 const createAcademic = async (req, res) => {
   try {
-    const { student_id, subject, marks_obtain, total_marks, grade, term, examdate } = req.body;
+    const { student_id, subject, marks_obtain, total_marks, grade, term, exam_date } = req.body;
 
-    // Check if student exists
-    const student = await Student.findByPk(student_id);
-    if (!student) {
+    // Check if the student exists
+    const studentExists = await Student.findByPk(student_id);
+    if (!studentExists) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
@@ -20,12 +20,13 @@ const createAcademic = async (req, res) => {
       total_marks,
       grade,
       term,
-      examdate,
+      exam_date,
     });
 
-    res.status(201).json({ message: 'Academic record created successfully', academicRecord });
+    return res.status(201).json({ message: 'Academic record created successfully', academicRecord });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating academic record', error });
+    console.error(error);
+    return res.status(500).json({ message: 'Error creating academic record', error: error.message });
   }
 };
 
@@ -34,22 +35,22 @@ const getStudentAcademics = async (req, res) => {
   try {
     const { student_id } = req.params;
 
-    // Fetch academic records for the student
     const academicRecords = await Academic.findAll({
       where: { student_id },
       include: {
         model: Student,
-        attributes: ['name', 'roll_no', 'class', 'section'],
+        attributes: ['id', 'roll_no', 'class', 'section'],
       },
     });
 
-    if (academicRecords.length === 0) {
+    if (!academicRecords.length) {
       return res.status(404).json({ message: 'No academic records found for this student' });
     }
 
-    res.status(200).json({ message: 'Academic records retrieved successfully', academicRecords });
+    return res.status(200).json({ message: 'Academic records retrieved successfully', academicRecords });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching academic records', error });
+    console.error(error);
+    return res.status(500).json({ message: 'Error fetching academic records', error: error.message });
   }
 };
 
@@ -57,26 +58,25 @@ const getStudentAcademics = async (req, res) => {
 const updateAcademic = async (req, res) => {
   try {
     const { academicId } = req.params;
-    const { marks_obtain, total_marks, grade, term, examdate } = req.body;
+    const { marks_obtain, total_marks, grade, term, exam_date } = req.body;
 
-    // Find the academic record
     const academicRecord = await Academic.findByPk(academicId);
     if (!academicRecord) {
       return res.status(404).json({ message: 'Academic record not found' });
     }
 
-    // Update the record fields
-    academicRecord.marks_obtain = marks_obtain || academicRecord.marks_obtain;
-    academicRecord.total_marks = total_marks || academicRecord.total_marks;
-    academicRecord.grade = grade || academicRecord.grade;
-    academicRecord.term = term || academicRecord.term;
-    academicRecord.examdate = examdate || academicRecord.examdate;
+    const updatedRecord = await academicRecord.update({
+      marks_obtain,
+      total_marks,
+      grade,
+      term,
+      exam_date,
+    });
 
-    await academicRecord.save();
-
-    res.status(200).json({ message: 'Academic record updated successfully', academicRecord });
+    return res.status(200).json({ message: 'Academic record updated successfully', updatedRecord });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating academic record', error });
+    console.error(error);
+    return res.status(500).json({ message: 'Error updating academic record', error: error.message });
   }
 };
 
@@ -85,17 +85,16 @@ const deleteAcademic = async (req, res) => {
   try {
     const { academicId } = req.params;
 
-    // Find and delete the academic record
     const academicRecord = await Academic.findByPk(academicId);
     if (!academicRecord) {
       return res.status(404).json({ message: 'Academic record not found' });
     }
 
     await academicRecord.destroy();
-
-    res.status(200).json({ message: 'Academic record deleted successfully' });
+    return res.status(200).json({ message: 'Academic record deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting academic record', error });
+    console.error(error);
+    return res.status(500).json({ message: 'Error deleting academic record', error: error.message });
   }
 };
 

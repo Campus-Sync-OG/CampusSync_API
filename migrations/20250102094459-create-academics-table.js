@@ -1,33 +1,29 @@
 'use strict';
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('academics', {
       id: {
-        type: Sequelize.BIGINT,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        allowNull: false,
         primaryKey: true,
+        defaultValue: Sequelize.UUIDV4, // Requires the `uuid-ossp` extension in PostgreSQL
       },
       student_id: {
         type: Sequelize.UUID,
         allowNull: false,
-        references: {
-          model: 'student', // Table name
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
       },
       subject: {
         type: Sequelize.STRING,
         allowNull: false,
       },
       marks_obtain: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       total_marks: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       grade: {
@@ -39,10 +35,6 @@ module.exports = {
         allowNull: false,
       },
       exam_date: {
-        type: Sequelize.BIGINT,
-        allowNull: false,
-      },
-      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
       },
@@ -52,5 +44,5 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('academics');
-  },
+  }
 };

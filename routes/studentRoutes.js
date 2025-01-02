@@ -7,16 +7,16 @@ const csvController=require('../controllers/CsvController');
 router.post('/create', studentController.createStudent);
 
 // Get all students
-router.get('/students', studentController.getAllStudents);
+router.get('/list', studentController.getAllStudents);
 
 // Get a single student by ID
 router.get('/students/:id', studentController.getStudentById);
 
 // Update a student by ID
-router.put('/students/:id', studentController.updateStudent);
+router.put('/update/:id', studentController.updateStudent);
 
 // Delete a student by ID
-router.delete('/students/:id', studentController.deleteStudent);
+router.delete('/delete/:id', studentController.deleteStudent);
 
 router.post('/students/upload-csv', csvController.uploadStudentCSV);
 
