@@ -2,21 +2,21 @@
   "development": {
     "username": "postgres",
     "password": "0000",
-    "database": "school_db",
+    "database": "schooldb",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "test": {
     "username": "postgres",
     "password": "0000",
-    "database": "school_db",
+    "database": "schooldb",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "production": {
     "username": "postgres",
     "password": "0000",
-    "database": "school_db",
+    "database": "schooldb",
     "host": "127.0.0.1",
     "dialect": "postgres"
   }
