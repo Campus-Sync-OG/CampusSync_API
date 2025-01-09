@@ -1,18 +1,18 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/sequelize'); // Your Sequelize instance
 const User = require('./user');
-const Student = sequelize.define('Student', {
+const Principal = sequelize.define('Principal', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true,
   },
-  admission_no: {
+  emp_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each admission number is unique
+    unique: true, // Ensure each emp_id is unique
   },
-  student_name: {
+  name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -27,36 +27,32 @@ const Student = sequelize.define('Student', {
       isNumeric: true, // Ensure phone number contains only numbers
     },
   },
-  alter_no: {
+  email: {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      isNumeric: true, // Ensure alternate number contains only numbers
+      isEmail: true, // Validate the email format
     },
   },
-  student_photo: {
-    type: DataTypes.BLOB,
-    allowNull: true, // Optional field for photo URL
-    validate: {
-      isUrl: true, // Ensure it's a valid URL
-    },
+  school_name: {
+    type: DataTypes.STRING,
+    allowNull: false, // Assuming the principal must be associated with a school
   },
-  dob: {
+  add_teacher: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false, // Field to check if the principal can add teachers
+  },
+  joining_date: {
     type: DataTypes.DATE,
-    allowNull: true, // Optional field for Date of Birth
-  },
-  gender: {
-    type: DataTypes.STRING,
     allowNull: true,
-    validate: {
-      isIn: [['Male', 'Female', 'Other']], // Ensure gender is valid
-    },
+    defaultValue: DataTypes.NOW, // Default to current date if not provided
   },
 }, {
   sequelize,
-  modelName: 'Student',
-  tableName: 'student',
+  modelName: 'Principal',
+  tableName: 'principal',
   timestamps: false, // Disable createdAt/updatedAt timestamps
 });
 
-module.exports = Student;
+module.exports = Principal;

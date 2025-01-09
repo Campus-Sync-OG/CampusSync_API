@@ -1,123 +1,149 @@
-const Student = require('../models/student');
-const bcrypt = require('bcrypt');
+const { Student } = require('../models/student');
+const multer = require('multer');
+const path = require('path');
+const sharp = require('sharp');
 
-const handleErrorResponse = (res, error) => {
-  console.error(error);
-  res.status(500).json({ message: 'Internal server error', error: error.message });
+// Multer setup for image upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Directory to store uploaded images
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedExtensions = /jpeg|jpg|png/;
+    const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedExtensions.test(file.mimetype);
+
+    if (extname && mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG and PNG images are allowed'));
+    }
+  },
+  limits: { fileSize: 1024 * 1024 }, // Limit file size to 1MB
+}).single('student_photo');
+
+// Utility to handle upload
+const handleUpload = (req, res) =>
+  new Promise((resolve, reject) => {
+    upload(req, res, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(req.file);
+      }
+    });
+  });
+
+// Validate image dimensions
+const validateImageDimensions = async (imagePath) => {
+  const imageDimensions = await sharp(imagePath).metadata();
+  if (imageDimensions.width !== 300 || imageDimensions.height !== 400) {
+    throw new Error('Photo must be passport size (300x400 pixels)');
+  }
 };
 
-module.exports = {
-  // Create a new student
-  createStudent: async (req, res) => {
-    const { user_class_teacher_id, name, username, password, roll_no, class: classNumber, section } = req.body;
+const BASE_URL = 'http://localhost:3000/uploads';
 
-    try {
-      if (!name || !username || !password || !roll_no || !classNumber || !section) {
-        return res.status(400).json({ message: 'All fields are required.' });
-      }
+// Create a new student
+exports.createStudent = async (req, res) => {
+  try {
+    await handleUpload(req, res);
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
 
-      const existingStudent = await Student.findOne({ where: { username } });
-      if (existingStudent) {
-        return res.status(400).json({ message: 'Username already exists.' });
-      }
+    if (!req.file) return res.status(400).json({ message: 'Student photo is required' });
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+    await validateImageDimensions(req.file.path);
+    
+    const imageUrl = `${BASE_URL}/${req.file.filename}`;
 
-      const student = await Student.create({
-        user_class_teacher_id,
-        name,
-        username,
-        password: hashedPassword,
-        roll_no,
-        class: classNumber,
-        section,
-      });
+    const newStudent = await Student.create({
+      admission_no,
+      student_name,
+      password,
+      phone_no,
+      alter_no,
+      student_photo: imageUrl,
+      dob,
+      gender,
+    });
 
-      res.status(201).json({ message: 'Student created successfully', student });
-    } catch (error) {
-      handleErrorResponse(res, error);
+    res.status(201).json({ message: 'Student created successfully', student: newStudent });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get all students
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.findAll();
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get a student by admission number
+exports.getStudentByAdmissionNo = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+    const student = await Student.findOne({ where: { admission_no } });
+
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    res.status(200).json(student);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update a student
+exports.updateStudent = async (req, res) => {
+  try {
+    await handleUpload(req, res);
+    const { admission_no } = req.params;
+    const { student_name, password, phone_no, alter_no, dob, gender } = req.body;
+
+    const student = await Student.findOne({ where: { admission_no } });
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    student.student_name = student_name || student.student_name;
+    student.password = password || student.password;
+    student.phone_no = phone_no || student.phone_no;
+    student.alter_no = alter_no || student.alter_no;
+    student.dob = dob || student.dob;
+    student.gender = gender || student.gender;
+
+    if (req.file) {
+      await validateImageDimensions(req.file.path);
+      student.student_photo = `${BASE_URL}/${req.file.filename}`;
     }
-  },
 
-  // Get all students
-  getAllStudents: async (req, res) => {
-    try {
-      const students = await Student.findAll({
-        attributes: { exclude: ['password'] },
-      });
-      res.status(200).json(students);
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  },
+    await student.save();
+    res.status(200).json({ message: 'Student updated successfully', student });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
-  // Get a single student by ID
-  getStudentById: async (req, res) => {
-    const { id } = req.params;
+// Delete a student
+exports.deleteStudent = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+    const student = await Student.findOne({ where: { admission_no } });
 
-    try {
-      const student = await Student.findByPk(id, {
-        attributes: { exclude: ['password'] },
-      });
+    if (!student) return res.status(404).json({ message: 'Student not found' });
 
-      if (!student) {
-        return res.status(404).json({ message: 'Student not found.' });
-      }
-
-      res.status(200).json(student);
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  },
-
-  // Update a student
-  updateStudent: async (req, res) => {
-    const { id } = req.params;
-    const { user_class_teacher_id, name, username, password, roll_no, class: classNumber, section } = req.body;
-
-    try {
-      const student = await Student.findByPk(id);
-
-      if (!student) {
-        return res.status(404).json({ message: 'Student not found.' });
-      }
-
-      const updatedData = {
-        user_class_teacher_id: user_class_teacher_id || student.user_class_teacher_id,
-        name: name || student.name,
-        username: username || student.username,
-        roll_no: roll_no || student.roll_no,
-        class: classNumber || student.class,
-        section: section || student.section,
-      };
-
-      if (password) {
-        updatedData.password = await bcrypt.hash(password, 10);
-      }
-
-      await student.update(updatedData);
-
-      res.status(200).json({ message: 'Student updated successfully', student });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  },
-
-  // Delete a student
-  deleteStudent: async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const student = await Student.findByPk(id);
-
-      if (!student) {
-        return res.status(404).json({ message: 'Student not found.' });
-      }
-
-      await student.destroy();
-      res.status(200).json({ message: 'Student deleted successfully.' });
-    } catch (error) {
-      handleErrorResponse(res, error);
-    }
-  },
+    await student.destroy();
+    res.status(200).json({ message: 'Student deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

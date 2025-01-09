@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const csvParser = require('csv-parser');
 const multer = require('multer');
-const User = require('../models/users');
+const User = require('../models/user');
 const Student = require('../models/student');
 
 const upload = multer({ dest: 'uploads/' });
