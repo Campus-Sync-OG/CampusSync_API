@@ -48,6 +48,12 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: false,
     defaultValue: true,
   },
+  role: {
+    type: DataTypes.ENUM('classteacher', 'subjectteacher'),
+    allowNull: false,
+    defaultValue: true,
+  },
+  
 }, {
   sequelize,
   modelName: 'Teacher',

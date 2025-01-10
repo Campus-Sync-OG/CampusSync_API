@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('teacher', {
@@ -43,8 +44,14 @@ module.exports = {
         allowNull: false,
         defaultValue: true,
       },
+      role: {
+        type: Sequelize.ENUM('classteacher', 'subjectteacher'),
+        allowNull: false,
+      },
+      
     });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('teacher');
   },
