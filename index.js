@@ -6,7 +6,7 @@ const cors = require("cors");
 const studentRoutes = require('./routes/StudentRoute'); 
 const teacherRoutes = require('./routes/TeacherRoute');
 const principalRoutes = require('./routes/PrincipalRoute');
-
+const academicsRoutes = require('./routes/AcademicsRoute');
 
 app.use(express.json());
 //routes needs to be defined 
@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api', principalRoutes);
+app.use('/api/academics', academicsRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);

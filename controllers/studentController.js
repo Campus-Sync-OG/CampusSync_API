@@ -1,4 +1,4 @@
-const { Student } = require('../models/student');
+const Student = require('../models/student');
 const multer = require('multer');
 const path = require('path');
 const sharp = require('sharp');
@@ -52,16 +52,45 @@ const validateImageDimensions = async (imagePath) => {
 const BASE_URL = 'http://localhost:3000/uploads';
 
 // Create a new student
+// exports.createStudent = async (req, res) => {
+//   try {
+//     await handleUpload(req, res);
+//     const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
+
+//     if (!req.file) return res.status(400).json({ message: 'Student photo is required' });
+
+//     await validateImageDimensions(req.file.path);
+    
+//     const imageUrl = `${BASE_URL}/${req.file.filename}`;
+
+//     const newStudent = await Student.create({
+//       admission_no,
+//       student_name,
+//       password,
+//       phone_no,
+//       alter_no,
+//       student_photo: imageUrl,
+//       dob,
+//       gender,
+//     });
+
+//     res.status(201).json({ message: 'Student created successfully', student: newStudent });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
 exports.createStudent = async (req, res) => {
   try {
-    await handleUpload(req, res);
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
+    // Handle file upload if any (but make it optional)
+    if (req.file) {
+      await validateImageDimensions(req.file.path);
+      const imageUrl = `${BASE_URL}/${req.file.filename}`;
 
-    if (!req.file) return res.status(400).json({ message: 'Student photo is required' });
+      // Include the photo URL in the student creation if it's uploaded
+      req.body.student_photo = imageUrl;
+    }
 
-    await validateImageDimensions(req.file.path);
-    
-    const imageUrl = `${BASE_URL}/${req.file.filename}`;
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, student_photo } = req.body;
 
     const newStudent = await Student.create({
       admission_no,
@@ -69,7 +98,7 @@ exports.createStudent = async (req, res) => {
       password,
       phone_no,
       alter_no,
-      student_photo: imageUrl,
+      student_photo,  // Will be null if no photo is uploaded
       dob,
       gender,
     });
