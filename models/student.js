@@ -5,12 +5,12 @@ const Student = sequelize.define('Student', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
-    primaryKey: true,
   },
   admission_no: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each admission number is unique
+    unique: true,
+    primaryKey: true, // Ensure each admission number is unique
   },
   student_name: {
     type: DataTypes.STRING,

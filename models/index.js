@@ -1,6 +1,6 @@
 const sequelize = require('../config/sequelize');
 const DataTypes = require('sequelize').DataTypes;
-
+const Sequelize = require('sequelize');
 const User = require('./user');
 const Teacher = require('./teacher');
 const Student = require('./student');
@@ -18,14 +18,11 @@ Teacher.hasOne(User, {foreignKey: 'unique_id',sourceKey: 'emp_id',as: 'user',con
 User.belongsTo(Principal, {foreignKey: 'unique_id',targetKey: 'emp_id',as: 'principal',constraints: false,});
 Principal.hasOne(User, {foreignKey: 'unique_id',sourceKey: 'emp_id',as: 'user',constraints: false,});
 
-Academics.belongsTo(Student, { foreignKey: 'student_id',targetKey: 'id',constraints:true,onDelete:'CASCADE',onUpdate:'CASCADE,'});
-Student.hasMany(Academics, { foreignKey: 'student_id' ,sourceKey: 'id',constraints:true,onDelete:'CASCADE',onUpdate:'CASCADE,'});
+Academics.belongsTo(Student, { foreignKey: 'admission_no',targetKey: 'admission_no',constraints:true,});
+Student.hasMany(Academics, { foreignKey: 'admission_no' ,sourceKey: 'admission_no',constraints:true,});
 
-Academics.belongsTo(Teacher, { foreignKey: 'teacher_id', targetKey: 'id',constraints:true,onDelete:'SET NULL',onUpdate:'CASCADE,'});
-Teacher.hasMany(Academics, { foreignKey: 'teacher_id',sourceKey: 'id',constraints:true,onDelete:'SET NULL',onUpdate:'CASCADE,'});
-
-
-
+Academics.belongsTo(Teacher, { foreignKey: 'emp_id', targetKey: 'emp_id',constraints:true,});
+Teacher.hasMany(Academics, { foreignKey: 'emp_id',sourceKey: 'emp_id',constraints:true,});
 
 
 module.exports = {

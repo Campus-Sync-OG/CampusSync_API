@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('academics', {
@@ -8,51 +6,55 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      student_id: {
-        type: Sequelize.INTEGER,
+      admission_no: {
+        type: Sequelize.STRING(10),
         allowNull: false,
         references: {
-          model: 'student', // The name of the students table
-          key: 'id',
+          model: 'student', // Table name
+          key: 'admission_no',
         },
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
       },
-      teacher_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
+      emp_id: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
         references: {
-          model: 'teacher', // The name of the teachers table
-          key: 'id',
+          model: 'teacher', // Table name
+          key: 'emp_id',
         },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      teacher_name: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      subject: {
+        type: Sequelize.STRING(50),
+        allowNull: false,
+      },
+      class_grade: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
+      term_semester: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
+      academic_year: {
+        type: Sequelize.STRING(9),
+        allowNull: false,
       },
       marks_obtained: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
         allowNull: false,
-        validate: {
-          min: 0,
-        },
       },
       total_marks: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
         allowNull: false,
-        validate: {
-          min: 0,
-        },
       },
-      grade: {
-        type: Sequelize.STRING,
-        allowNull: true, // Grade will be automatically calculated
-      },
-      createdAt: {
+      exam_date: {
         type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,
-      },
-      updatedAt: {
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,
+        allowNull: true,
       },
     });
   },

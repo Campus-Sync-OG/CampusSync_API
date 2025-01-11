@@ -1,13 +1,20 @@
-const { Academics, Student, Teacher } = require('../models'); // Import models
+
 const sequelize = require('../config/sequelize'); // Sequelize instance
+const Student = require('../models/student');
+const Teacher = require('../models/teacher');
+const Academics = require('../models/academics');
 
 // Helper function to evaluate grade based on marks
-const evaluateGrade = (marks_obtained, total_Marks) => {
-  const percentage = (marks_obtained / total_Marks) * 100;
+const evaluateGrade = (marks_obtained, total_marks) => {
+  const percentage = (marks_obtained / total_marks) * 100;
 
   if (percentage >= 90) {
+    return 'A+';
+  } else if (percentage >= 80) {
     return 'A';
-  } else if (percentage >= 75) {
+  } else if (percentage >= 70) {
+    return 'B+';
+  } else if (percentage >= 60) {
     return 'B';
   } else if (percentage >= 50) {
     return 'C';
@@ -19,20 +26,37 @@ const evaluateGrade = (marks_obtained, total_Marks) => {
 // Create new academic record
 exports.createAcademicRecord = async (req, res) => {
   try {
-    const { student_id, teacher_id, marks_obtained, total_marks } = req.body;
+    const { 
+      admission_no, // Use admission_no to link with Student
+      emp_id,       // Use emp_id to link with Teacher
+      teacher_name, 
+      subject, 
+      class_grade, 
+      term_semester, 
+      academic_year, 
+      marks_obtained, 
+      total_marks, 
+      exam_date 
+    } = req.body;
 
     if (!marks_obtained || !total_marks) {
-      return res.status(400).json({ message: 'Marks and Total Marks are required.' });
+      return res.status(400).json({ message: 'Marks obtained and Total Marks are required.' });
     }
 
-    // Automatically calculate grade based on marks
+    // Automatically calculate grade based on marks obtained and total marks
     const grade = evaluateGrade(marks_obtained, total_marks);
 
     const newAcademicRecord = await Academics.create({
-      student_id,
-      teacher_id,
+      admission_no,
+      emp_id,
+      teacher_name,
+      subject,
+      class_grade,
+      term_semester,
+      academic_year,
       marks_obtained,
       total_marks,
+      exam_date,
       grade,
     });
 
@@ -51,8 +75,8 @@ exports.getAllAcademicRecords = async (req, res) => {
   try {
     const academicRecords = await Academics.findAll({
       include: [
-        { model: Student, attributes: ['id', 'student_name'] },
-        { model: Teacher, attributes: ['id', 'emp_name']},
+        { model: Student, attributes: ['admission_no', 'student_name'] },
+        { model: Teacher, attributes: ['emp_id', 'emp_name'] },
       ],
     });
     return res.status(200).json(academicRecords);
@@ -69,8 +93,8 @@ exports.getAcademicRecordById = async (req, res) => {
     const academicRecord = await Academics.findOne({
       where: { id },
       include: [
-        { model: Student, attributes: ['id', 'student_name'] },
-        { model: Teacher, attributes: ['id', 'emp_name'] },
+        { model: Student, attributes: ['admission_no', 'student_name'] },
+        { model: Teacher, attributes: ['emp_id', 'emp_name'] },
       ],
     });
 
@@ -88,7 +112,18 @@ exports.getAcademicRecordById = async (req, res) => {
 // Update an academic record by ID
 exports.updateAcademicRecord = async (req, res) => {
   const { id } = req.params;
-  const { student_id, teacher_id, marks_obtained, total_marks } = req.body;
+  const { 
+    admission_no, 
+    emp_id, 
+    teacher_name, 
+    subject, 
+    class_grade, 
+    term_semester, 
+    academic_year, 
+    marks_obtained, 
+    total_marks, 
+    exam_date 
+  } = req.body;
 
   try {
     const academicRecord = await Academics.findOne({ where: { id } });
@@ -97,14 +132,20 @@ exports.updateAcademicRecord = async (req, res) => {
       return res.status(404).json({ message: 'Academic record not found.' });
     }
 
-    // Automatically calculate grade based on new marks
-    const grade = evaluateGrade(marks, total_marks);
+    // Automatically calculate grade based on new marks obtained and total marks
+    const grade = evaluateGrade(marks_obtained, total_marks);
 
     await academicRecord.update({
-      student_id,
-      teacher_id,
+      admission_no,
+      emp_id,
+      teacher_name,
+      subject,
+      class_grade,
+      term_semester,
+      academic_year,
       marks_obtained,
       total_marks,
+      exam_date,
       grade,
     });
 

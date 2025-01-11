@@ -1,20 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const academicsController = require('../controllers/academicsController'); // Adjust the path if needed
+const academicsController = require('../controllers/academicsController');
 
-// Route to create a new academic record
-router.post('/create', academicsController.createAcademicRecord);
-
-// Route to get all academic records
-router.get('/get', academicsController.getAllAcademicRecords);
-
-// Route to get a single academic record by ID
-router.get('/:id', academicsController.getAcademicRecordById);
-
-// Route to update an academic record by ID
-router.put('/update/:id', academicsController.updateAcademicRecord);
-
-// Route to delete an academic record by ID
-router.delete('/delete/:id', academicsController.deleteAcademicRecord);
+router.post('/create', academicsController.createAcademicRecord); // Create an academic record
+router.get('/getdata', academicsController.getAllAcademicRecords); // Get all academic records
+router.get('/:id', academicsController.getAcademicRecordById); // Get an academic record by ID
+router.put('/:id', academicsController.updateAcademicRecord); // Update an academic record
+router.delete('/:id', academicsController.deleteAcademicRecord); // Delete an academic record
 
 module.exports = router;
