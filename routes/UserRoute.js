@@ -6,13 +6,13 @@ const userController = require('../controllers/UserController');
 router.post('/create', userController.createUser);
 
 // Route to update an existing user by unique_id
-router.put('/:unique_id', userController.updateUser);
+router.put('/update/:unique_id', userController.updateUser);
 
 // Route to delete a user by unique_id
-router.delete('/:unique_id', userController.deleteUser);
+router.delete('/delete/:unique_id', userController.deleteUser);
 
 // Route to get all users
-router.get('/', userController.getAllUsers);
+router.get('/all', userController.getAllUsers);
 
 // Route to get a user by unique_id
 router.get('/:unique_id', userController.getUserByUniqueId);

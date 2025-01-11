@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt'); // For password hashing
-const  Principal  = require('../models/principal');
+const Principal = require('../models/principal');
 
 // Create a new principal
 exports.createPrincipal = async (req, res) => {
@@ -35,11 +35,11 @@ exports.getAllPrincipals = async (req, res) => {
   }
 };
 
-// Get a principal by ID
-exports.getPrincipalById = async (req, res) => {
+// Get a principal by emp_id
+exports.getPrincipalByEmpId = async (req, res) => {
   try {
-    const { id } = req.params;
-    const principal = await Principal.findByPk(id);
+    const { emp_id } = req.params;
+    const principal = await Principal.findOne({ where: { emp_id } });
 
     if (!principal) {
       return res.status(404).json({ message: 'Principal not found' });
@@ -51,13 +51,13 @@ exports.getPrincipalById = async (req, res) => {
   }
 };
 
-// Update a principal
-exports.updatePrincipal = async (req, res) => {
+// Update a principal by emp_id
+exports.updatePrincipalByEmpId = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { emp_id } = req.params;
     const { name, password, phone_no, email, school_name, add_teacher } = req.body;
 
-    const principal = await Principal.findByPk(id);
+    const principal = await Principal.findOne({ where: { emp_id } });
     if (!principal) {
       return res.status(404).json({ message: 'Principal not found' });
     }
@@ -82,12 +82,12 @@ exports.updatePrincipal = async (req, res) => {
   }
 };
 
-// Delete a principal
-exports.deletePrincipal = async (req, res) => {
+// Delete a principal by emp_id
+exports.deletePrincipalByEmpId = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { emp_id } = req.params;
 
-    const principal = await Principal.findByPk(id);
+    const principal = await Principal.findOne({ where: { emp_id } });
     if (!principal) {
       return res.status(404).json({ message: 'Principal not found' });
     }

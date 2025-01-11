@@ -17,8 +17,8 @@ app.get("/", (req, res) => {
 });
 //app.use("/api", UserRoutes);
 app.use('/api/students', studentRoutes);
-app.use('/api', teacherRoutes);
-app.use('/api', principalRoutes);
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/principal', principalRoutes);
 app.use('/api/users', userRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
