@@ -1,11 +1,12 @@
-const {Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize'); // Your Sequelize instance
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
 const User = require('./user');
+
 const Teacher = sequelize.define('Teacher', {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
+  unique_id: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    primaryKey: true, // Use unique_id as the primary key
   },
   emp_id: {
     type: DataTypes.STRING,
@@ -20,7 +21,7 @@ const Teacher = sequelize.define('Teacher', {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      isEmail: true, // Validate the email format
+      isEmail: true,
     },
   },
   subject: {
@@ -35,7 +36,7 @@ const Teacher = sequelize.define('Teacher', {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      isNumeric: true, // Ensure phone number contains only numbers
+      isNumeric: true,
     },
   },
   joining_date: {
@@ -53,7 +54,6 @@ const Teacher = sequelize.define('Teacher', {
     allowNull: false,
     defaultValue: 'classteacher',
   },
-  
 }, {
   sequelize,
   modelName: 'Teacher',

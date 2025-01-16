@@ -3,16 +3,10 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('user', {
-      id: {
-        allowNull: false,
-        autoIncrement: true, // Enable auto-increment
-        primaryKey: true,
-        type: Sequelize.INTEGER,
-      },
       unique_id: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        primaryKey: true, // Set unique_id as the primary key
       },
       role: {
         type: Sequelize.ENUM('student', 'teacher', 'principal'),
