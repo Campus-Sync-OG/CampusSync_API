@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 });
 
 //Routes 
-app.use('/api/users', userRoutes);
+//app.use('/api/users', userRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api', principalRoutes);
