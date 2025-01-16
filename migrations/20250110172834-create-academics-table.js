@@ -1,0 +1,65 @@
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('academics', {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      admission_no: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
+        references: {
+          model: 'student', // Table name
+          key: 'admission_no',
+        },
+        onDelete: 'CASCADE',
+      },
+      emp_id: {
+        type: Sequelize.STRING(10),
+        allowNull: false,
+        references: {
+          model: 'teacher', // Table name
+          key: 'emp_id',
+        },
+        onDelete: 'CASCADE',
+      },
+      teacher_name: {
+        type: Sequelize.STRING(100),
+        allowNull: false,
+      },
+      subject: {
+        type: Sequelize.STRING(50),
+        allowNull: false,
+      },
+      class_grade: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
+      term_semester: {
+        type: Sequelize.STRING(20),
+        allowNull: false,
+      },
+      academic_year: {
+        type: Sequelize.STRING(9),
+        allowNull: false,
+      },
+      marks_obtained: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      total_marks: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      exam_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+    });
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('academics');
+  },
+};

@@ -10,7 +10,8 @@ const Student = sequelize.define('Student', {
   admission_no: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each admission number is unique
+    unique: true,
+    primaryKey: true, // Ensure each admission number is unique
   },
   student_name: {
     type: DataTypes.STRING,
