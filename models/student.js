@@ -34,13 +34,13 @@ const Student = sequelize.define('Student', {
       isNumeric: true, // Ensure alternate number contains only numbers
     },
   },
-  student_photo: {
+ /* student_photo: {
     type: DataTypes.BLOB,
     allowNull: true, // Optional field for photo URL
     validate: {
       isUrl: true, // Ensure it's a valid URL
-    },
-  },
+    },*/
+  
   dob: {
     type: DataTypes.DATE,
     allowNull: true, // Optional field for Date of Birth

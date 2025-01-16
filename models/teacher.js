@@ -51,7 +51,7 @@ const Teacher = sequelize.define('Teacher', {
   role: {
     type: DataTypes.ENUM('classteacher', 'subjectteacher'),
     allowNull: false,
-    defaultValue: true,
+    defaultValue: 'classteacher',
   },
   
 }, {
