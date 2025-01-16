@@ -1,0 +1,115 @@
+const Teacher = require('../models/teacher');
+const bcrypt = require('bcrypt'); // For password hashing
+
+// Create a new teacher
+exports.createTeacher = async (req, res) => {
+  try {
+    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active,role } = req.body;
+
+    if (!emp_id || !emp_name || !password) {
+      return res.status(400).json({ message: 'emp_id, emp_name, and password are required' });
+    }
+
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newTeacher = await Teacher.create({
+      emp_id,
+      emp_name,
+      email,
+      subject,
+      password: hashedPassword,
+      phone_no,
+      joining_date,
+      is_active,
+      role,
+    });
+
+    res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get all teachers
+exports.getAllTeachers = async (req, res) => {
+  try {
+    const teachers = await Teacher.findAll();
+    if (teachers.length === 0) {
+      return res.status(404).json({ message: 'No teachers found' });
+    }
+
+    res.status(200).json({ teachers });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get a teacher by emp_id
+exports.getTeacherById = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+    const teacher = await Teacher.findOne({ where: { emp_id } });
+
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    res.status(200).json({ teacher });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update a teacher
+exports.updateTeacher = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+    const { emp_name, email, subject, password, phone_no, joining_date, is_active } = req.body;
+
+    const teacher = await Teacher.findOne({ where: { emp_id } });
+
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    // Update fields
+    teacher.emp_name = emp_name || teacher.emp_name;
+    teacher.email = email || teacher.email;
+    teacher.subject = subject || teacher.subject;
+
+    if (password) {
+      // Hash the new password before saving
+      teacher.password = await bcrypt.hash(password, 10);
+    }
+
+    teacher.phone_no = phone_no || teacher.phone_no;
+    teacher.joining_date = joining_date || teacher.joining_date;
+    teacher.is_active = is_active !== undefined ? is_active : teacher.is_active;
+
+    await teacher.save();
+
+    res.status(200).json({ message: 'Teacher updated successfully', teacher });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete a teacher
+exports.deleteTeacher = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+
+    const teacher = await Teacher.findOne({ where: { emp_id } });
+
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    await teacher.destroy();
+
+    res.status(200).json({ message: 'Teacher deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
