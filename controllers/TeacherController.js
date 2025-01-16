@@ -1,13 +1,25 @@
 const Teacher = require('../models/teacher');
+const User = require('../models/user');
 const bcrypt = require('bcrypt'); // For password hashing
 
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active,role } = req.body;
+    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active, role } = req.body;
 
     if (!emp_id || !emp_name || !password) {
       return res.status(400).json({ message: 'emp_id, emp_name, and password are required' });
+    }
+
+    // Validate emp_id against User model
+    const user = await User.findOne({ where: { unique_id: emp_id, role: 'teacher' } });
+
+    if (!user) {
+      return res.status(400).json({ error: 'No matching user found with role teacher' });
+    }
+
+    if (user.unique_id !== emp_id) {
+      return res.status(400).json({ error: 'Employee ID does not match the unique ID in the User model' });
     }
 
     // Hash the password before saving

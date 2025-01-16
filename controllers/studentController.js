@@ -1,5 +1,6 @@
-const { Student } = require('../models/student');
-const multer = require('multer');
+const  Student  = require('../models/student');
+const  User = require('../models/user'); // Assuming this is the User model where the unique_id is stored
+/*const multer = require('multer');
 const path = require('path');
 const sharp = require('sharp');
 
@@ -49,27 +50,34 @@ const validateImageDimensions = async (imagePath) => {
   }
 };
 
-const BASE_URL = 'http://localhost:3000/uploads';
+const BASE_URL = 'http://localhost:3000/uploads';*/
 
 // Create a new student
 exports.createStudent = async (req, res) => {
   try {
-    await handleUpload(req, res);
     const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
 
-    if (!req.file) return res.status(400).json({ message: 'Student photo is required' });
+    // Validate unique_id in User table matches the admission_no
+    const user = await User.findOne({ where: { unique_id: admission_no, role: 'student' } });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid admission number or user not found with the role "student"' });
+    }
 
-    await validateImageDimensions(req.file.path);
-    
-    const imageUrl = `${BASE_URL}/${req.file.filename}`;
+    // Handle file upload
+    let student_photo = null;
+   /* if (req.file) {
+      await validateImageDimensions(req.file.path);
+      student_photo = `${BASE_URL}/${req.file.filename}`;
+    }*/
 
+    // Create new student
     const newStudent = await Student.create({
       admission_no,
       student_name,
       password,
       phone_no,
       alter_no,
-      student_photo: imageUrl,
+      student_photo,
       dob,
       gender,
     });
@@ -107,13 +115,13 @@ exports.getStudentByAdmissionNo = async (req, res) => {
 // Update a student
 exports.updateStudent = async (req, res) => {
   try {
-    await handleUpload(req, res);
     const { admission_no } = req.params;
     const { student_name, password, phone_no, alter_no, dob, gender } = req.body;
 
     const student = await Student.findOne({ where: { admission_no } });
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
+    // Update student details
     student.student_name = student_name || student.student_name;
     student.password = password || student.password;
     student.phone_no = phone_no || student.phone_no;
@@ -121,6 +129,7 @@ exports.updateStudent = async (req, res) => {
     student.dob = dob || student.dob;
     student.gender = gender || student.gender;
 
+    // Handle file upload (if any)
     if (req.file) {
       await validateImageDimensions(req.file.path);
       student.student_photo = `${BASE_URL}/${req.file.filename}`;

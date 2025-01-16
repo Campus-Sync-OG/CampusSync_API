@@ -7,7 +7,7 @@ const Principal = sequelize.define('Principal', {
     autoIncrement: true,
     primaryKey: true,
   },
-  emp_id: {
+  p_id: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true, // Ensure each emp_id is unique
