@@ -6,7 +6,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true,
+        references: {
+          model: 'user', // Reference to the 'user' table
+          key: 'unique_id',
+        },
       },
       admission_no: {
         type: Sequelize.STRING,

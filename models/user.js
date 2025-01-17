@@ -50,25 +50,22 @@ const User = sequelize.define(
             default:
               throw new Error('Invalid role specified');
           }
-    
-          let isUnique = false;
-          let uniqueId = '';
-          while (!isUnique) {
-            const randomDigits = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit random number
-            uniqueId = `${prefix}-${randomDigits}`;
-    
-            // Check if the generated unique_id already exists
-            const existingUser = await user.constructor.findOne({ where: { unique_id: uniqueId } });
-            if (!existingUser) {
-              isUnique = true; // The generated ID is unique
-            }
+
+          const maxUniqueId = await user.constructor.findOne({
+            attributes: [[sequelize.fn('MAX', sequelize.col('unique_id')), 'max_id']],
+            raw: true,
+          });
+
+          let newSerialNumber = 1;
+          if (maxUniqueId.max_id) {
+            const lastSerial = parseInt(maxUniqueId.max_id.split('-')[1], 10);
+            newSerialNumber = lastSerial + 1;
           }
-    
-          user.unique_id = uniqueId; // Assign the unique ID
+
+          user.unique_id = `${prefix}-${String(newSerialNumber).padStart(6, '0')}`;
         }
       },
     },
-    
   }
 );
 

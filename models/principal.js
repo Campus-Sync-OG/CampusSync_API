@@ -3,16 +3,14 @@ const sequelize = require('../config/sequelize');
 const User = require('./user');
 
 const Principal = sequelize.define('Principal', {
-  unique_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true, // Use unique_id as the primary key
-  },
   p_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each p_id is unique
+    unique: true, 
+    references: {
+      model: User,
+      key: 'unique_id',
+    }
   },
   name: {
     type: DataTypes.STRING,
@@ -44,6 +42,11 @@ const Principal = sequelize.define('Principal', {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     defaultValue: false,
+  },
+  add_student: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false, // This controls if the principal can add students
   },
   joining_date: {
     type: DataTypes.DATE,

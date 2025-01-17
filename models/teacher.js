@@ -3,16 +3,15 @@ const sequelize = require('../config/sequelize');
 const User = require('./user');
 
 const Teacher = sequelize.define('Teacher', {
-  unique_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true, // Use unique_id as the primary key
-  },
+ 
   emp_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each emp_id is unique
+    primaryKey: true,
+    references: {
+      model: User, // Foreign key referencing User table
+      key: 'unique_id',
+    },
   },
   emp_name: {
     type: DataTypes.STRING,

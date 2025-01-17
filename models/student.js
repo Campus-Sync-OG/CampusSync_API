@@ -3,16 +3,15 @@ const sequelize = require('../config/sequelize');
 const User = require('./user');
 
 const Student = sequelize.define('Student', {
-  unique_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true, // Use unique_id as the primary key
-  },
   admission_no: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each admission_no is unique
+    unique: true, 
+    references: {
+       models: User,
+       key:'unique_id',
+
+    }
   },
   student_name: {
     type: DataTypes.STRING,

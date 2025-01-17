@@ -1,10 +1,9 @@
 const User = require('../models/user');
 
-// Controller methods
 const userController = {
-  // Create a new user
   createUser: async (req, res) => {
     const { role, name, password } = req.body;
+
     try {
       const newUser = await User.create({ role, name, password });
       res.status(201).json({
@@ -12,6 +11,7 @@ const userController = {
         user: newUser,
       });
     } catch (error) {
+      console.error('Error creating user:', error.message);
       res.status(500).json({
         message: 'Error creating user',
         error: error.message,
@@ -19,14 +19,16 @@ const userController = {
     }
   },
 
-  // Get all users or filter by role
   getAllUsers: async (req, res) => {
     const { role } = req.query;
+
     try {
       const whereClause = role ? { role } : {};
       const users = await User.findAll({ where: whereClause });
+
       res.status(200).json(users);
     } catch (error) {
+      console.error('Error retrieving users:', error.message);
       res.status(500).json({
         message: 'Error retrieving users',
         error: error.message,
@@ -34,17 +36,25 @@ const userController = {
     }
   },
 
-  // Get a user by unique_id
-  getUserById: async (req, res) => {
-    const { id } = req.params;
+  getUserByUniqueId: async (req, res) => {
+    const { unique_id } = req.params;
+
     try {
-      const user = await User.findByPk(id);
+      if (!unique_id || typeof unique_id !== 'string') {
+        return res.status(400).json({ message: 'Invalid unique_id provided' });
+      }
+
+      const user = await User.findOne({
+        where: { unique_id: unique_id.trim() }, // Trim to avoid extra spaces
+      });
+
       if (user) {
         res.status(200).json(user);
       } else {
         res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
+      console.error('Error retrieving user:', error.message);
       res.status(500).json({
         message: 'Error retrieving user',
         error: error.message,
@@ -52,12 +62,19 @@ const userController = {
     }
   },
 
-  // Update a user by unique_id
   updateUser: async (req, res) => {
-    const { id } = req.params;
+    const { unique_id } = req.params;
     const { role, name, password } = req.body;
+
     try {
-      const user = await User.findByPk(id);
+      if (!unique_id || typeof unique_id !== 'string') {
+        return res.status(400).json({ message: 'Invalid unique_id provided' });
+      }
+
+      const user = await User.findOne({
+        where: { unique_id: unique_id.trim() },
+      });
+
       if (user) {
         await user.update({ role, name, password });
         res.status(200).json({
@@ -68,6 +85,7 @@ const userController = {
         res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
+      console.error('Error updating user:', error.message);
       res.status(500).json({
         message: 'Error updating user',
         error: error.message,
@@ -75,11 +93,18 @@ const userController = {
     }
   },
 
-  // Delete a user by unique_id
   deleteUser: async (req, res) => {
-    const { id } = req.params;
+    const { unique_id } = req.params;
+
     try {
-      const user = await User.findByPk(id);
+      if (!unique_id || typeof unique_id !== 'string') {
+        return res.status(400).json({ message: 'Invalid unique_id provided' });
+      }
+
+      const user = await User.findOne({
+        where: { unique_id: unique_id.trim() },
+      });
+
       if (user) {
         await user.destroy();
         res.status(200).json({ message: 'User deleted successfully' });
@@ -87,6 +112,7 @@ const userController = {
         res.status(404).json({ message: 'User not found' });
       }
     } catch (error) {
+      console.error('Error deleting user:', error.message);
       res.status(500).json({
         message: 'Error deleting user',
         error: error.message,
