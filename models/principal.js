@@ -6,7 +6,8 @@ const Principal = sequelize.define('Principal', {
   unique_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    primaryKey: true, // Use unique_id as the primary key
+    primaryKey: true,
+    autoIncrement: true, // Use unique_id as the primary key
   },
   p_id: {
     type: DataTypes.STRING,

@@ -8,7 +8,8 @@ module.exports = {
         unique_id: {
           type: Sequelize.STRING(50),
           allowNull: false,
-          primaryKey: true, // Unique identifier for the principal
+          primaryKey: true, 
+          autoIncrement: true,// Unique identifier for the principal
         },
         p_id: {
           type: Sequelize.STRING(50),

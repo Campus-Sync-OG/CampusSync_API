@@ -7,6 +7,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
         primaryKey: true,
+        autoIncrement: true,
       },
       emp_id: {
         type: Sequelize.STRING,

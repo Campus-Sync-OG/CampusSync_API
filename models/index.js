@@ -15,8 +15,8 @@ User.belongsTo(models.Teacher, { foreignKey: 'unique_id',targetKey: 'emp_id',as:
 Teacher.hasOne(models.User, {foreignKey: 'unique_id',sourceKey: 'emp_id',as: 'user',constraints: false,});
 
 
-User.belongsTo(models.Principal, {foreignKey: 'unique_id',targetKey: 'emp_id',as: 'principal',constraints: false,});
-Principal.hasOne(models.User, {foreignKey: 'unique_id',sourceKey: 'emp_id',as: 'user',constraints: false,});
+User.belongsTo(models.Principal, {foreignKey: 'unique_id',targetKey: 'p_id',as: 'principal',constraints: false,});
+Principal.hasOne(models.User, {foreignKey: 'unique_id',sourceKey: 'p_id',as: 'user',constraints: false,});
 
 
 

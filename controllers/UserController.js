@@ -1,94 +1,98 @@
-const  User  = require('../models/user');
+const User = require('../models/user');
 
-// Create a new user
-exports.createUser = async (req, res) => {
-  try {
-    const {  unique_id, role, name, password } = req.body;
-
-    // Validate required fields
-    if (!unique_id || !role || !name || !password) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
-    // Create a new user
-    const newUser = await User.create({
-      unique_id,
-      role,
-      name,
-      password,
-    });
-
-    res.status(201).json({ message: 'User created successfully', user: newUser });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while creating the user', error: error.message });
-  }
-};
-
-// Update an existing user by unique_id
-exports.updateUser = async (req, res) => {
-  try {
-    const { unique_id } = req.params;
+// Controller methods
+const userController = {
+  // Create a new user
+  createUser: async (req, res) => {
     const { role, name, password } = req.body;
+    try {
+      const newUser = await User.create({ role, name, password });
+      res.status(201).json({
+        message: 'User created successfully',
+        user: newUser,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error creating user',
+        error: error.message,
+      });
+    }
+  },
 
-    // Find user by unique_id
-    const user = await User.findOne({ where: { unique_id } });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+  // Get all users or filter by role
+  getAllUsers: async (req, res) => {
+    const { role } = req.query;
+    try {
+      const whereClause = role ? { role } : {};
+      const users = await User.findAll({ where: whereClause });
+      res.status(200).json(users);
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error retrieving users',
+        error: error.message,
+      });
+    }
+  },
 
-    // Update user data
-    user.role = role || user.role;
-    user.name = name || user.name;
-    user.password = password || user.password;
+  // Get a user by unique_id
+  getUserById: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await User.findByPk(id);
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error retrieving user',
+        error: error.message,
+      });
+    }
+  },
 
-    await user.save();
+  // Update a user by unique_id
+  updateUser: async (req, res) => {
+    const { id } = req.params;
+    const { role, name, password } = req.body;
+    try {
+      const user = await User.findByPk(id);
+      if (user) {
+        await user.update({ role, name, password });
+        res.status(200).json({
+          message: 'User updated successfully',
+          user,
+        });
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error updating user',
+        error: error.message,
+      });
+    }
+  },
 
-    res.status(200).json({ message: 'User updated successfully', user });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while updating the user', error: error.message });
-  }
+  // Delete a user by unique_id
+  deleteUser: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await User.findByPk(id);
+      if (user) {
+        await user.destroy();
+        res.status(200).json({ message: 'User deleted successfully' });
+      } else {
+        res.status(404).json({ message: 'User not found' });
+      }
+    } catch (error) {
+      res.status(500).json({
+        message: 'Error deleting user',
+        error: error.message,
+      });
+    }
+  },
 };
 
-// Delete a user by unique_id
-exports.deleteUser = async (req, res) => {
-  try {
-    const { unique_id } = req.params;
-
-    // Find user by unique_id
-    const user = await User.findOne({ where: { unique_id } });
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    await user.destroy();
-
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while deleting the user', error: error.message });
-  }
-};
-
-// Get all users
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.findAll();
-    res.status(200).json({ users });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while fetching users', error: error.message });
-  }
-};
-
-// Get a user by unique_id
-exports.getUserByUniqueId = async (req, res) => {
-  try {
-    const { unique_id } = req.params;
-
-    const user = await User.findOne({ where: { unique_id } });
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    res.status(200).json({ user });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'An error occurred while fetching the user', error: error.message });
-  }
-};
+module.exports = userController;

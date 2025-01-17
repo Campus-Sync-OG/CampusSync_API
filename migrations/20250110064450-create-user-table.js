@@ -1,12 +1,12 @@
 'use strict';
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('user', {
       unique_id: {
         type: Sequelize.STRING,
         allowNull: false,
-        primaryKey: true, // Set unique_id as the primary key
+        primaryKey: true,
       },
       role: {
         type: Sequelize.ENUM('student', 'teacher', 'principal'),
@@ -22,16 +22,20 @@ module.exports = {
       },
       created_at: {
         type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        allowNull: false,
       },
       updated_at: {
         type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        allowNull: false,
       },
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
+    // Drop the table and clean up ENUM values
     await queryInterface.dropTable('user');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_user_role";'); // Cleanup ENUM type
   },
 };

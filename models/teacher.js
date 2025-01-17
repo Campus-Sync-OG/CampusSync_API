@@ -6,7 +6,8 @@ const Teacher = sequelize.define('Teacher', {
   unique_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    primaryKey: true, // Use unique_id as the primary key
+    primaryKey: true,
+    autoIncrement: true, // Use unique_id as the primary key
   },
   emp_id: {
     type: DataTypes.STRING,
