@@ -2,10 +2,10 @@ const User = require('../models/user');
 
 const userController = {
   createUser: async (req, res) => {
-    const { role, name, password } = req.body;
+    const { role, name, password,status } = req.body;
 
     try {
-      const newUser = await User.create({ role, name, password });
+      const newUser = await User.create({ role, name, password,status });
       res.status(201).json({
         message: 'User created successfully',
         user: newUser,
@@ -64,7 +64,7 @@ const userController = {
 
   updateUser: async (req, res) => {
     const { unique_id } = req.params;
-    const { role, name, password } = req.body;
+    const { role, name, password,status } = req.body;
 
     try {
       if (!unique_id || typeof unique_id !== 'string') {
@@ -76,7 +76,7 @@ const userController = {
       });
 
       if (user) {
-        await user.update({ role, name, password });
+        await user.update({ role, name, password,status });
         res.status(200).json({
           message: 'User updated successfully',
           user,

@@ -8,9 +8,8 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     unique: true, 
     references: {
-       models: User,
+       model :User,
        key:'unique_id',
-
     }
   },
   student_name: {
@@ -22,14 +21,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
   },
   phone_no: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: true,
     validate: {
       isNumeric: true,
     },
   },
   alter_no: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.BIGINT,
     allowNull: true,
     validate: {
       isNumeric: true,
@@ -45,6 +44,11 @@ const Student = sequelize.define('Student', {
     validate: {
       isIn: [['Male', 'Female', 'Other']],
     },
+  },
+  status: {
+    type: DataTypes.ENUM('active','inactive'),
+    allowNull: false,
+    defaultValue: 'active', // Default value for status
   },
 }, {
   sequelize,

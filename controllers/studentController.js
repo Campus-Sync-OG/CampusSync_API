@@ -55,7 +55,7 @@ const BASE_URL = 'http://localhost:3000/uploads';*/
 // Create a new student
 exports.createStudent = async (req, res) => {
   try {
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender,status } = req.body;
 
     // Validate unique_id in User table matches the admission_no
     const user = await User.findOne({ where: { unique_id: admission_no, role: 'student' } });
@@ -80,6 +80,7 @@ exports.createStudent = async (req, res) => {
       student_photo,
       dob,
       gender,
+      status,
     });
 
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
@@ -116,7 +117,7 @@ exports.getStudentByAdmissionNo = async (req, res) => {
 exports.updateStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
-    const { student_name, password, phone_no, alter_no, dob, gender } = req.body;
+    const { student_name, password, phone_no, alter_no, dob, gender,status } = req.body;
 
     const student = await Student.findOne({ where: { admission_no } });
     if (!student) return res.status(404).json({ message: 'Student not found' });
@@ -128,6 +129,7 @@ exports.updateStudent = async (req, res) => {
     student.alter_no = alter_no || student.alter_no;
     student.dob = dob || student.dob;
     student.gender = gender || student.gender;
+    student.status=status || student.status;
 
     // Handle file upload (if any)
     if (req.file) {

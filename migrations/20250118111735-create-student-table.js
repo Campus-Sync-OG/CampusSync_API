@@ -28,11 +28,11 @@ module.exports = {
         allowNull: false,
       },
       phone_no: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
       },
       alter_no: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: true,
       },
       student_photo: {

@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt'); // For password hashing
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active, role } = req.body;
+    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active, role,status } = req.body;
 
     if (!emp_id || !emp_name || !password) {
       return res.status(400).json({ message: 'emp_id, emp_name, and password are required' });
@@ -35,6 +35,7 @@ exports.createTeacher = async (req, res) => {
       joining_date,
       is_active,
       role,
+      status,
     });
 
     res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
@@ -77,7 +78,7 @@ exports.getTeacherById = async (req, res) => {
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { emp_name, email, subject, password, phone_no, joining_date, is_active } = req.body;
+    const { emp_name, email, subject, password, phone_no, joining_date, status} = req.body;
 
     const teacher = await Teacher.findOne({ where: { emp_id } });
 

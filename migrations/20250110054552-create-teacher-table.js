@@ -42,14 +42,14 @@ module.exports = {
         allowNull: true,
         defaultValue: Sequelize.NOW,
       },
-      is_active: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
-      },
       role: {
         type: Sequelize.ENUM('classteacher', 'subjectteacher'),
         allowNull: false,
+      },
+      status: {
+        type: DataTypes.ENUM('active','inactive'),
+        allowNull: false,
+        defaultValue: 'active', // Default value for status
       },
       
     });
