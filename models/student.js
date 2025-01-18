@@ -22,14 +22,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
   },
   phone_no: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: true,
     validate: {
       isNumeric: true,
     },
   },
   alter_no: {
-    type: DataTypes.STRING,
+    type: DataTypes.INTEGER,
     allowNull: true,
     validate: {
       isNumeric: true,
