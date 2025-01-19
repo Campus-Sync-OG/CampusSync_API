@@ -21,11 +21,7 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    status: {
-      type: DataTypes.ENUM('active','inactive'),
-      allowNull: false,
-      defaultValue: 'active', // Default value for status
-    },
+  
     created_at: {
       type: DataTypes.DATE,
       defaultValue: Sequelize.NOW,

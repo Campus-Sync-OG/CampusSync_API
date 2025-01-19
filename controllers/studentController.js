@@ -145,16 +145,26 @@ exports.updateStudent = async (req, res) => {
 };
 
 // Delete a student
-exports.deleteStudent = async (req, res) => {
+
+  // Soft delete a student
+exports.softDeleteStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
+
+    // Find the student by admission number
     const student = await Student.findOne({ where: { admission_no } });
 
-    if (!student) return res.status(404).json({ message: 'Student not found' });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
 
+    // Soft delete the student
     await student.destroy();
-    res.status(200).json({ message: 'Student deleted successfully' });
+
+    res.status(200).json({ message: 'Student soft-deleted successfully' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+

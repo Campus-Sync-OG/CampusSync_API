@@ -1,24 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const principalController = require('../controllers/PrincipalController');
+const principalController = require('../controllers/principalController');
 
-// Route to create a new principal
-router.post('/create', principalController.createPrincipal);
+// Routes for Principal CRUD Operations
+router.post('/create', principalController.createPrincipal); // Create a new principal
+router.put('/update/:p_id', principalController.updatePrincipal); // Update principal details
+router.delete('/delete/:p_id', principalController.softDeletePrincipal); // Delete a principal
+router.get('/:p_id', principalController.getPrincipalDetails); // Get principal details
 
-// Routes for managing teachers
-router.put('/teacher/status/:teacher_id', principalController.updateTeacherStatus);
 
-// Routes for managing students
-router.put('/student/status/:student_id', principalController.updateStudentStatus);
-
-// Route to allow the principal to add a teacher
-router.post('/addTeacher/:principal_id', principalController.addTeacher);
-
-// Route to allow the principal to add a student
-router.post('/addStudent/:principal_id', principalController.addStudent);
-
-// Routes to get all teachers and students managed by the principal
-router.get('/teachers', principalController.getTeachers);
-router.get('/students', principalController.getStudents);
 
 module.exports = router;

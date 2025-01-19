@@ -15,6 +15,10 @@ router.get('/:admission_no', studentController.getStudentByAdmissionNo);
 router.put('/:admission_no', studentController.updateStudent);
 
 // Delete a student by admission_no
-router.delete('/:admission_no', studentController.deleteStudent);
+router.delete('/:admission_no', studentController.softDeleteStudent);
+
+
+
+
 
 module.exports = router;
