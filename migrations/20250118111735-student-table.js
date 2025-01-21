@@ -1,0 +1,63 @@
+'use strict';
+
+const sequelize = require("../config/sequelize");
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('student', {
+      unique_id: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        primaryKey: true,
+        references: {
+          model: 'user', // Reference to the 'user' table
+          key: 'unique_id',
+        },
+      },
+      admission_no: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      student_name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      password: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      phone_no: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+      },
+      alter_no: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+      },
+      student_photo: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dob: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      class:{
+         type:sequelize.STRING,
+         allowNull:true,
+      },
+      section:{
+          type:sequelize.STRING,
+          allowNull:true,  
+      },
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('student');
+  },
+};

@@ -3,17 +3,19 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('teacher', {
-      id: {
+      unique_id: {
+        type: Sequelize.STRING,
         allowNull: false,
-        autoIncrement: true,
-        
-        type: Sequelize.INTEGER,
+        primaryKey: true,
+        references: {
+          model: 'user', // Reference to the 'user' table
+          key: 'unique_id',
+        },
       },
       emp_id: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
-        primaryKey: true,
       },
       emp_name: {
         type: Sequelize.STRING,
@@ -40,14 +42,14 @@ module.exports = {
         allowNull: true,
         defaultValue: Sequelize.NOW,
       },
-      is_active: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
-      },
       role: {
         type: Sequelize.ENUM('classteacher', 'subjectteacher'),
         allowNull: false,
+      },
+      status: {
+        type: DataTypes.ENUM('active','inactive'),
+        allowNull: false,
+        defaultValue: 'active', // Default value for status
       },
       
     });

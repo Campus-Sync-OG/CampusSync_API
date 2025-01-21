@@ -1,64 +1,67 @@
-const {Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize'); // Your Sequelize instance
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = require('../config/sequelize');
 const User = require('./user');
-const Teacher = sequelize.define('Teacher', {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  emp_id: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true, // Ensure each emp_id is unique
-  },
-  emp_name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    validate: {
-      isEmail: true, // Validate the email format
+
+const Teacher = sequelize.define(
+  'Teacher',
+  {
+    emp_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+      references: {
+        model: User, // Foreign key referencing User table
+        key: 'unique_id',
+      },
     },
-  },
-  subject: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  phone_no: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    validate: {
-      isNumeric: true, // Ensure phone number contains only numbers
+    emp_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isEmail: true,
+      },
+    },
+    subject: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    phone_no: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: {
+        isNumeric: true,
+      },
+    },
+    joining_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: DataTypes.NOW,
+    },
+    role: {
+      type: DataTypes.ENUM('classteacher', 'subjectteacher'),
+      allowNull: false,
+      defaultValue: 'classteacher',
+    },
+    status: {
+      type: DataTypes.ENUM('active','inactive'),
+      allowNull: false,
+      defaultValue: 'active', // Default value for status
+    }
   },
-  joining_date: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    defaultValue: DataTypes.NOW,
-  },
-  is_active: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    defaultValue: true,
-  },
-  role: {
-    type: DataTypes.ENUM('classteacher', 'subjectteacher'),
-    allowNull: false,
-    defaultValue: 'classteacher',
-  },
-  
-}, {
-  sequelize,
-  modelName: 'Teacher',
-  tableName: 'teacher',
-  timestamps: false, // Disable createdAt/updatedAt timestamps
-});
+  {
+    sequelize,
+    modelName: 'Teacher',
+    tableName: 'teacher',
+    timestamps: false, // Disable createdAt/updatedAt timestamps
+  }
+);
 
 module.exports = Teacher;

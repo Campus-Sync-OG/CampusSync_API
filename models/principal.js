@@ -1,16 +1,16 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize'); // Your Sequelize instance
+const sequelize = require('../config/sequelize');
 const User = require('./user');
+
 const Principal = sequelize.define('Principal', {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  emp_id: {
+  p_id: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique: true, // Ensure each emp_id is unique
+    unique:true,
+    references: {
+      model: User,
+      key: 'unique_id',
+    }
   },
   name: {
     type: DataTypes.STRING,
@@ -21,32 +21,27 @@ const Principal = sequelize.define('Principal', {
     allowNull: false,
   },
   phone_no: {
-    type: DataTypes.STRING,
+    type: DataTypes.BIGINT,
     allowNull: true,
     validate: {
-      isNumeric: true, // Ensure phone number contains only numbers
+      isNumeric: true,
     },
   },
   email: {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      isEmail: true, // Validate the email format
+      isEmail: true,
     },
   },
   school_name: {
     type: DataTypes.STRING,
-    allowNull: false, // Assuming the principal must be associated with a school
-  },
-  add_teacher: {
-    type: DataTypes.BOOLEAN,
     allowNull: false,
-    defaultValue: false, // Field to check if the principal can add teachers
   },
   joining_date: {
     type: DataTypes.DATE,
     allowNull: true,
-    defaultValue: DataTypes.NOW, // Default to current date if not provided
+    defaultValue: DataTypes.NOW,
   },
 }, {
   sequelize,

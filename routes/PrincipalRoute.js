@@ -1,20 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const PrincipalController = require('../controllers/PrincipalController');
+const principalController = require('../controllers/principalController');
 
-// Create a new principal
-router.post('/create', PrincipalController.createPrincipal);
+// Routes for Principal CRUD Operations
+router.post('/create', principalController.createPrincipal); // Create a new principal
+router.put('/update/:p_id', principalController.updatePrincipal); // Update principal details
+router.delete('/delete/:p_id', principalController.softDeletePrincipal); // Delete a principal
+router.get('/:p_id', principalController.getPrincipalDetails); // Get principal details
 
-// Get all principals
-router.get('/all', PrincipalController.getAllPrincipals);
 
-// Get a principal by emp_id
-router.get('/:emp_id', PrincipalController.getPrincipalByEmpId);
-
-// Update a principal by emp_id
-router.put('/update/:emp_id', PrincipalController.updatePrincipalByEmpId);
-
-// Delete a principal by emp_id
-router.delete('/delete/:emp_id', PrincipalController.deletePrincipalByEmpId);
 
 module.exports = router;

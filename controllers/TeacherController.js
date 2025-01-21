@@ -1,13 +1,25 @@
 const Teacher = require('../models/teacher');
+const User = require('../models/user');
 const bcrypt = require('bcrypt'); // For password hashing
 
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active,role } = req.body;
+    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active, role,status } = req.body;
 
     if (!emp_id || !emp_name || !password) {
       return res.status(400).json({ message: 'emp_id, emp_name, and password are required' });
+    }
+
+    // Validate emp_id against User model
+    const user = await User.findOne({ where: { unique_id: emp_id, role: 'teacher' } });
+
+    if (!user) {
+      return res.status(400).json({ error: 'No matching user found with role teacher' });
+    }
+
+    if (user.unique_id !== emp_id) {
+      return res.status(400).json({ error: 'Employee ID does not match the unique ID in the User model' });
     }
 
     // Hash the password before saving
@@ -23,6 +35,7 @@ exports.createTeacher = async (req, res) => {
       joining_date,
       is_active,
       role,
+      status,
     });
 
     res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
@@ -65,7 +78,7 @@ exports.getTeacherById = async (req, res) => {
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { emp_name, email, subject, password, phone_no, joining_date, is_active } = req.body;
+    const { emp_name, email, subject, password, phone_no, joining_date, status} = req.body;
 
     const teacher = await Teacher.findOne({ where: { emp_id } });
 
@@ -96,20 +109,23 @@ exports.updateTeacher = async (req, res) => {
 };
 
 // Delete a teacher
-exports.deleteTeacher = async (req, res) => {
+exports.softDeleteTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
 
-    const teacher = await Teacher.findOne({ where: { emp_id } });
+    // Find the student by admission number
+    const student = await Student.findOne({ where: { emp_id } });
 
-    if (!teacher) {
-      return res.status(404).json({ message: 'Teacher not found' });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
     }
 
-    await teacher.destroy();
+    // Soft delete the student
+    await student.destroy();
 
-    res.status(200).json({ message: 'Teacher deleted successfully' });
+    res.status(200).json({ message: 'Student soft-deleted successfully' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };

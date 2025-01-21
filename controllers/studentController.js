@@ -1,4 +1,5 @@
-const Student = require('../models/student');
+const  Student  = require('../models/student');
+const  User = require('../models/user'); // Assuming this is the User model where the unique_id is stored
 const multer = require('multer');
 const path = require('path');
 const sharp = require('sharp');
@@ -49,48 +50,18 @@ const validateImageDimensions = async (imagePath) => {
   }
 };
 
-const BASE_URL = 'http://localhost:3000/uploads';
+const BASE_URL = 'http://localhost:3000/uploads';*/
 
-// Create a new student
-// exports.createStudent = async (req, res) => {
-//   try {
-//     await handleUpload(req, res);
-//     const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
-
-//     if (!req.file) return res.status(400).json({ message: 'Student photo is required' });
-
-//     await validateImageDimensions(req.file.path);
-    
-//     const imageUrl = `${BASE_URL}/${req.file.filename}`;
-
-//     const newStudent = await Student.create({
-//       admission_no,
-//       student_name,
-//       password,
-//       phone_no,
-//       alter_no,
-//       student_photo: imageUrl,
-//       dob,
-//       gender,
-//     });
-
-//     res.status(201).json({ message: 'Student created successfully', student: newStudent });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 exports.createStudent = async (req, res) => {
   try {
-    // Handle file upload if any (but make it optional)
-    if (req.file) {
-      await validateImageDimensions(req.file.path);
-      const imageUrl = `${BASE_URL}/${req.file.filename}`;
+    await handleUpload(req, res);
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
 
-      // Include the photo URL in the student creation if it's uploaded
-      req.body.student_photo = imageUrl;
-    }
+    if (!req.file) return res.status(400).json({ message: 'Student photo is required' });
 
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, student_photo } = req.body;
+    await validateImageDimensions(req.file.path);
+    
+    const imageUrl = `${BASE_URL}/${req.file.filename}`;
 
     const newStudent = await Student.create({
       admission_no,
@@ -98,9 +69,10 @@ exports.createStudent = async (req, res) => {
       password,
       phone_no,
       alter_no,
-      student_photo,  // Will be null if no photo is uploaded
+      student_photo: imageUrl,
       dob,
       gender,
+      status,
     });
 
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
@@ -136,20 +108,22 @@ exports.getStudentByAdmissionNo = async (req, res) => {
 // Update a student
 exports.updateStudent = async (req, res) => {
   try {
-    await handleUpload(req, res);
     const { admission_no } = req.params;
-    const { student_name, password, phone_no, alter_no, dob, gender } = req.body;
+    const { student_name, password, phone_no, alter_no, dob, gender,status } = req.body;
 
     const student = await Student.findOne({ where: { admission_no } });
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
+    // Update student details
     student.student_name = student_name || student.student_name;
     student.password = password || student.password;
     student.phone_no = phone_no || student.phone_no;
     student.alter_no = alter_no || student.alter_no;
     student.dob = dob || student.dob;
     student.gender = gender || student.gender;
+    student.status=status || student.status;
 
+    // Handle file upload (if any)
     if (req.file) {
       await validateImageDimensions(req.file.path);
       student.student_photo = `${BASE_URL}/${req.file.filename}`;
@@ -163,16 +137,26 @@ exports.updateStudent = async (req, res) => {
 };
 
 // Delete a student
-exports.deleteStudent = async (req, res) => {
+
+  // Soft delete a student
+exports.softDeleteStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
+
+    // Find the student by admission number
     const student = await Student.findOne({ where: { admission_no } });
 
-    if (!student) return res.status(404).json({ message: 'Student not found' });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
 
+    // Soft delete the student
     await student.destroy();
-    res.status(200).json({ message: 'Student deleted successfully' });
+
+    res.status(200).json({ message: 'Student soft-deleted successfully' });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+
