@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/UserController'); // Adjust path if necessary
 
 // Routes
-router.get('/create', userController.getAllUsers);
+router.get('/list', userController.getAllUsers);
 
 router.get('/list/:unique_id', userController.getUserByUniqueId);
 

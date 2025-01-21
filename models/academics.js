@@ -16,7 +16,6 @@ const Academics = sequelize.define("Academics", {
       model: "student", // Table name
       key: "admission_no",
     },
-    onDelete: "CASCADE",
   },
   emp_id: {
     type: DataTypes.STRING(10),
@@ -25,7 +24,6 @@ const Academics = sequelize.define("Academics", {
       model: "teacher", // Table name
       key: "emp_id",
     },
-    onDelete: "CASCADE",
   },
   teacher_name: {
     type: DataTypes.STRING(100),
@@ -65,33 +63,5 @@ const Academics = sequelize.define("Academics", {
 });
 
 // Associations
-Academics.belongsTo(Student, {
-  foreignKey: 'admission_no',
-  targetKey: 'admission_no',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-
-Academics.belongsTo(Teacher, {
-  foreignKey: 'emp_id',
-  targetKey: 'emp_id',
-  onDelete: 'SET NULL', // Or 'CASCADE' depending on your needs
-  onUpdate: 'CASCADE',
-});
-
-// To allow reverse associations from Student and Teacher
-Student.hasMany(Academics, {
-  foreignKey: 'admission_no',
-  sourceKey: 'admission_no',
-  onDelete: 'CASCADE',
-  onUpdate: 'CASCADE',
-});
-
-Teacher.hasMany(Academics, {
-  foreignKey: 'emp_id',
-  sourceKey: 'emp_id',
-  onDelete: 'SET NULL',
-  onUpdate: 'CASCADE',
-});
 
 module.exports = Academics;

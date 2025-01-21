@@ -74,16 +74,16 @@ exports.softDeletePrincipal = async (req, res) => {
     const { p_id } = req.params;
 
     // Find the student by admission number
-    const student = await Student.findOne({ where: { p_id } });
+    const principal = await Principal.findOne({ where: { p_id } });
 
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+    if (!principal) {
+      return res.status(404).json({ message: 'principal not found' });
     }
 
     // Soft delete the student
-    await student.destroy();
+    await principal.destroy();
 
-    res.status(200).json({ message: 'Student soft-deleted successfully' });
+    res.status(200).json({ message: 'principal soft-deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });

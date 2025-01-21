@@ -1,5 +1,3 @@
-
-const sequelize = require('../config/sequelize'); // Sequelize instance
 const Student = require('../models/student');
 const Teacher = require('../models/teacher');
 const Academics = require('../models/academics');
@@ -27,8 +25,8 @@ const evaluateGrade = (marks_obtained, total_marks) => {
 exports.createAcademicRecord = async (req, res) => {
   try {
     const { 
-      admission_no, // Use admission_no to link with Student
-      emp_id,       // Use emp_id to link with Teacher
+      admission_no, 
+      emp_id, 
       teacher_name, 
       subject, 
       class_grade, 
@@ -86,12 +84,12 @@ exports.getAllAcademicRecords = async (req, res) => {
   }
 };
 
-// Read a single academic record by ID
-exports.getAcademicRecordById = async (req, res) => {
-  const { id } = req.params;
+// Read a single academic record by admission_no
+exports.getAcademicRecordByAdmissionNo = async (req, res) => {
+  const { admission_no } = req.params;
   try {
     const academicRecord = await Academics.findOne({
-      where: { id },
+      where: { admission_no },
       include: [
         { model: Student, attributes: ['admission_no', 'student_name'] },
         { model: Teacher, attributes: ['emp_id', 'emp_name'] },
@@ -109,11 +107,10 @@ exports.getAcademicRecordById = async (req, res) => {
   }
 };
 
-// Update an academic record by ID
+// Update an academic record by admission_no
 exports.updateAcademicRecord = async (req, res) => {
-  const { id } = req.params;
+  const { admission_no } = req.params;
   const { 
-    admission_no, 
     emp_id, 
     teacher_name, 
     subject, 
@@ -126,7 +123,7 @@ exports.updateAcademicRecord = async (req, res) => {
   } = req.body;
 
   try {
-    const academicRecord = await Academics.findOne({ where: { id } });
+    const academicRecord = await Academics.findOne({ where: { admission_no } });
 
     if (!academicRecord) {
       return res.status(404).json({ message: 'Academic record not found.' });
@@ -159,11 +156,11 @@ exports.updateAcademicRecord = async (req, res) => {
   }
 };
 
-// Delete an academic record by ID
+// Delete an academic record by admission_no
 exports.deleteAcademicRecord = async (req, res) => {
-  const { id } = req.params;
+  const { admission_no } = req.params;
   try {
-    const academicRecord = await Academics.findOne({ where: { id } });
+    const academicRecord = await Academics.findOne({ where: { admission_no } });
 
     if (!academicRecord) {
       return res.status(404).json({ message: 'Academic record not found.' });

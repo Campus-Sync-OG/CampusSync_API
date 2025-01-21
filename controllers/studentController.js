@@ -5,7 +5,7 @@ const  User = require('../models/user'); // Assuming this is the User model wher
 exports.createStudent = async (req, res) => {
   try {
    
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender } = req.body;
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender,status,class:classname,section } = req.body;
 
    
 
@@ -15,10 +15,11 @@ exports.createStudent = async (req, res) => {
       password,
       phone_no,
       alter_no,
-      student_photo: imageUrl,
       dob,
       gender,
       status,
+      classname,
+      section,
     });
 
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
@@ -70,10 +71,7 @@ exports.updateStudent = async (req, res) => {
     student.status=status || student.status;
 
     // Handle file upload (if any)
-    if (req.file) {
-      await validateImageDimensions(req.file.path);
-      student.student_photo = `${BASE_URL}/${req.file.filename}`;
-    }
+   
 
     await student.save();
     res.status(200).json({ message: 'Student updated successfully', student });

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const studentController = require('../controllers/studentController');
+const studentController = require('../controllers/StudentController');
 
 // Create a new student
 router.post('/create', studentController.createStudent);
@@ -12,10 +12,10 @@ router.get('/list', studentController.getAllStudents);
 router.get('/:admission_no', studentController.getStudentByAdmissionNo);
 
 // Update a student by admission_no
-router.put('/:admission_no', studentController.updateStudent);
+router.put('/update/:admission_no', studentController.updateStudent);
 
 // Delete a student by admission_no
-router.delete('/:admission_no', studentController.softDeleteStudent);
+router.delete('/delete/:admission_no', studentController.softDeleteStudent);
 
 
 

@@ -90,6 +90,7 @@ exports.updateTeacher = async (req, res) => {
     teacher.emp_name = emp_name || teacher.emp_name;
     teacher.email = email || teacher.email;
     teacher.subject = subject || teacher.subject;
+    teacher.status=status||teacher.status;
 
     if (password) {
       // Hash the new password before saving
@@ -98,7 +99,7 @@ exports.updateTeacher = async (req, res) => {
 
     teacher.phone_no = phone_no || teacher.phone_no;
     teacher.joining_date = joining_date || teacher.joining_date;
-    teacher.is_active = is_active !== undefined ? is_active : teacher.is_active;
+    
 
     await teacher.save();
 
@@ -114,16 +115,16 @@ exports.softDeleteTeacher = async (req, res) => {
     const { emp_id } = req.params;
 
     // Find the student by admission number
-    const student = await Student.findOne({ where: { emp_id } });
+    const teacher = await Teacher.findOne({ where: { emp_id } });
 
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+    if (!teacher) {
+      return res.status(404).json({ message: 'teacher not found' });
     }
 
     // Soft delete the student
-    await student.destroy();
+    await teacher.destroy();
 
-    res.status(200).json({ message: 'Student soft-deleted successfully' });
+    res.status(200).json({ message: 'teacher soft-deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
