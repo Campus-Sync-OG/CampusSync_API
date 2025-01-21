@@ -51,9 +51,16 @@ Principal.hasOne(User, {
   constraints: false,
 });
 
+Academics.belongsTo(Student, { foreignKey: 'admission_no', targetKey: 'admission_no', constraints: true, });
+Student.hasMany(Academics, { foreignKey: 'admission_no', sourceKey: 'admission_no', constraints: true, });
+
+Academics.belongsTo(Teacher, { foreignKey: 'emp_id', targetKey: 'emp_id', constraints: true, });
+Teacher.hasMany(Academics, { foreignKey: 'emp_id', sourceKey: 'emp_id', constraints: true, });
+
 module.exports = {
-    User,
-    Teacher,
-    Student,
-    Principal,
-  };
+  User,
+  Teacher,
+  Student,
+  Principal,
+  Academics,
+};

@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
-//const UserRoutes = require("./routes/userRoutes");
+const userRoutes = require("./routes/UserRoute");
 const studentRoutes = require('./routes/StudentRoute'); 
 const teacherRoutes = require('./routes/TeacherRoute');
 const principalRoutes = require('./routes/PrincipalRoute');
@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 });
 
 //Routes 
-//app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api', principalRoutes);

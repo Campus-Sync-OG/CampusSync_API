@@ -3,19 +3,14 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('teacher', {
-      unique_id: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        primaryKey: true,
-        references: {
-          model: 'user', // Reference to the 'user' table
-          key: 'unique_id',
-        },
-      },
       emp_id: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
+        references: {
+          model: 'user', // Reference to the 'user' table
+          key: 'unique_id',
+        },
       },
       emp_name: {
         type: Sequelize.STRING,

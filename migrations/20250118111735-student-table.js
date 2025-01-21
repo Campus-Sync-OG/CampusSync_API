@@ -5,19 +5,15 @@ const sequelize = require("../config/sequelize");
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('student', {
-      unique_id: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        primaryKey: true,
-        references: {
-          model: 'user', // Reference to the 'user' table
-          key: 'unique_id',
-        },
-      },
+    
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
+        references: {
+          model: 'user', // Reference to the 'user' table
+          key: 'unique_id',
+        },
       },
       student_name: {
         type: Sequelize.STRING,
@@ -35,10 +31,6 @@ module.exports = {
         type: Sequelize.BIGINT,
         allowNull: true,
       },
-      student_photo: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
       dob: {
         type: Sequelize.DATE,
         allowNull: true,
@@ -46,15 +38,22 @@ module.exports = {
       gender: {
         type: Sequelize.STRING,
         allowNull: true,
+        validate: {
+          isIn: [['Male', 'Female']],
+        },
       },
-      class:{
-         type:sequelize.STRING,
-         allowNull:true,
+      class: {
+        type: sequelize.STRING,
+        allowNull: true,
       },
-      section:{
-          type:sequelize.STRING,
-          allowNull:true,  
+      section: {
+        type: sequelize.STRING,
+        allowNull: true,
       },
+      status: {
+        type: DataTypes.ENUM('active', 'inactive'),
+        allowNull: false,
+      }
     });
   },
   async down(queryInterface, Sequelize) {

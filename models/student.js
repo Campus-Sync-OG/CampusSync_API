@@ -42,7 +42,7 @@ const Student = sequelize.define('Student', {
     type: DataTypes.STRING,
     allowNull: true,
     validate: {
-      isIn: [['Male', 'Female', 'Other']],
+      isIn: [['Male', 'Female']],
     },
   },
   status: {
@@ -50,6 +50,14 @@ const Student = sequelize.define('Student', {
     allowNull: false,
     defaultValue: 'active', // Default value for status
   },
+  class:{
+    type:DataTypes.STRING,
+    allowNull:true,
+ },
+ section:{
+     type:DataTypes.STRING,
+     allowNull:true,  
+ },
 }, {
   sequelize,
   modelName: 'Student',
