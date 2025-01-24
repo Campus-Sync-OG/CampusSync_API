@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const principalController = require('../controllers/principalController');
+const principalController = require('../controllers/PrincipalController');
 
 // Routes for Principal CRUD Operations
 router.post('/create', principalController.createPrincipal); // Create a new principal
