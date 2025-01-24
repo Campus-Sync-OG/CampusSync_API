@@ -1,66 +1,43 @@
 const sequelize = require('../config/sequelize');
-const { DataTypes } = require('sequelize');
+const DataTypes = require('sequelize').DataTypes;
 
 // Import models
-const User = require('./user');
-const Teacher = require('./teacher');
-const Student = require('./student');
-const Principal = require('./principal');
-const Academics = require('./academics');
+const _user = require('./user');
+const _teacher = require('./teacher');
+const _student = require('./student');
+const _principal = require('./principal');
+const _academics = require('./academics');
+
+const user = _user(sequelize, DataTypes);
+const teacher = _teacher(sequelize, DataTypes);
+const student = _student(sequelize, DataTypes);
+const principal = _principal(sequelize, DataTypes);
+const academics = _academics(sequelize, DataTypes);
 
 // Define associations
-User.belongsTo(Student, {
-  foreignKey: 'unique_id',
-  targetKey: 'admission_no',
-  as: 'student',
-  constraints: false, // Set this to `true` if you want to enforce database-level constraints
-});
+user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
+teacher.belongsTo(user, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'user' });
 
-Student.hasOne(User, {
-  foreignKey: 'unique_id',
-  sourceKey: 'admission_no',
-  as: 'user',
-  constraints: false,
-});
+user.hasOne(student, { foreignKey: 'admission_no', sourceKey: 'unique_id', as: 'student' });
+student.belongsTo(user, { foreignKey: 'admission_no', targetKey: 'unique_id', as: 'user' });
 
-User.belongsTo(Teacher, {
-  foreignKey: 'unique_id',
-  targetKey: 'emp_id',
-  as: 'teacher',
-  constraints: false,
-});
+user.hasOne(principal, { foreignKey: 'p_id', sourceKey: 'unique_id', as: 'principal' });
+principal.belongsTo(user, { foreignKey: 'p_id', targetKey: 'unique_id', as: 'user' });
 
-Teacher.hasOne(User, {
-  foreignKey: 'unique_id',
-  sourceKey: 'emp_id',
-  as: 'user',
-  constraints: false,
-});
+teacher.hasMany(student, { foreignKey: 'emp_id', as: 'students' });
+student.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
 
-User.belongsTo(Principal, {
-  foreignKey: 'unique_id',
-  targetKey: 'p_id',
-  as: 'principal',
-  constraints: false,
-});
+academics.belongsTo(student, { foreignKey: 'admission_no', as: 'student' });
+academics.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
 
-Principal.hasOne(User, {
-  foreignKey: 'unique_id',
-  sourceKey: 'p_id',
-  as: 'user',
-  constraints: false,
-});
-
-Academics.belongsTo(Student, { foreignKey: 'admission_no', targetKey: 'admission_no', constraints: true, });
-Student.hasMany(Academics, { foreignKey: 'admission_no', sourceKey: 'admission_no', constraints: true, });
-
-Academics.belongsTo(Teacher, { foreignKey: 'emp_id', targetKey: 'emp_id', constraints: true, });
-Teacher.hasMany(Academics, { foreignKey: 'emp_id', sourceKey: 'emp_id', constraints: true, });
+student.hasMany(academics, { foreignKey: 'admission_no', as: 'academics' });
+teacher.hasMany(academics, { foreignKey: 'emp_id', as: 'academics' });
 
 module.exports = {
-  User,
-  Teacher,
-  Student,
-  Principal,
-  Academics,
+  sequelize,
+  user,
+  teacher,
+  student,
+  principal,
+  academics,
 };
