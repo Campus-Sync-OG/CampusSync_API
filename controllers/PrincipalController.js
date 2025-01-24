@@ -1,35 +1,25 @@
-const  Principal  = require('../models/principal');
-const User = require('../models/user');
+const { principal } = require('../models');
+const { user } = require('../models');
 
 // Function to create a new principal
 exports.createPrincipal = async (req, res) => {
   try {
     const { p_id, name, password, phone_no, email, school_name, joining_date } = req.body;
 
-    // Ensure the User model is not undefined
-    if (!User) {
-      return res.status(500).json({ message: 'User model is not loaded' });
-    }
-
-    // Ensure the Principal model is not undefined
-    if (!Principal) {
-      return res.status(500).json({ message: 'Principal model is not loaded' });
-    }
-
-    // Check if the unique_id exists in the User table and matches the role
-    const user = await User.findOne({ where: { unique_id: p_id, role: 'principal' } });
-    if (!user) {
+    // Check if the `user` model exists and validate the principal's unique ID
+    const matchingUser = await user.findOne({ where: { unique_id: p_id, role: 'principal' } });
+    if (!matchingUser) {
       return res.status(400).json({ message: 'No user found with this unique_id and role principal' });
     }
 
     // Check if the principal is already created
-    const existingPrincipal = await Principal.findOne({ where: { p_id } });
+    const existingPrincipal = await principal.findOne({ where: { p_id } });
     if (existingPrincipal) {
       return res.status(400).json({ message: 'Principal with this ID already exists' });
     }
 
     // Create a new principal record
-    const principal = await Principal.create({
+    const newPrincipal = await principal.create({
       p_id,
       name,
       password,
@@ -39,7 +29,7 @@ exports.createPrincipal = async (req, res) => {
       joining_date,
     });
 
-    res.status(201).json({ message: 'Principal created successfully', principal });
+    res.status(201).json({ message: 'Principal created successfully', principal: newPrincipal });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -53,15 +43,15 @@ exports.updatePrincipal = async (req, res) => {
     const updates = req.body; // Updates from the request body
 
     // Find the principal using p_id
-    const principal = await Principal.findOne({ where: { p_id } });
-    if (!principal) {
+    const existingPrincipal = await principal.findOne({ where: { p_id } });
+    if (!existingPrincipal) {
       return res.status(404).json({ message: 'Principal not found' });
     }
 
     // Update the principal's details
-    await principal.update(updates);
+    await existingPrincipal.update(updates);
 
-    res.status(200).json({ message: 'Principal updated successfully', principal });
+    res.status(200).json({ message: 'Principal updated successfully', principal: existingPrincipal });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -73,41 +63,37 @@ exports.softDeletePrincipal = async (req, res) => {
   try {
     const { p_id } = req.params;
 
-    // Find the student by admission number
-    const principal = await Principal.findOne({ where: { p_id } });
+    // Find the principal by p_id
+    const existingPrincipal = await principal.findOne({ where: { p_id } });
 
-    if (!principal) {
-      return res.status(404).json({ message: 'principal not found' });
+    if (!existingPrincipal) {
+      return res.status(404).json({ message: 'Principal not found' });
     }
 
-    // Soft delete the student
-    await principal.destroy();
+    // Soft delete the principal (if you mean marking as inactive)
+    await existingPrincipal.update({ is_active: false });
 
-    res.status(200).json({ message: 'principal soft-deleted successfully' });
+    res.status(200).json({ message: 'Principal soft-deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
-// Function to update teacher status (active/inactive) by the principal
-
 
 // Function to fetch the principal details
 exports.getPrincipalDetails = async (req, res) => {
   try {
     const { p_id } = req.params;
 
-    // Fetch details from the Principal table
-    const principal = await Principal.findOne({ where: { p_id } });
-    if (!principal) {
+    // Fetch details from the principal table
+    const existingPrincipal = await principal.findOne({ where: { p_id } });
+    if (!existingPrincipal) {
       return res.status(404).json({ message: 'Principal not found in Principal table' });
     }
 
-    res.status(200).json(principal);
+    res.status(200).json(existingPrincipal);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
-
-

@@ -1,6 +1,6 @@
-const Student = require('../models/student');
-const Teacher = require('../models/teacher');
-const Academics = require('../models/academics');
+const {student} = require('../models');
+const {teacher}= require('../models');
+const {academics} = require('../models');
 
 // Helper function to evaluate grade based on marks
 const evaluateGrade = (marks_obtained, total_marks) => {
@@ -44,7 +44,7 @@ exports.createAcademicRecord = async (req, res) => {
     // Automatically calculate grade based on marks obtained and total marks
     const grade = evaluateGrade(marks_obtained, total_marks);
 
-    const newAcademicRecord = await Academics.create({
+    const newAcademicRecord = await academics.create({
       admission_no,
       emp_id,
       teacher_name,
@@ -71,10 +71,10 @@ exports.createAcademicRecord = async (req, res) => {
 // Read all academic records
 exports.getAllAcademicRecords = async (req, res) => {
   try {
-    const academicRecords = await Academics.findAll({
+    const academicRecords = await academics.findAll({
       include: [
-        { model: Student, attributes: ['admission_no', 'student_name'] },
-        { model: Teacher, attributes: ['emp_id', 'emp_name'] },
+        { model: student, attributes: ['admission_no', 'student_name'] },
+        { model: teacher, attributes: ['emp_id', 'emp_name'] },
       ],
     });
     return res.status(200).json(academicRecords);
@@ -91,8 +91,8 @@ exports.getAcademicRecordByAdmissionNo = async (req, res) => {
     const academicRecord = await Academics.findOne({
       where: { admission_no },
       include: [
-        { model: Student, attributes: ['admission_no', 'student_name'] },
-        { model: Teacher, attributes: ['emp_id', 'emp_name'] },
+        { model: student, attributes: ['admission_no', 'student_name'] },
+        { model: teacher, attributes: ['emp_id', 'emp_name'] },
       ],
     });
 
@@ -123,7 +123,7 @@ exports.updateAcademicRecord = async (req, res) => {
   } = req.body;
 
   try {
-    const academicRecord = await Academics.findOne({ where: { admission_no } });
+    const academicRecord = await academics.findOne({ where: { admission_no } });
 
     if (!academicRecord) {
       return res.status(404).json({ message: 'Academic record not found.' });
@@ -160,7 +160,7 @@ exports.updateAcademicRecord = async (req, res) => {
 exports.deleteAcademicRecord = async (req, res) => {
   const { admission_no } = req.params;
   try {
-    const academicRecord = await Academics.findOne({ where: { admission_no } });
+    const academicRecord = await academics.findOne({ where: { admission_no } });
 
     if (!academicRecord) {
       return res.status(404).json({ message: 'Academic record not found.' });
