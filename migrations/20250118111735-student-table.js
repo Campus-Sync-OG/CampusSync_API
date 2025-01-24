@@ -17,7 +17,7 @@ module.exports = {
       },
       student_name: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       password: {
         type: Sequelize.STRING,

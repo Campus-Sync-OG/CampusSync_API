@@ -15,7 +15,7 @@ module.exports = function (sequelize, DataTypes) {
       },
       emp_name: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       email: {
         type: DataTypes.STRING,
