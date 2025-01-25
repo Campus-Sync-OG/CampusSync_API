@@ -19,9 +19,12 @@ module.exports = function (sequelize, DataTypes) {
       },
       password: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
-
+      phonenumber:{
+        type:DataTypes.BIGINT,
+        allowNull:false,
+      },
       created_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.NOW,
