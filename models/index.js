@@ -35,8 +35,8 @@ academics.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
 student.hasMany(academics, { foreignKey: 'admission_no', as: 'academics' });
 teacher.hasMany(academics, { foreignKey: 'emp_id', as: 'academics' });
 
-assignment.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no',as: 'student',});
-assignment.belongsTo(teacher, {foreignKey: 'emp_id',targetKey: 'emp_id',as: 'teacher',});
+assignment.belongsTo(student, { foreignKey: 'admission_no', as: 'student',});
+assignment.belongsTo(teacher, {foreignKey: 'emp_id', as: 'teacher',});
 
 student.hasMany(assignment,{ foreignKey: 'admission_no', as: 'assignment'});
 teacher.hasMany(assignment,{ foreignKey: 'admission_no', as: 'assignment'});

@@ -2,10 +2,10 @@ const { Sequelize } = require('sequelize');
 const sequelize = require('../config/sequelize');
 
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('student', {
-    teacherName: {
+  return sequelize.define('assignment', {
+    emp_name: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     subject: {
         type: DataTypes.STRING,
@@ -17,11 +17,11 @@ module.exports = function (sequelize, DataTypes) {
     },
     Date: {
         type: DataTypes.DATEONLY,
-        allowNull: false,
+        allowNull: true,
     },
     attachment: {
         type: DataTypes.STRING, // Stores file path of the uploaded PDF
-        allowNull: true,
+        allowNull: false,
     },
     admission_no: {
         type: DataTypes.STRING,

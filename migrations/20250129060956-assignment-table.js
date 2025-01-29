@@ -9,9 +9,9 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
-      teacherName: {
+      emp_name: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       subject: {
         type: Sequelize.STRING,
@@ -23,7 +23,7 @@ module.exports = {
       },
       Date: {
         type: Sequelize.DATEONLY,
-        allowNull: false,
+        allowNull: true,
       },
       attachment: {
         type: Sequelize.STRING, // Stores file path of the uploaded PDF
