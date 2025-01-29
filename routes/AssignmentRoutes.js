@@ -4,7 +4,7 @@ const AssignmentController = require('../controllers/AssignmentController'); // 
 
 router.post('/create', AssignmentController.createAssignment);
 router.get('/all', AssignmentController.getAllAssignments);
-router.get('/:id', AssignmentController.getAssignmentsByAdmissionNo);
+router.get('/all/:id', AssignmentController.getAssignmentsByAdmissionNo);
 router.put('/update/:id', AssignmentController.updateAssignment);
 router.delete('/delete/:id', AssignmentController.deleteAssignment);
 

@@ -34,7 +34,7 @@ const createAssignment = async (req, res) => {
       }
   
       try {
-        const { subject, title, date, admission_no, emp_id } = req.body;
+        const { subject, title, Date, admission_no, emp_id } = req.body;
   
         if (!admission_no || !emp_id) {
           return res.status(400).json({ error: 'admission_no and emp_id are required' });
@@ -58,7 +58,7 @@ const createAssignment = async (req, res) => {
         const newAssignment = await assignment.create({
           subject,
           title,
-          date,
+          Date,
           attachment: filePath, // Store the file path in the database
           admission_no,
           emp_id,
@@ -84,7 +84,7 @@ const getAllAssignments = async (req, res) => {
         {
           model: student,
           as: 'student',
-          attributes: ['admission_no'],
+          attributes: ['admission_no','student_name'],
         },
         {
           model: teacher,
@@ -111,7 +111,12 @@ const getAllAssignments = async (req, res) => {
 // Get assignments by admission number
 const getAssignmentsByAdmissionNo = async (req, res) => {
   try {
+    console.log('admission_no:', req.params.admission_no); // Debugging
     const { admission_no } = req.params;
+
+    if (!admission_no) {
+      return res.status(400).json({ error: 'admission_no is required in the URL parameters' });
+    }
 
     const assignments = await assignment.findAll({
       where: { admission_no },
@@ -119,7 +124,7 @@ const getAssignmentsByAdmissionNo = async (req, res) => {
         {
           model: student,
           as: 'student',
-          attributes: ['admission_no'],
+          attributes: ['admission_no', 'student_name'],
         },
         {
           model: teacher,
@@ -157,34 +162,17 @@ const updateAssignment = async (req, res) => {
     try {
       const { admission_no } = req.params;
 
+      if (!admission_no) {
+        return res.status(400).json({ error: 'admission_no is required in the URL parameters' });
+      }
+
       const assignmentRecord = await assignment.findOne({ where: { admission_no } });
 
       if (!assignmentRecord) {
         return res.status(404).json({ message: 'Assignment not found' });
       }
 
-      const { subject, title, date, emp_id } = req.body;
-
-      assignmentRecord.subject = subject || assignmentRecord.subject;
-      assignmentRecord.title = title || assignmentRecord.title;
-      assignmentRecord.date = date || assignmentRecord.date;
-
-      if (emp_id) {
-        const teacherRecord = await teacher.findOne({ where: { emp_id } });
-        if (teacherRecord) {
-          assignmentRecord.emp_id = emp_id;
-        } else {
-          return res.status(404).json({ error: 'Teacher not found' });
-        }
-      }
-
-      if (req.file) {
-        assignmentRecord.attachment = req.file.path;
-      }
-
-      await assignmentRecord.save();
-
-      res.status(200).json({ message: 'Assignment updated successfully', data: assignmentRecord });
+      // Continue with the update logic...
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
