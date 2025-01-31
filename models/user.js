@@ -1,72 +1,94 @@
 const { Sequelize } = require('sequelize');
-const sequelize = require('../config/sequelize'); // Your Sequelize instance
+const sequelize = require('../config/sequelize');
 
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('user',
-    {
-      unique_id: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        primaryKey: true,
-      },
-      role: {
-        type: DataTypes.ENUM('student', 'teacher', 'principal'),
-        allowNull: false,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.NOW,
+  return sequelize.define('user', {
+    unique_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+    },
+    role: {
+      type: DataTypes.ENUM('student', 'teacher', 'principal'),
+      allowNull: false,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    phone_number:{
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isNumeric: true,
       },
     },
-    {
-      tableName: 'user',
-      timestamps: false,
-      hooks: {
-        beforeValidate: async (user) => {
-          if (!user.unique_id) {
-            let prefix = '';
-            switch (user.role) {
-              case 'student':
-                prefix = 'S';
-                break;
-              case 'teacher':
-                prefix = 'T';
-                break;
-              case 'principal':
-                prefix = 'P';
-                break;
-              default:
-                throw new Error('Invalid role specified');
+    status:{
+      type: DataTypes.ENUM('active', 'inactive'),
+      allowNull: false,
+      defaultValue: 'active',  
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    status: {
+      type: DataTypes.ENUM('active', 'inactive'),
+      defaultValue: 'active',
+    },
+  }, {
+    tableName: 'user',
+    timestamps: false,
+    hooks: {
+      beforeValidate: async (user, options) => {
+        if (!user.unique_id) {
+          const prefix = user.role === 'student' ? 'S' : user.role === 'teacher' ? 'T' : 'P';
+          const year = new Date().getFullYear();
+    
+          // Start a transaction (if not already started)
+          const transaction = options.transaction || await sequelize.transaction();
+    
+          try {
+            // Query to get the max serial number for the given role and year
+            const result = await sequelize.query(
+              `SELECT MAX(CAST(SUBSTRING(unique_id FROM '\\d{4}$') AS INTEGER)) AS max_serial
+               FROM "user"
+               WHERE unique_id LIKE :pattern`,
+              {
+                type: sequelize.QueryTypes.SELECT,
+                replacements: { pattern: `${prefix}-${year}-%` },
+                transaction,
+              }
+            );
+    
+            const maxSerial = result[0].max_serial || 0;
+            const newSerialNumber = maxSerial + 1;
+    
+            // Set the new unique_id
+            user.unique_id = `${prefix}-${year}-${String(newSerialNumber).padStart(4, '0')}`;
+    
+            // Commit the transaction if it was started within this hook
+            if (!options.transaction) {
+              await transaction.commit();
             }
-
-            const maxUniqueId = await user.constructor.findOne({
-              attributes: [[sequelize.fn('MAX', sequelize.col('unique_id')), 'max_id']],
-              raw: true,
-            });
-
-            let newSerialNumber = 1;
-            if (maxUniqueId.max_id) {
-              const lastSerial = parseInt(maxUniqueId.max_id.split('-')[1], 10);
-              newSerialNumber = lastSerial + 1;
+          } catch (error) {
+            // Rollback the transaction if it was started within this hook
+            if (!options.transaction) {
+              await transaction.rollback();
             }
-
-            user.unique_id = `${prefix}-${String(newSerialNumber).padStart(6, '0')}`;
+            throw error;
           }
-        },
+        }
       },
-    }
-  );
+    },
+    
+  });
 };

@@ -1,10 +1,10 @@
 const { user } = require('../models');
 
 exports.createUser = async (req, res) => {
-  const { role, name, password } = req.body;
+  const { role, name, password,phone_number,status } = req.body;
 
   try {
-    const newUser = await user.create({ role, name, password });
+    const newUser = await user.create({ role, name, password,phone_number,status });
     res.status(201).json({
       message: 'User created successfully',
       user: newUser,
