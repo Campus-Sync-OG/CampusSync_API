@@ -27,11 +27,14 @@ principal.belongsTo(user, { foreignKey: 'p_id', targetKey: 'unique_id', as: 'use
 teacher.hasMany(student, { foreignKey: 'emp_id', as: 'students' });
 student.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
 
-academics.belongsTo(student, { foreignKey: 'admission_no', as: 'student' });
-academics.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
+// Academics belongs to Student
+academics.belongsTo(student, {foreignKey: 'admission_no',targetKey: 'admission_no',as: 'student',});
+academics.belongsTo(teacher, {foreignKey: 'emp_id',targetKey: 'emp_id',as: 'teacher',});
 
-student.hasMany(academics, { foreignKey: 'admission_no', as: 'academics' });
-teacher.hasMany(academics, { foreignKey: 'emp_id', as: 'academics' });
+// Student has many Academics
+student.hasMany(academics, {foreignKey: 'admission_no',sourceKey: 'admission_no',as: 'academics'});
+teacher.hasMany(academics, { foreignKey: 'emp_id',sourceKey: 'emp_id',as: 'academics',});
+
 
 module.exports = {
   sequelize,

@@ -11,7 +11,7 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       emp_id: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: 'teacher', // Table name
@@ -20,23 +20,23 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       teacher_name: {
-        type: Sequelize.STRING(100),
+        type: Sequelize.STRING,
         allowNull: true,
       },
       subject: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       class_grade: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       term_semester: {
-        type: Sequelize.STRING(20),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       academic_year: {
-        type: Sequelize.STRING(9),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       marks_obtained: {

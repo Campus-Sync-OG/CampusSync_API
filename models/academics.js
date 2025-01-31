@@ -6,7 +6,7 @@ module.exports = function (sequelize, DataTypes) {
     "academics",
     {
       admission_no: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING,
         allowNull: false,
         references: {
           model: 'student', // Table name
@@ -14,7 +14,7 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
       emp_id: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING,
         allowNull: false,
         references: {
           model: 'teacher', // Table name
@@ -22,23 +22,23 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
       teacher_name: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING,
         allowNull: false,
       },
       subject: {
-        type: DataTypes.STRING(50),
+        type: DataTypes.STRING,
         allowNull: false,
       },
       class_grade: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING,
         allowNull: false,
       },
       term_semester: {
-        type: DataTypes.STRING(20),
+        type: DataTypes.STRING,
         allowNull: false,
       },
       academic_year: {
-        type: DataTypes.STRING(9),
+        type: DataTypes.STRING,
         allowNull: false,
       },
       marks_obtained: {
