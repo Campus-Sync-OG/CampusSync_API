@@ -2,47 +2,37 @@ const { Sequelize } = require('sequelize');
 const sequelize = require('../config/sequelize');
 
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('user', {
-    unique_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      primaryKey: true,
-    },
-    role: {
-      type: DataTypes.ENUM('student', 'teacher', 'principal'),
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    phone_number:{
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isNumeric: true,
+  return sequelize.define('user',
+    {
+      unique_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        primaryKey: true,
       },
-    },
-    status:{
-      type: DataTypes.ENUM('active', 'inactive'),
-      allowNull: false,
-      defaultValue: 'active',  
-    },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: Sequelize.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: Sequelize.NOW,
-    },
-    status: {
-      type: DataTypes.ENUM('active', 'inactive'),
-      defaultValue: 'active',
+      role: {
+        type: DataTypes.ENUM('student', 'teacher', 'principal'),
+        allowNull: false,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      phonenumber:{
+        type:DataTypes.BIGINT,
+        allowNull:false,
+      },
+      created_at: {
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        defaultValue: Sequelize.NOW,
+      },
     },
   }, {
     tableName: 'user',

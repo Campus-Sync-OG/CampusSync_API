@@ -7,7 +7,7 @@ const studentRoutes = require('./routes/StudentRoute');
 const teacherRoutes = require('./routes/TeacherRoute');
 const principalRoutes = require('./routes/PrincipalRoute');
 const academicsRoutes = require('./routes/AcademicsRoute');
-
+const authController = require('./controllers/authController')
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
