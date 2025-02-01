@@ -1,11 +1,14 @@
 const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
-const { user: User } = require("../models"); // Import your User model
+const { user: User } = require("../models"); // Import User model
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const verifyServiceSid = process.env.TWILIO_SERVICE_SID;
 const client = twilio(accountSid, authToken);
-const JWT_SECRET = process.env.JWT_SECRET || "277DF61AE717C633";
+const JWT_SECRET = process.env.JWT_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "YOUR_REFRESH_SECRET_HERE";
+const refreshTokens = new Set(); 
+
 
 // Function to send OTP via Twilio
 const sendOTP = async (phoneNumber) => {
@@ -54,67 +57,74 @@ exports.sendOTP = async (req, res) => {
 
 // Controller to handle verifying OTP
 exports.verifyOTP = async (req, res) => {
-  const { phonenumber, code } = req.body;
-
-  if (!phonenumber || !code) {
-    return res
-      .status(400)
-      .send({ success: false, message: "Phone number and OTP are required" });
-  }
-
   try {
+    const { phonenumber, code, role } = req.body; // Extract role from request body
+
+    console.log("Incoming Request Data:", req.body); // DEBUGGING: Check received data
+
+    if (!phonenumber || !code) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Phone number and OTP are required" });
+    }
+
     // Verify OTP
     const verificationCheck = await verifyOTP(phonenumber, code);
     if (verificationCheck.status !== "approved") {
       return res.status(400).send({ success: false, message: "Invalid OTP" });
     }
 
-    // Find user by phone number (using phonenumber field)
-    let user = await User.findOne({
-      where: { phonenumber },
-      attributes: [
-        "unique_id",
-        "name",
-        "phonenumber",
-        "role",
-        "created_at",
-        "updated_at",
-      ],
-    });
+    // Check if user already exists
+    let user = await User.findOne({ where: { phonenumber } });
 
     if (!user) {
-      // Create a new user if not found
+      // Ensure role is valid
+      const validRoles = ["student", "teacher", "principal"];
+      const assignedRole = validRoles.includes(role) ? role : "student";
+
+      console.log(`Assigned Role: ${assignedRole}`); // DEBUGGING: Check assigned role
+
+      // Create new user
       user = await User.create({
-        name: "Guest", // Default name for new users
-        phonenumber, // Store the phone number
-        role: "student", // Default role
-        status: "active", // New users are active by default
+        name: "Guest",
+        phonenumber,
+        role: assignedRole, // Assign role dynamically
+        status: "active",
       });
+
+      console.log(`New User Created: ${user.unique_id}, Role: ${user.role}`);
     } else {
-      // If user exists, update their status if needed
+      // If user exists, update status if inactive
       if (user.status === "inactive") {
         await user.update({ status: "active" });
         console.log(`User ${user.unique_id} reactivated.`);
       }
 
-      // Assuming you have a login_count field in the user model (modify this if needed)
+      // Increment login count
       user.login_count = user.login_count ? user.login_count + 1 : 1;
-
       await user.save();
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { unique_id: user.unique_id, phonenumber: user.phonenumber },
+      { unique_id: user.unique_id, phonenumber: user.phonenumber, role: user.role },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
+    const refreshToken = jwt.sign(
+      { unique_id: user.unique_id, phonenumber: user.phonenumber },
+      REFRESH_SECRET,
+      { expiresIn: "1h" } // Refresh token valid for 7 days
+    );
 
-    // Send response with the token and user details
+    refreshTokens.add(refreshToken); 
+
+    // Send response with token and user details
     res.status(200).send({
       success: true,
       message: "OTP verified successfully",
       token: `Bearer ${token}`,
+      refreshToken, 
       user: {
         unique_id: user.unique_id,
         name: user.name,
