@@ -58,10 +58,15 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    roll_no:{
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   }, {
     sequelize,
     tableName: 'student',
-    timestamps: false, // Disable createdAt/updatedAt timestamps
+    timestamps: false,
+    id:false, // Disable createdAt/updatedAt timestamps
   }
   );
 };

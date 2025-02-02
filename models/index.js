@@ -7,12 +7,14 @@ const _teacher = require('./teacher');
 const _student = require('./student');
 const _principal = require('./principal');
 const _academics = require('./academics');
+const _assignment = require('./assignment');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
 const student = _student(sequelize, DataTypes);
 const principal = _principal(sequelize, DataTypes);
 const academics = _academics(sequelize, DataTypes);
+const assignment = _assignment(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -36,6 +38,12 @@ student.hasMany(academics, {foreignKey: 'admission_no',sourceKey: 'admission_no'
 teacher.hasMany(academics, { foreignKey: 'emp_id',sourceKey: 'emp_id',as: 'academics',});
 
 
+assignment.belongsTo(student, {foreignKey: 'admission_no',  targetKey: 'admission_no',  as: 'student',});
+assignment.belongsTo(teacher, { foreignKey: 'emp_id',   targetKey: 'emp_id', as: 'teacher', });
+
+student.hasMany(assignment, { foreignKey: 'admission_no',  targetKey: 'admission_no', as: 'assignment' });
+teacher.hasMany(assignment, { foreignKey: 'admission_no',  targetKey: 'admission_no', as: 'assignment' });
+
 module.exports = {
   sequelize,
   user,
@@ -43,4 +51,5 @@ module.exports = {
   student,
   principal,
   academics,
+  assignment,
 };
