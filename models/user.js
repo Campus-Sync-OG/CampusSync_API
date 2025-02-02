@@ -20,7 +20,7 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      phonenumber: {
+      phone_number: {
         type: DataTypes.BIGINT,
         allowNull: false,
       },
