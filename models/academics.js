@@ -13,18 +13,6 @@ module.exports = function (sequelize, DataTypes) {
           key: 'admission_no',
         },
       },
-      emp_id: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        references: {
-          model: 'teacher', // Table name
-          key: 'emp_id',
-        },
-      },
-      teacher_name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       subject: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -33,9 +21,14 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      term_semester: {
+      exam_format: {
         type: DataTypes.STRING,
         allowNull: false,
+        references:{
+          model:'examformat',
+          key:'exam_name',
+        },
+
       },
       academic_year: {
         type: DataTypes.STRING,

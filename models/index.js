@@ -8,6 +8,7 @@ const _student = require('./student');
 const _principal = require('./principal');
 const _academics = require('./academics');
 const _assignment = require('./assignment');
+const _examformat=require('./examformat');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -15,6 +16,7 @@ const student = _student(sequelize, DataTypes);
 const principal = _principal(sequelize, DataTypes);
 const academics = _academics(sequelize, DataTypes);
 const assignment = _assignment(sequelize, DataTypes);
+const examformat =_examformat(sequelize,DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -44,6 +46,9 @@ assignment.belongsTo(teacher, { foreignKey: 'emp_id',   targetKey: 'emp_id', as:
 student.hasMany(assignment, { foreignKey: 'admission_no',  targetKey: 'admission_no', as: 'assignment' });
 teacher.hasMany(assignment, { foreignKey: 'admission_no',  targetKey: 'admission_no', as: 'assignment' });
 
+examformat.hasOne(principal, { foreignKey: 'id',  targetkey:'id', as:'examformat' });
+principal.belongsTo(examformat, { foreignKey: 'id',  targetKey:'id', as:'examformat'});
+
 module.exports = {
   sequelize,
   user,
@@ -52,4 +57,5 @@ module.exports = {
   principal,
   academics,
   assignment,
+  examformat,
 };

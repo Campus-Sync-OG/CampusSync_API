@@ -26,11 +26,9 @@ exports.createAcademicRecord = async (req, res) => {
   try {
     const { 
       admission_no, 
-      emp_id, 
-      teacher_name, 
       subject, 
       class_grade, 
-      term_semester, 
+      exam_format, 
       academic_year, 
       marks_obtained, 
       total_marks, 
@@ -46,11 +44,9 @@ exports.createAcademicRecord = async (req, res) => {
 
     const newAcademicRecord = await academics.create({
       admission_no,
-      emp_id,
-      teacher_name,
       subject,
       class_grade,
-      term_semester,
+      exam_format,
       academic_year,
       marks_obtained,
       total_marks,
@@ -111,11 +107,9 @@ exports.getAcademicRecordByAdmissionNo = async (req, res) => {
 exports.updateAcademicRecord = async (req, res) => {
   const { admission_no } = req.params;
   const { 
-    emp_id, 
-    teacher_name, 
     subject, 
     class_grade, 
-    term_semester, 
+    examformat, 
     academic_year, 
     marks_obtained, 
     total_marks, 
@@ -134,11 +128,9 @@ exports.updateAcademicRecord = async (req, res) => {
 
     await academicRecord.update({
       admission_no,
-      emp_id,
-      teacher_name,
       subject,
       class_grade,
-      term_semester,
+      examformat,
       academic_year,
       marks_obtained,
       total_marks,
