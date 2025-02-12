@@ -137,7 +137,7 @@ exports.getStudentsByClassAndSection = async (req, res) => {
     // Validate input: className is required, section is optional
     if (!className) {
       return res.status(400).json({ message: 'Class is required' });
-    }
+    } 
 
     // Check if the teacher exists
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
