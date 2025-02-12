@@ -1,5 +1,4 @@
-const { teacher } = require('../models');
-const { user } = require('../models');
+const { teacher,student,academics,examformat,user } = require('../models');
 const bcrypt = require('bcrypt'); // For password hashing
 
 // Create a new teacher
@@ -130,4 +129,106 @@ exports.softDeleteTeacher = async (req, res) => {
 };
 
 
+exports.getStudentsByClassAndSection = async (req, res) => {
+  try {
+    const { emp_id } = req.params; // Teacher's employee ID
+    const { className, section } = req.query; // Class & Section from query parameters
 
+    // Validate input: className is required, section is optional
+    if (!className) {
+      return res.status(400).json({ message: 'Class is required' });
+    }
+
+    // Check if the teacher exists
+    const foundTeacher = await teacher.findOne({ where: { emp_id } });
+
+    if (!foundTeacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+
+    // Query condition: Always filter by class, section is optional
+    let queryCondition = { class: className };
+    if (section) {
+      queryCondition.section = section;
+    }
+
+    // Fetch students based on provided filters
+    const students = await student.findAll({
+      where: queryCondition,
+      attributes: ['admission_no', 'student_name', 'roll_no', 'phone_no', 'dob', 'gender', 'status']
+    });
+
+    if (students.length === 0) {
+      return res.status(404).json({
+        message: section
+          ? `No students found in Class ${className} Section ${section}`
+          : `No students found in Class ${className}`
+      });
+    }
+
+    res.status(200).json({ students });
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+exports.addStudentMarks = async (req, res) => {
+  try {
+    const { emp_id } = req.params; // Teacher's Employee ID
+    const {
+      admission_no,
+      subject,
+      class_grade,
+      exam_format,
+      academic_year,
+      marks_obtained,
+      total_marks,
+      exam_date
+    } = req.query; // Data from request body
+
+    // Validate input
+    if (!admission_no || !subject || !class_grade || !exam_format || !academic_year || marks_obtained === undefined || !total_marks) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if the teacher exists
+    const foundTeacher = await teacher.findOne({ where: { emp_id } });
+
+    if (!foundTeacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Check if the student exists
+    const foundStudent = await student.findOne({ where: { admission_no } });
+
+    if (!foundStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Check if the exam_format exists in the examformat table
+    const validExamFormat = await examformat.findOne({ where: { exam_name: exam_format } });
+
+    if (!validExamFormat) {
+      return res.status(400).json({ message: `Invalid exam format: ${exam_format}. Please provide a valid exam name.` });
+    }
+
+    // Add or Update Student Marks
+    const studentMarks = await academics.create({
+      admission_no,
+      emp_id,
+      subject,
+      class_grade,
+      exam_format,
+      academic_year,
+      marks_obtained,
+      total_marks,
+      exam_date
+    });
+
+    res.status(201).json({ message: "Marks added successfully", studentMarks });
+  } catch (error) {
+    console.error("Error adding student marks:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
