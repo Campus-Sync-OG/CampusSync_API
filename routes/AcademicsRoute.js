@@ -17,4 +17,6 @@ router.put('/update/:admission_no', academicController.updateAcademicRecord);
 // Delete an academic record by admission_no
 router.delete('/delete/:admission_no', academicController.deleteAcademicRecord);
 
+
+
 module.exports = router;

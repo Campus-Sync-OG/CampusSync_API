@@ -1,66 +1,150 @@
-const fs = require('fs');
-const path = require('path');
-const csvParser = require('csv-parser');
-const multer = require('multer');
-const User = require('../models/user');
-const Student = require('../models/student');
+const fs = require("fs");
+const csv = require("csv-parser");
+const multer = require("multer");
+const { assignment, academics, teacher,examformat } = require("../models");
+const moment = require("moment");  // Using moment.js for date parsing
 
-const upload = multer({ dest: 'uploads/' });
+// Multer Storage Configuration
+const upload = multer({ dest: "uploads/" });
+
+const processCSV = async (filePath, model, res, type) => {
+  const records = [];
+
+  const processRows = new Promise((resolve, reject) => {
+    const promises = [];
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("headers", (headers) => {
+        console.log("CSV Headers:", headers);  // Debugging headers to check column names
+      })
+      .on("data", (row) => {
+        console.log("Raw CSV Row:", JSON.stringify(row, null, 2)); // Debugging
+
+        promises.push(
+          (async () => {
+            try {
+              // Extract subject key dynamically
+              let subjectKey = Object.keys(row).find((key) =>
+                key.toLowerCase().includes("subject")
+              );
+              let subject = subjectKey ? row[subjectKey] : "Unknown";
+
+              // Extract teacher name using emp_id
+              let teacher_name = "Unknown";
+              if (row.emp_id) {
+                const teacherRecord = await teacher.findOne({ where: { emp_id: row.emp_id } });
+                if (teacherRecord) teacher_name = teacherRecord.emp_name;
+              }
+
+              // Handle Date Parsing (using moment.js)
+              let formattedDate = null;
+              let rawDate = row.exam_date || row.Date || row.DATE;
+              console.log("Raw Date Field:", rawDate);  // Log the raw date
+
+              if (rawDate) {
+                // Try parsing the date using moment.js (supports multiple formats)
+                formattedDate = moment(rawDate, ["YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY"]).isValid()
+                  ? moment(rawDate).format("YYYY-MM-DD")
+                  : null;
+              }
+
+              if (!formattedDate) {
+                console.warn(`Invalid or unsupported date format for exam_date: ${rawDate}`);
+              }
+
+              // Ensure `admission_no` is properly extracted
+              let admissionNo = Object.keys(row).find(key =>
+                key.toLowerCase().includes("admission_no")
+              );
+              admissionNo = admissionNo ? row[admissionNo].trim() : null;
+
+              // Construct record object based on type
+              let record = {};
+              if (type === "assignment") {
+                record = {
+                  subject: subject.trim(),
+                  title: row.title || "Untitled",
+                  admission_no: admissionNo,
+                  emp_id: row.emp_id || null,
+                  emp_name: teacher_name,
+                  Date: formattedDate,
+                  attachment: row.attachment || null,
+                };
+              } if (type === "academics") {
+                // Fetch exam_format from the examformat table based on exam_name
+                let exam_format = "Unknown";
+                if (row.exam_format) {
+                  const examRecord = await examformat.findOne({ where: { exam_name: row.exam_format } });
+                  if (examRecord) exam_format = examRecord.exam_name;
+                }
+              
+                record = {
+                  admission_no: admissionNo,
+                  subject: subject.trim(),
+                  class_grade: row.class_grade || "Unknown",
+                  exam_format: exam_format,  // Updated to fetch from examformat table
+                  academic_year: row.academic_year || "Unknown",
+                  marks_obtained: row.marks_obtained || 0,
+                  total_marks: row.total_marks || 0,
+                  exam_date: formattedDate,
+                };
+              }
+              
+
+              console.log("Processed Record:", record); // Debugging
+
+              // Ensure `admission_no` is not null or empty before adding to records
+              if (admissionNo !== null && admissionNo !== "") {
+                records.push(record);
+              } else {
+                console.warn("Skipping record due to missing admission_no:", record);
+              }
+            } catch (error) {
+              console.error("Error processing row:", error);
+            }
+          })()
+        );
+      })
+      .on("end", async () => {
+        try {
+          await Promise.all(promises);
+          console.log("Final Records to Insert:", records);
+          if (records.length > 0) {
+            await model.bulkCreate(records);
+          } else {
+            console.warn("No valid records to insert.");
+          }
+          fs.unlinkSync(filePath);
+          res.status(200).json({ message: `${type} CSV uploaded and processed successfully` });
+        } catch (error) {
+          reject(error);
+        }
+      })
+      .on("error", (error) => reject(error));
+  });
+
+  try {
+    await processRows;
+  } catch (error) {
+    console.error("Error inserting into DB:", error);
+    res.status(500).json({ message: "Error inserting data", error });
+  }
+};
+
+// Route Handlers
+const uploadAssignmentsCSV = (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+  processCSV(req.file.path, assignment, res, "assignment");
+};
+
+const uploadAcademicsCSV = (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+  processCSV(req.file.path, academics, res, "academics");
+};
 
 module.exports = {
-  uploadStudentCSV: [
-    upload.single('file'),
-    async (req, res) => {
-      if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
-
-      const filePath = path.join(__dirname, '..', req.file.path);
-
-      try {
-        const rows = await new Promise((resolve, reject) => {
-          const data = [];
-          fs.createReadStream(filePath)
-            .pipe(csvParser({ mapHeaders: ({ header }) => header.trim().toLowerCase() }))
-            .on('data', (row) => {
-              const { uname, name, username, password, roll_no, class: classNumber, section } = row;
-              const parsedRow = {
-                uname: String(uname || '').trim(),
-                name: String(name || '').trim(),
-                username: String(username || '').trim(),
-                password: String(password || '').trim(),
-                roll_no: parseInt((roll_no || '').trim(), 10),
-                class: parseInt((classNumber || '').trim(), 10),
-                section: String(section || '').trim(),
-              };
-              if (parsedRow.uname && parsedRow.name && parsedRow.username && parsedRow.password && !isNaN(parsedRow.roll_no) && !isNaN(parsedRow.class) && parsedRow.section) {
-                data.push(parsedRow);
-              } else {
-                console.warn('Invalid row (missing required fields or invalid data):', parsedRow);
-              }
-            })
-            .on('end', () => resolve(data))
-            .on('error', reject);
-        });
-
-        await Promise.all(rows.map(async ({ uname, name, username, password, roll_no, class: classNumber, section }) => {
-          try {
-            const user = await User.findOne({ where: { uname } });
-            if (user) {
-              await Student.upsert({ name, username, password, roll_no, class: classNumber, section, user_class_teacher_id: user.id });
-              console.log(`Successfully upserted student record for ${name}`);
-            } else {
-              console.warn(`User not found for uname: ${uname}`);
-            }
-          } catch (error) {
-            console.error('Error inserting/updating student data:', error);
-          }
-        }));
-
-        fs.unlinkSync(filePath);
-        res.status(200).json({ message: 'CSV processed successfully and data updated.' });
-      } catch (error) {
-        console.error('Error during CSV processing:', error);
-        res.status(500).json({ message: 'Error processing the file.' });
-      }
-    },
-  ],
+  uploadAssignmentsCSV,
+  uploadAcademicsCSV,
+  upload,
 };
