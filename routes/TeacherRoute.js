@@ -14,4 +14,6 @@ router.post("/:emp_id/students/marks", teacherController.addStudentMarks);
 
 router.post("/upload/academics", csvController.upload.single("file"), csvController.uploadAcademicsCSV);
 
+router.post('/:emp_id/upload-attendance', teacherController.uploadAttendance);
+
 module.exports = router;

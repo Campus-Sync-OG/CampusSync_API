@@ -1,4 +1,4 @@
-const { teacher,student,academics,examformat,user } = require('../models');
+const { teacher,student,academics,examformat,user,attendance } = require('../models');
 const bcrypt = require('bcrypt'); // For password hashing
 
 // Create a new teacher
@@ -229,6 +229,36 @@ exports.addStudentMarks = async (req, res) => {
     res.status(201).json({ message: "Marks added successfully", studentMarks });
   } catch (error) {
     console.error("Error adding student marks:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.uploadAttendance = async (req, res) => {
+  try {
+    const { admission_no, emp_id, date, status } = req.body; // Get attendance details
+
+    if (!admission_no || !emp_id || !date || !status) {
+      return res.status(400).json({ message: "admission_no, emp_id, date, and status are required" });
+    }
+
+    // Check if the student exists
+    const foundStudent = await student.findOne({ where: { admission_no } });
+
+    if (!foundStudent) {
+      return res.status(404).json({ message: `Student with admission_no ${admission_no} not found` });
+    }
+
+    // Create attendance record
+    const newAttendance = await attendance.create({
+      admission_no,
+      emp_id,
+      date,
+      status,
+    });
+
+    res.status(201).json({ message: "Attendance recorded successfully", newAttendance });
+  } catch (error) {
+    console.error("Error uploading attendance:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

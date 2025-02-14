@@ -8,7 +8,8 @@ const _student = require('./student');
 const _principal = require('./principal');
 const _academics = require('./academics');
 const _assignment = require('./assignment');
-const _examformat=require('./examformat');
+const _examformat = require('./examformat');
+const _attendance=require('./attendance');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -16,7 +17,8 @@ const student = _student(sequelize, DataTypes);
 const principal = _principal(sequelize, DataTypes);
 const academics = _academics(sequelize, DataTypes);
 const assignment = _assignment(sequelize, DataTypes);
-const examformat =_examformat(sequelize,DataTypes);
+const examformat = _examformat(sequelize, DataTypes);
+const attendance=_attendance(sequelize,DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -32,22 +34,25 @@ teacher.hasMany(student, { foreignKey: 'emp_id', as: 'students' });
 student.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
 
 // Academics belongs to Student
-academics.belongsTo(student, {foreignKey: 'admission_no',targetKey: 'admission_no',as: 'student',});
+academics.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student', });
 //academics.belongsTo(teacher, {foreignKey: 'emp_id',targetKey: 'emp_id',as: 'teacher',});
 
 // Student has many Academics
-student.hasMany(academics, {foreignKey: 'admission_no',sourceKey: 'admission_no',as: 'academics'});
+student.hasMany(academics, { foreignKey: 'admission_no', sourceKey: 'admission_no', as: 'academics' });
 //teacher.hasMany(academics, { foreignKey: 'emp_id',sourceKey: 'emp_id',as: 'academics',});
 
 
-assignment.belongsTo(student, {foreignKey: 'admission_no',  targetKey: 'admission_no',  as: 'student',});
-assignment.belongsTo(teacher, { foreignKey: 'emp_id',   targetKey: 'emp_id', as: 'teacher', });
+assignment.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student', });
+assignment.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id', as: 'teacher', });
 
-student.hasMany(assignment, { foreignKey: 'admission_no',  targetKey: 'admission_no', as: 'assignment' });
-teacher.hasMany(assignment, { foreignKey: 'admission_no',  targetKey: 'admission_no', as: 'assignment' });
+student.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' });
+teacher.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' });
 
-examformat.hasOne(principal, { foreignKey: 'id',  targetkey:'id', as:'examformat' });
-principal.belongsTo(examformat, { foreignKey: 'id',  targetKey:'id', as:'examformat'});
+examformat.hasOne(principal, { foreignKey: 'id', targetkey: 'id', as: 'examformat' });
+principal.belongsTo(examformat, { foreignKey: 'id', targetKey: 'id', as: 'examformat' });
+
+student.hasMany(attendance, {foreignKey: "admission_no",sourceKey: "admission_no",as: "attendances",});
+teacher.hasMany(attendance, {foreignKey: "emp_id",sourceKey: "emp_id",as: "attendances",});
 
 module.exports = {
   sequelize,
@@ -58,4 +63,5 @@ module.exports = {
   academics,
   assignment,
   examformat,
+  attendance,
 };
