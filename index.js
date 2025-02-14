@@ -6,7 +6,6 @@ const userRoutes = require("./routes/UserRoute");
 const studentRoutes = require('./routes/StudentRoute');
 const teacherRoutes = require('./routes/TeacherRoute');
 const principalRoutes = require('./routes/PrincipalRoute');
-const academicsRoutes = require('./routes/AcademicsRoute');
 const assignmentRoutes = require('./routes/AssignmentRoutes');
 const examformatRoutes=require('./routes/ExamformatRoute');
 
@@ -23,7 +22,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/principal', principalRoutes);
-app.use('/api/academics', academicsRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/exam',examformatRoutes);
 

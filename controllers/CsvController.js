@@ -145,6 +145,6 @@ const uploadAcademicsCSV = (req, res) => {
 
 module.exports = {
   uploadAssignmentsCSV,
-  uploadAcademicsCSV,
+  uploadAcademicsCSV, 
   upload,
 };

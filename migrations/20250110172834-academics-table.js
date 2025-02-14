@@ -10,15 +10,6 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
-      emp_id: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        references: {
-          model: 'teacher', // Table name
-          key: 'emp_id',
-        },
-        onDelete: 'CASCADE',
-      },
       teacher_name: {
         type: Sequelize.STRING,
         allowNull: true,
