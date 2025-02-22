@@ -1,4 +1,4 @@
-const { user } = require('../models');
+const { user,student,fee } = require('../models');
 
 exports.createUser = async (req, res) => {
   const { role, name, password,phone_number,status } = req.body;
@@ -122,3 +122,29 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+exports.addFee = async (req, res) => {
+  try {
+      const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date } = req.body;
+
+      // Check if student exists for the provided admission_no
+      const Student = await student.findOne({ where: { admission_no } });
+      if (!Student) {
+          return res.status(404).json({ message: "Student not found" });
+      }
+
+      // Create the new fee record
+      const newFee = await fee.create({
+          admission_no, 
+          pay_date, 
+          pay_method, 
+          paid_amount, 
+          receipt_no, 
+          status, 
+          due_date 
+      });
+      res.status(201).json(newFee);
+  } catch (error) {
+      console.error("Error adding fee:", error);
+      res.status(500).json({ message: "Error adding fee" });
+  }
+};

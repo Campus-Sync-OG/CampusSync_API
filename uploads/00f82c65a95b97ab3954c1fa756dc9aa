@@ -1,0 +1,2 @@
+admission_no,pay_date,pay_method,paid_amount,receipt_no,status,due_date
+S01,25-01-2025,online,5000,R2024,paid,19-09-2025

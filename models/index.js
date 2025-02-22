@@ -10,6 +10,7 @@ const _academics = require('./academics');
 const _assignment = require('./assignment');
 const _examformat = require('./examformat');
 const _attendance=require('./attendance');
+const _fee = require('./fee');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -19,6 +20,7 @@ const academics = _academics(sequelize, DataTypes);
 const assignment = _assignment(sequelize, DataTypes);
 const examformat = _examformat(sequelize, DataTypes);
 const attendance=_attendance(sequelize,DataTypes);
+const fee = _fee(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -51,9 +53,16 @@ teacher.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_
 examformat.hasOne(principal, { foreignKey: 'id', targetkey: 'id', as: 'examformat' });
 principal.belongsTo(examformat, { foreignKey: 'id', targetKey: 'id', as: 'examformat' });
 
+examformat.hasOne(academics, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'academicDetails' });
+academics.belongsTo(examformat, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'examFormatDetails' });
+
+
 student.hasMany(attendance, {foreignKey: "admission_no",sourceKey: "admission_no",as: "attendances",});
 teacher.hasMany(attendance, {foreignKey: "emp_id",sourceKey: "emp_id",as: "attendances",});
 
+
+student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no", onDelete: "CASCADE", onUpdate: "CASCADE" });
+fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 module.exports = {
   sequelize,
   user,
@@ -64,4 +73,5 @@ module.exports = {
   assignment,
   examformat,
   attendance,
+  fee,
 };
