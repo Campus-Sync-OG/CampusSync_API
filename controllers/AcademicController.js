@@ -1,4 +1,4 @@
-const { academics,student } = require('../models');
+const { academics } = require('../models');
 
 // Get all academic records
 const getAllAcademics = async (req, res) => {

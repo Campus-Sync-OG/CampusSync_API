@@ -9,6 +9,7 @@ const principalRoutes = require('./routes/PrincipalRoute');
 const assignmentRoutes = require('./routes/AssignmentRoutes');
 const examformatRoutes=require('./routes/ExamformatRoute');
 const academicRoutes=require('./routes/AcademicsRoute');
+const  attendanceRoutes=require('./routes/AttendanceRoute');
 
 app.use(express.json());
 //routes needs to be defined 
@@ -25,7 +26,8 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/principal', principalRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/exam',examformatRoutes);
-app.use("/api/academics", academicRoutes);
+app.use('/api/academics', academicRoutes);
+app.use('/api/attendance',attendanceRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
