@@ -12,6 +12,7 @@ module.exports = function (sequelize, DataTypes) {
     exam_name: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique:true,
     },
   }, {
     sequelize,

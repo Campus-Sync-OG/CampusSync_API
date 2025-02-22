@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/UserController'); // Adjust path if necessary
 const { sendOTP, verifyOTP } = require('../controllers/authController'); // Import functions from authController
-
+const { uploadFeesCSV, upload } = require("../controllers/CsvController"); 
 // Routes
 router.get('/list', userController.getAllUsers);
 
@@ -23,5 +23,6 @@ router.get('/profile', (req, res) => {
   
   // Route for verifying OTP
   router.post('/verify-otp', verifyOTP);  // Use the verifyOTP function from authController
-  
+  router.post("/upload-fees", upload.single("file"), uploadFeesCSV);
+  router.post("/addfee", userController.addFee);
 module.exports = router;
