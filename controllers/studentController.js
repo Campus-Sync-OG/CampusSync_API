@@ -4,7 +4,7 @@ const { user } = require('../models');   // Changed to lowercase
 // Create a student
 exports.createStudent = async (req, res) => {
   try {
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section } = req.body;
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section,roll_no } = req.body;
 
     // Check if the user exists and their role is 'student'
     const userRecord = await user.findOne({
@@ -29,6 +29,7 @@ exports.createStudent = async (req, res) => {
       status,
       class: classname,
       section,
+      roll_no
     });
 
     res.status(201).json({ message: 'Student created successfully', student: newStudent });

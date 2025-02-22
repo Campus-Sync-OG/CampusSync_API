@@ -30,8 +30,8 @@ student.belongsTo(user, { foreignKey: 'admission_no', targetKey: 'unique_id', as
 user.hasOne(principal, { foreignKey: 'p_id', sourceKey: 'unique_id', as: 'principal' });
 principal.belongsTo(user, { foreignKey: 'p_id', targetKey: 'unique_id', as: 'user' });
 
-teacher.hasMany(student, { foreignKey: 'emp_id', as: 'students' });
-student.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
+//teacher.hasMany(student, { foreignKey: 'emp_id', as: 'students' });
+//student.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
 
 // Academics belongs to Student
 academics.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student', });
