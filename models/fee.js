@@ -14,8 +14,6 @@ module.exports = function (sequelize, DataTypes) {
         model: "student", // Table name in the database
         key: "admission_no",
       },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
     },
     pay_date: {
       type: DataTypes.DATE,
