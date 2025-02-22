@@ -30,8 +30,25 @@ const getAcademicById = async (req, res) => {
     }
   };
 
+  const deleteAcademicById = async (req, res) => {
+    try {
+        const { admission_no } = req.params;
+        const deleted = await academics.destroy({ where: { admission_no } });
 
-module.exports = { getAllAcademics, getAcademicById };
+        if (!deleted) {
+            return res.status(404).json({ error: "No academic records found for this admission number" });
+        }
+
+        res.status(200).json({ message: "Academic records deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting academic record:", error);
+        res.status(500).json({ error: "Failed to delete academic record", details: error.message });
+    }
+};
+
+module.exports = { getAllAcademics, getAcademicById, deleteAcademicById };
+
+
 
 
 
