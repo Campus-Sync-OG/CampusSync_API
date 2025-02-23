@@ -18,4 +18,6 @@ router.post('/:emp_id/upload-attendance', teacherController.uploadAttendance);
 
 router.put('/:emp_id',teacherController.updateAcademicRecord);
 
+router.put("/attendance-update/:emp_id", teacherController.updateAttendance);
+
 module.exports = router;

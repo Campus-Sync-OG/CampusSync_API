@@ -279,7 +279,6 @@ exports.updateAcademicRecord = async (req, res) => {
   }
 };
 
-
 exports.uploadAttendance = async (req, res) => {
   try {
     const { admission_no, emp_id, date, status } = req.body; // Get attendance details
@@ -307,5 +306,50 @@ exports.uploadAttendance = async (req, res) => {
   } catch (error) {
     console.error("Error uploading attendance:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+exports.updateAttendance = async (req, res) => {
+  try {
+    // Get details from request body
+    const { admission_no, emp_id, date, status } = req.body;
+
+    // Validate required fields
+    if (!admission_no || !emp_id || !date || !status) {
+      return res.status(400).json({ message: "admission_no, emp_id, date, and status are required." });
+    }
+
+    // Validate that the teacher exists (using emp_id)
+    const foundTeacher = await teacher.findOne({ where: { emp_id } });
+    if (!foundTeacher) {
+      return res.status(404).json({ message: "Teacher not found." });
+    }
+
+    // Validate that the student exists using admission_no
+    const foundStudent = await student.findOne({ where: { admission_no } });
+    if (!foundStudent) {
+      return res.status(404).json({ message: `Student with admission_no ${admission_no} not found.` });
+    }
+
+    // Find the existing attendance record using admission_no and date
+    // (You might need to adjust the composite key or add additional conditions based on your model)
+    const attendanceRecord = await attendance.findOne({
+      where: { admission_no, date }
+    });
+
+    if (!attendanceRecord) {
+      return res.status(404).json({ message: "Attendance record not found." });
+    }
+
+    // Update the attendance record with the new status
+    await attendanceRecord.update({
+      status: status
+    });
+
+    res.status(200).json({ message: "Attendance updated successfully.", data: attendanceRecord });
+  } catch (error) {
+    console.error("Error updating attendance:", error);
+    res.status(500).json({ message: "An error occurred while updating the attendance record." });
   }
 };
