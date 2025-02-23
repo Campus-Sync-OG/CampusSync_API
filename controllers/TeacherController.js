@@ -233,15 +233,11 @@ exports.addStudentMarks = async (req, res) => {
   }
 };
 
-
 exports.updateAcademicRecord = async (req, res) => {
   try {
-    // Capture teacher's employee id from URL params for validation/logging
-    const { emp_id } = req.params;
-    // Expect admission_no and other academic record fields in the request body
+    const { emp_id } = req.params; // Teacher's employee ID (used only for validation)
     const { admission_no, subject, exam_format, marks_obtained, total_marks, academic_year, exam_date } = req.body;
 
-    // Validate that required fields are provided
     if (!admission_no || !subject || !exam_format) {
       return res.status(400).json({ message: "Admission no, subject, and exam format are required." });
     }
@@ -252,36 +248,36 @@ exports.updateAcademicRecord = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-    // Validate the student exists using admission number
+    // Validate the student exists
     const foundStudent = await student.findOne({ where: { admission_no } });
     if (!foundStudent) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // Find the academic record using admission_no, subject, and exam_format
+    // Find the academic record
     const academicRecord = await academics.findOne({
       where: { admission_no, subject, exam_format },
     });
+
     if (!academicRecord) {
       return res.status(404).json({ message: "Academic record not found." });
     }
 
-    // Update the academic record fields if new data is provided; otherwise, keep existing values
-    academicRecord.marks_obtained = marks_obtained !== undefined ? marks_obtained : academicRecord.marks_obtained;
-    academicRecord.total_marks = total_marks !== undefined ? total_marks : academicRecord.total_marks;
-    academicRecord.academic_year = academic_year || academicRecord.academic_year;
-    academicRecord.exam_date = exam_date || academicRecord.exam_date;
-
-    // Save the updated record in the academics table
-    await academicRecord.save();
+    // Update the academic record
+    await academicRecord.update({
+      marks_obtained: marks_obtained !== undefined ? marks_obtained : academicRecord.marks_obtained,
+      total_marks: total_marks !== undefined ? total_marks : academicRecord.total_marks,
+      academic_year: academic_year || academicRecord.academic_year,
+      exam_date: exam_date || academicRecord.exam_date,
+    });
 
     res.status(200).json({ message: "Academic record updated successfully.", data: academicRecord });
+
   } catch (error) {
     console.error("Error updating academic record:", error);
     res.status(500).json({ message: "An error occurred while updating the record." });
   }
 };
-
 
 
 exports.uploadAttendance = async (req, res) => {
