@@ -428,3 +428,79 @@ exports.uploadAssignment = async (req, res) => {
   });
 };
 
+exports.updateAssignment = async (req, res) => {
+  // Use multer to handle file uploads if an attachment is included
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+    
+    try {
+      // Extract parameters from URL
+      const { emp_id } = req.params;
+      // Extract fields from the request body
+      const { subject, title, Date: assignmentDate, admission_no } = req.body;
+
+      // Validate required fields (attachment is optional on update)
+      if (!subject || !title || !assignmentDate || !admission_no) {
+        return res.status(400).json({
+          message: "subject, title, Date, and admission_no are required",
+        });
+      }
+
+      // Check if the teacher exists and get emp_name
+      const foundTeacher = await teacher.findOne({ where: { emp_id } });
+      if (!foundTeacher) {
+        return res.status(404).json({ message: "Teacher not found" });
+      }
+      const emp_name = foundTeacher.emp_name; // capture emp_name
+
+      // Find the assignment to update (and ensure it belongs to the teacher)
+      const foundAssignment = await assignment.findOne({
+        where: {  emp_id }
+      });
+      if (!foundAssignment) {
+        return res.status(404).json({ message: "Assignment not found for this teacher" });
+      }
+
+      // If the admission_no is being updated, verify the new student exists.
+      // This ensures the assignment always references a valid student.
+      if (foundAssignment.admission_no !== admission_no) {
+        const foundStudent = await student.findOne({ where: { admission_no } });
+        if (!foundStudent) {
+          return res.status(404).json({ message: "New student (admission_no) not found" });
+        }
+      }
+
+      // Prepare data to update the assignment details
+      const updateData = {
+        subject,
+        title,
+        Date: assignmentDate,
+        admission_no,  // This will update the student reference if changed
+        emp_id,
+        emp_name, // Keep the teacher's name up-to-date
+      };
+
+      // If a new file was uploaded, update the attachment field
+      if (req.file) {
+        updateData.attachment = req.file.path;
+      }
+
+      // Perform the update
+      await assignment.update(updateData, { where: { admission_no } });
+
+      // Fetch the updated assignment record
+      const updatedAssignment = await assignment.findOne({ where: { admission_no } });
+
+      res.status(200).json({
+        message: "Assignment updated successfully",
+        assignment: updatedAssignment,
+      });
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+};
+
