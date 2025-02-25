@@ -13,7 +13,7 @@ module.exports = function (sequelize, DataTypes) {
           key: 'admission_no',
         },
       },
-      subject: {
+      subjects: {
         type: DataTypes.STRING,
         allowNull: false,
         references:{

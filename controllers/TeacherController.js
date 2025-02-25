@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment,subject} = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -48,7 +48,7 @@ const findStudentByAdmissionNo = async (admission_no, res) => {
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, subject, password, phone_no, joining_date, is_active, role, status } = req.body;
+    const { emp_id, emp_name, email, subjects, password, phone_no, joining_date, is_active, role, status } = req.body;
 
     if (!emp_id || !emp_name || !password) {
       return res.status(400).json({ message: 'emp_id, emp_name, and password are required' });
@@ -69,7 +69,7 @@ exports.createTeacher = async (req, res) => {
       emp_id,
       emp_name,
       email,
-      subject,
+      subjects,
       password: hashedPassword,
       phone_no,
       joining_date,
@@ -115,7 +115,7 @@ exports.getTeacherById = async (req, res) => {
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { emp_name, email, subject, password, phone_no, joining_date, status } = req.body;
+    const { emp_name, email, subjects, password, phone_no, joining_date, status } = req.body;
 
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
     if (!foundTeacher) {
@@ -125,7 +125,7 @@ exports.updateTeacher = async (req, res) => {
     // Update fields if provided
     foundTeacher.emp_name = emp_name || foundTeacher.emp_name;
     foundTeacher.email = email || foundTeacher.email;
-    foundTeacher.subject = subject || foundTeacher.subject;
+    foundTeacher.subjects = subjects || foundTeacher.subjects;
     foundTeacher.status = status || foundTeacher.status;
     foundTeacher.phone_no = phone_no || foundTeacher.phone_no;
     foundTeacher.joining_date = joining_date || foundTeacher.joining_date;
@@ -198,7 +198,7 @@ exports.addStudentMarks = async (req, res) => {
     const { emp_id } = req.params;
     const {
       admission_no,
-      subject,
+      subjects,
       class_grade,
       exam_format,
       academic_year,
@@ -207,7 +207,7 @@ exports.addStudentMarks = async (req, res) => {
       exam_date
     } = req.query; // Consider using req.body if it's a POST
 
-    if (!admission_no || !subject || !class_grade || !exam_format || !academic_year || marks_obtained === undefined || !total_marks) {
+    if (!admission_no || !subjects || !class_grade || !exam_format || !academic_year || marks_obtained === undefined || !total_marks) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -222,15 +222,15 @@ exports.addStudentMarks = async (req, res) => {
       return res.status(400).json({ message: `Invalid exam format: ${exam_format}. Please provide a valid exam name.` });
     }
 
-    const validSubject = await subject.findOne({ where: { subject_name: subject } });
+    const validSubject = await subject.findOne({ where: { subject_name: subjects } });
     if (!validSubject) {
-      return res.status(400).json({ message: `Invalid exam format: ${subject}. Please provide a valid exam name.` });
+      return res.status(400).json({ message: `Invalid subject name: ${subjects}. Please provide a valid subject name.` });
     }
 
     const studentMarks = await academics.create({
       admission_no,
       emp_id,
-      subject,
+      subjects,
       class_grade,
       exam_format,
       academic_year,
@@ -249,9 +249,9 @@ exports.addStudentMarks = async (req, res) => {
 exports.updateAcademicRecord = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { admission_no, subject, exam_format, marks_obtained, total_marks, academic_year, exam_date } = req.body;
+    const { admission_no, subjects, exam_format, marks_obtained, total_marks, academic_year, exam_date } = req.body;
 
-    if (!admission_no || !subject || !exam_format) {
+    if (!admission_no || !subjects || !exam_format) {
       return res.status(400).json({ message: "Admission no, subject, and exam format are required." });
     }
 
@@ -262,7 +262,7 @@ exports.updateAcademicRecord = async (req, res) => {
     if (!foundStudent) return;
 
     const academicRecord = await academics.findOne({
-      where: { admission_no, subject, exam_format },
+      where: { admission_no, subjects, exam_format },
     });
     if (!academicRecord) {
       return res.status(404).json({ message: "Academic record not found." });
@@ -331,9 +331,9 @@ exports.uploadAssignment = async (req, res) => {
     if (err) return res.status(400).json({ message: err.message });
 
     try {
-      const { subject, title, admission_no, Date: assignmentDate } = req.body;
+      const { subjects, title, admission_no, Date: assignmentDate } = req.body;
       const { emp_id } = req.params;
-      if (!subject || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
+      if (!subjects || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
         return res.status(400).json({
           message: "subject, title, Date, admission_no, emp_id, and attachment are required",
         });
@@ -345,13 +345,13 @@ exports.uploadAssignment = async (req, res) => {
       const foundStudent = await findStudentByAdmissionNo(admission_no, res);
       if (!foundStudent) return;
 
-      const validSubject = await subject.findOne({ where: { subject_name: subject } });
+      const validSubject = await subject.findOne({ where: { subject_name: subjects } });
       if (!validSubject) {
-        return res.status(400).json({ message: `Invalid exam format: ${subject}. Please provide a valid exam name.` });
+        return res.status(400).json({ message: `Invalid subject name: ${subjects}. Please provide a valid subject name.` });
       }
 
       const newAssignment = await assignment.create({
-        subject,
+        subjects,
         title,
         Date: assignmentDate,
         attachment: req.file.path,
@@ -377,8 +377,8 @@ exports.updateAssignment = async (req, res) => {
 
     try {
       const { emp_id } = req.params;
-      const { subject, title, Date: assignmentDate, admission_no } = req.body;
-      if (!subject || !title || !assignmentDate || !admission_no) {
+      const { subjects, title, Date: assignmentDate, admission_no } = req.body;
+      if (!subjects || !title || !assignmentDate || !admission_no) {
         return res.status(400).json({
           message: "subject, title, Date, and admission_no are required",
         });
@@ -400,7 +400,7 @@ exports.updateAssignment = async (req, res) => {
       }
 
       const updateData = {
-        subject,
+        subjects,
         title,
         Date: assignmentDate,
         admission_no,

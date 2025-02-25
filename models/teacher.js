@@ -24,7 +24,7 @@ module.exports = function (sequelize, DataTypes) {
           isEmail: true,
         },
       },
-      subject: {
+      subjects: {
         type: DataTypes.STRING,
         allowNull: true,
         references:{
