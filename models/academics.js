@@ -16,6 +16,10 @@ module.exports = function (sequelize, DataTypes) {
       subject: {
         type: DataTypes.STRING,
         allowNull: false,
+        references:{
+          model:'subject',
+          key:'subject_name',
+        },
       },
       class_grade: {
         type: DataTypes.STRING,

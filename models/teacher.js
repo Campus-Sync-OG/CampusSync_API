@@ -27,6 +27,10 @@ module.exports = function (sequelize, DataTypes) {
       subject: {
         type: DataTypes.STRING,
         allowNull: true,
+        references:{
+          model:'subject',
+          key:'subject_name',
+        },
       },
       password: {
         type: DataTypes.STRING,

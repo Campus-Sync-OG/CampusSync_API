@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -222,6 +222,11 @@ exports.addStudentMarks = async (req, res) => {
       return res.status(400).json({ message: `Invalid exam format: ${exam_format}. Please provide a valid exam name.` });
     }
 
+    const validSubject = await subject.findOne({ where: { subject_name: subject } });
+    if (!validSubject) {
+      return res.status(400).json({ message: `Invalid exam format: ${subject}. Please provide a valid exam name.` });
+    }
+
     const studentMarks = await academics.create({
       admission_no,
       emp_id,
@@ -339,6 +344,11 @@ exports.uploadAssignment = async (req, res) => {
 
       const foundStudent = await findStudentByAdmissionNo(admission_no, res);
       if (!foundStudent) return;
+
+      const validSubject = await subject.findOne({ where: { subject_name: subject } });
+      if (!validSubject) {
+        return res.status(400).json({ message: `Invalid exam format: ${subject}. Please provide a valid exam name.` });
+      }
 
       const newAssignment = await assignment.create({
         subject,
