@@ -20,7 +20,7 @@ router.put('/:emp_id',teacherController.updateAcademicRecord);
 
 router.put('/attendance-update/:emp_id', teacherController.updateAttendance);
 
-router.post('/:emp_id/assignment;', teacherController.uploadAssignment);
+router.post('/:emp_id/assignment', teacherController.uploadAssignment);
 
 router.put('/:emp_id/update/assignment', teacherController.updateAssignment);
 

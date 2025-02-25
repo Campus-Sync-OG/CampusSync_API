@@ -1,5 +1,5 @@
-const { teacher,student,academics,examformat,user,attendance,assignment } = require('../models');
-const bcrypt = require('bcrypt'); // For password hashing
+const { teacher, student, academics, examformat, user, attendance, assignment } = require('../models');
+const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 
@@ -13,7 +13,6 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix);
   },
 });
- 
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
@@ -24,6 +23,28 @@ const upload = multer({
     }
   },
 }).single('attachment');
+
+/* Helper Functions */
+const findTeacherById = async (emp_id, res) => {
+  const foundTeacher = await teacher.findOne({ where: { emp_id } });
+  if (!foundTeacher) {
+    res.status(404).json({ message: "Teacher not found" });
+    return null;
+  }
+  return foundTeacher;
+};
+
+const findStudentByAdmissionNo = async (admission_no, res) => {
+  const foundStudent = await student.findOne({ where: { admission_no } });
+  if (!foundStudent) {
+    res.status(404).json({ message: "Student not found" });
+    return null;
+  }
+  return foundStudent;
+};
+
+/* Controllers */
+
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
@@ -35,16 +56,13 @@ exports.createTeacher = async (req, res) => {
 
     // Validate emp_id against User model
     const matchingUser = await user.findOne({ where: { unique_id: emp_id, role: 'teacher' } });
-
     if (!matchingUser) {
       return res.status(400).json({ error: 'No matching user found with role teacher' });
     }
-
     if (matchingUser.unique_id !== emp_id) {
       return res.status(400).json({ error: 'Employee ID does not match the unique ID in the User model' });
     }
 
-    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newTeacher = await teacher.create({
@@ -60,128 +78,107 @@ exports.createTeacher = async (req, res) => {
       status,
     });
 
-    res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
+    return res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error creating teacher:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-// Get all teachers
 exports.getAllTeachers = async (req, res) => {
   try {
     const teachers = await teacher.findAll();
-    if (teachers.length === 0) {
+    if (!teachers.length) {
       return res.status(404).json({ message: 'No teachers found' });
     }
-
-    res.status(200).json({ teachers });
+    return res.status(200).json({ teachers });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching teachers:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-// Get a teacher by emp_id
 exports.getTeacherById = async (req, res) => {
   try {
     const { emp_id } = req.params;
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
-
     if (!foundTeacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
-
-    res.status(200).json({ teacher: foundTeacher });
+    return res.status(200).json({ teacher: foundTeacher });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching teacher by id:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-// Update a teacher
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
     const { emp_name, email, subject, password, phone_no, joining_date, status } = req.body;
 
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
-
     if (!foundTeacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    // Update fields
+    // Update fields if provided
     foundTeacher.emp_name = emp_name || foundTeacher.emp_name;
     foundTeacher.email = email || foundTeacher.email;
     foundTeacher.subject = subject || foundTeacher.subject;
     foundTeacher.status = status || foundTeacher.status;
-
-    if (password) {
-      // Hash the new password before saving
-      foundTeacher.password = await bcrypt.hash(password, 10);
-    }
-
     foundTeacher.phone_no = phone_no || foundTeacher.phone_no;
     foundTeacher.joining_date = joining_date || foundTeacher.joining_date;
 
-    await foundTeacher.save();
+    if (password) {
+      foundTeacher.password = await bcrypt.hash(password, 10);
+    }
 
-    res.status(200).json({ message: 'Teacher updated successfully', teacher: foundTeacher });
+    await foundTeacher.save();
+    return res.status(200).json({ message: 'Teacher updated successfully', teacher: foundTeacher });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error updating teacher:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-// Delete a teacher
+// Soft delete a teacher (mark as inactive)
 exports.softDeleteTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
-
     if (!foundTeacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
-
-    // Soft delete the teacher (if you mean marking as inactive)
     await foundTeacher.update({ is_active: false });
-
-    res.status(200).json({ message: 'Teacher soft-deleted successfully' });
+    return res.status(200).json({ message: 'Teacher soft-deleted successfully' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    console.error("Error soft-deleting teacher:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
-
 
 exports.getStudentsByClassAndSection = async (req, res) => {
   try {
     const { emp_id } = req.params; // Teacher's employee ID
-    const { className, section } = req.query; // Class & Section from query parameters
+    const { className, section } = req.query; // Class & Section
 
-    // Validate input: className is required, section is optional
     if (!className) {
       return res.status(400).json({ message: 'Class is required' });
-    } 
-
-    // Check if the teacher exists
-    const foundTeacher = await teacher.findOne({ where: { emp_id } });
-
-    if (!foundTeacher) {
-      return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    // Query condition: Always filter by class, section is optional
-    let queryCondition = { class: className };
-    if (section) {
-      queryCondition.section = section;
-    }
+    const foundTeacher = await findTeacherById(emp_id, res);
+    if (!foundTeacher) return;
 
-    // Fetch students based on provided filters
+    const queryCondition = { class: className };
+    if (section) queryCondition.section = section;
+
     const students = await student.findAll({
       where: queryCondition,
       attributes: ['admission_no', 'student_name', 'roll_no', 'phone_no', 'dob', 'gender', 'status']
     });
 
-    if (students.length === 0) {
+    if (!students.length) {
       return res.status(404).json({
         message: section
           ? `No students found in Class ${className} Section ${section}`
@@ -189,16 +186,16 @@ exports.getStudentsByClassAndSection = async (req, res) => {
       });
     }
 
-    res.status(200).json({ students });
+    return res.status(200).json({ students });
   } catch (error) {
-    console.error('Error fetching students:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    console.error("Error fetching students:", error);
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
 exports.addStudentMarks = async (req, res) => {
   try {
-    const { emp_id } = req.params; // Teacher's Employee ID
+    const { emp_id } = req.params;
     const {
       admission_no,
       subject,
@@ -208,35 +205,23 @@ exports.addStudentMarks = async (req, res) => {
       marks_obtained,
       total_marks,
       exam_date
-    } = req.query; // Data from request body
+    } = req.query; // Consider using req.body if it's a POST
 
-    // Validate input
     if (!admission_no || !subject || !class_grade || !exam_format || !academic_year || marks_obtained === undefined || !total_marks) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if the teacher exists
-    const foundTeacher = await teacher.findOne({ where: { emp_id } });
+    const foundTeacher = await findTeacherById(emp_id, res);
+    if (!foundTeacher) return;
 
-    if (!foundTeacher) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
+    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+    if (!foundStudent) return;
 
-    // Check if the student exists
-    const foundStudent = await student.findOne({ where: { admission_no } });
-
-    if (!foundStudent) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    // Check if the exam_format exists in the examformat table
     const validExamFormat = await examformat.findOne({ where: { exam_name: exam_format } });
-
     if (!validExamFormat) {
       return res.status(400).json({ message: `Invalid exam format: ${exam_format}. Please provide a valid exam name.` });
     }
 
-    // Add or Update Student Marks
     const studentMarks = await academics.create({
       admission_no,
       emp_id,
@@ -249,44 +234,35 @@ exports.addStudentMarks = async (req, res) => {
       exam_date
     });
 
-    res.status(201).json({ message: "Marks added successfully", studentMarks });
+    return res.status(201).json({ message: "Marks added successfully", studentMarks });
   } catch (error) {
     console.error("Error adding student marks:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 exports.updateAcademicRecord = async (req, res) => {
   try {
-    const { emp_id } = req.params; // Teacher's employee ID (used only for validation)
+    const { emp_id } = req.params;
     const { admission_no, subject, exam_format, marks_obtained, total_marks, academic_year, exam_date } = req.body;
 
     if (!admission_no || !subject || !exam_format) {
       return res.status(400).json({ message: "Admission no, subject, and exam format are required." });
     }
 
-    // Validate the teacher exists
-    const foundTeacher = await teacher.findOne({ where: { emp_id } });
-    if (!foundTeacher) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
+    const foundTeacher = await findTeacherById(emp_id, res);
+    if (!foundTeacher) return;
 
-    // Validate the student exists
-    const foundStudent = await student.findOne({ where: { admission_no } });
-    if (!foundStudent) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+    if (!foundStudent) return;
 
-    // Find the academic record
     const academicRecord = await academics.findOne({
       where: { admission_no, subject, exam_format },
     });
-
     if (!academicRecord) {
       return res.status(404).json({ message: "Academic record not found." });
     }
 
-    // Update the academic record
     await academicRecord.update({
       marks_obtained: marks_obtained !== undefined ? marks_obtained : academicRecord.marks_obtained,
       total_marks: total_marks !== undefined ? total_marks : academicRecord.total_marks,
@@ -294,213 +270,144 @@ exports.updateAcademicRecord = async (req, res) => {
       exam_date: exam_date || academicRecord.exam_date,
     });
 
-    res.status(200).json({ message: "Academic record updated successfully.", data: academicRecord });
-
+    return res.status(200).json({ message: "Academic record updated successfully.", data: academicRecord });
   } catch (error) {
     console.error("Error updating academic record:", error);
-    res.status(500).json({ message: "An error occurred while updating the record." });
+    return res.status(500).json({ message: "An error occurred while updating the record." });
   }
 };
 
 exports.uploadAttendance = async (req, res) => {
   try {
-    const { admission_no, emp_id, date, status } = req.body; // Get attendance details
-
+    const { admission_no, emp_id, date, status } = req.body;
     if (!admission_no || !emp_id || !date || !status) {
       return res.status(400).json({ message: "admission_no, emp_id, date, and status are required" });
     }
 
-    // Check if the student exists
-    const foundStudent = await student.findOne({ where: { admission_no } });
+    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+    if (!foundStudent) return;
 
-    if (!foundStudent) {
-      return res.status(404).json({ message: `Student with admission_no ${admission_no} not found` });
-    }
-
-    // Create attendance record
-    const newAttendance = await attendance.create({
-      admission_no,
-      emp_id,
-      date,
-      status,
-    });
-
-    res.status(201).json({ message: "Attendance recorded successfully", newAttendance });
+    const newAttendance = await attendance.create({ admission_no, emp_id, date, status });
+    return res.status(201).json({ message: "Attendance recorded successfully", newAttendance });
   } catch (error) {
     console.error("Error uploading attendance:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-
 exports.updateAttendance = async (req, res) => {
   try {
-    // Get details from request body
     const { admission_no, emp_id, date, status } = req.body;
-
-    // Validate required fields
     if (!admission_no || !emp_id || !date || !status) {
       return res.status(400).json({ message: "admission_no, emp_id, date, and status are required." });
     }
 
-    // Validate that the teacher exists (using emp_id)
-    const foundTeacher = await teacher.findOne({ where: { emp_id } });
-    if (!foundTeacher) {
-      return res.status(404).json({ message: "Teacher not found." });
-    }
+    const foundTeacher = await findTeacherById(emp_id, res);
+    if (!foundTeacher) return;
 
-    // Validate that the student exists using admission_no
-    const foundStudent = await student.findOne({ where: { admission_no } });
-    if (!foundStudent) {
-      return res.status(404).json({ message: `Student with admission_no ${admission_no} not found.` });
-    }
+    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+    if (!foundStudent) return;
 
-    // Find the existing attendance record using admission_no and date
-    // (You might need to adjust the composite key or add additional conditions based on your model)
-    const attendanceRecord = await attendance.findOne({
-      where: { admission_no, date }
-    });
-
+    const attendanceRecord = await attendance.findOne({ where: { admission_no, date } });
     if (!attendanceRecord) {
       return res.status(404).json({ message: "Attendance record not found." });
     }
 
-    // Update the attendance record with the new status
-    await attendanceRecord.update({
-      status: status
-    });
-
-    res.status(200).json({ message: "Attendance updated successfully.", data: attendanceRecord });
+    await attendanceRecord.update({ status });
+    return res.status(200).json({ message: "Attendance updated successfully.", data: attendanceRecord });
   } catch (error) {
     console.error("Error updating attendance:", error);
-    res.status(500).json({ message: "An error occurred while updating the attendance record." });
+    return res.status(500).json({ message: "An error occurred while updating the attendance record." });
   }
 };
 
 exports.uploadAssignment = async (req, res) => {
   upload(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
-    }
+    if (err) return res.status(400).json({ message: err.message });
 
     try {
       const { subject, title, admission_no, Date: assignmentDate } = req.body;
-      const { emp_id } = req.params; // Extract emp_id from the URL parameters
-
-      // Validate that all required fields are provided
+      const { emp_id } = req.params;
       if (!subject || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
-        return res.status(400).json({ message: "subject, title, Date, admission_no, emp_id, and attachment are required" });
+        return res.status(400).json({
+          message: "subject, title, Date, admission_no, emp_id, and attachment are required",
+        });
       }
 
-      // Check if the teacher exists and get emp_name
-      const foundTeacher = await teacher.findOne({ where: { emp_id } });
-      if (!foundTeacher) {
-        return res.status(404).json({ message: "Teacher not found" });
-      }
+      const foundTeacher = await findTeacherById(emp_id, res);
+      if (!foundTeacher) return;
 
-      const emp_name = foundTeacher.emp_name; // Fetch the emp_name from the teacher record
+      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+      if (!foundStudent) return;
 
-      // Check if the student exists
-      const foundStudent = await student.findOne({ where: { admission_no } });
-      if (!foundStudent) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-
-      // Get file path from multer
-      const filePath = req.file.path;
-
-      // Create assignment record in the database with emp_name
       const newAssignment = await assignment.create({
         subject,
         title,
         Date: assignmentDate,
-        attachment: filePath,
+        attachment: req.file.path,
         admission_no,
         emp_id,
-        emp_name, // Store emp_name in the assignment table
+        emp_name: foundTeacher.emp_name,
       });
 
-      res.status(201).json({ message: "Assignment uploaded successfully", assignment: newAssignment });
+      return res.status(201).json({
+        message: "Assignment uploaded successfully",
+        assignment: newAssignment,
+      });
     } catch (error) {
       console.error("Error uploading assignment:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   });
 };
 
 exports.updateAssignment = async (req, res) => {
-  // Use multer to handle file uploads if an attachment is included
   upload(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ message: err.message });
-    }
-    
-    try {
-      // Extract parameters from URL
-      const { emp_id } = req.params;
-      // Extract fields from the request body
-      const { subject, title, Date: assignmentDate, admission_no } = req.body;
+    if (err) return res.status(400).json({ message: err.message });
 
-      // Validate required fields (attachment is optional on update)
+    try {
+      const { emp_id } = req.params;
+      const { subject, title, Date: assignmentDate, admission_no } = req.body;
       if (!subject || !title || !assignmentDate || !admission_no) {
         return res.status(400).json({
           message: "subject, title, Date, and admission_no are required",
         });
       }
 
-      // Check if the teacher exists and get emp_name
-      const foundTeacher = await teacher.findOne({ where: { emp_id } });
-      if (!foundTeacher) {
-        return res.status(404).json({ message: "Teacher not found" });
-      }
-      const emp_name = foundTeacher.emp_name; // capture emp_name
+      const foundTeacher = await findTeacherById(emp_id, res);
+      if (!foundTeacher) return;
+      const emp_name = foundTeacher.emp_name;
 
-      // Find the assignment to update (and ensure it belongs to the teacher)
-      const foundAssignment = await assignment.findOne({
-        where: {  emp_id }
-      });
+      const foundAssignment = await assignment.findOne({ where: { emp_id, admission_no } });
       if (!foundAssignment) {
         return res.status(404).json({ message: "Assignment not found for this teacher" });
       }
 
-      // If the admission_no is being updated, verify the new student exists.
-      // This ensures the assignment always references a valid student.
+      // If admission_no changed (rare scenario), validate new student exists
       if (foundAssignment.admission_no !== admission_no) {
-        const foundStudent = await student.findOne({ where: { admission_no } });
-        if (!foundStudent) {
-          return res.status(404).json({ message: "New student (admission_no) not found" });
-        }
+        const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+        if (!foundStudent) return;
       }
 
-      // Prepare data to update the assignment details
       const updateData = {
         subject,
         title,
         Date: assignmentDate,
-        admission_no,  // This will update the student reference if changed
+        admission_no,
         emp_id,
-        emp_name, // Keep the teacher's name up-to-date
+        emp_name,
+        ...(req.file && { attachment: req.file.path }),
       };
 
-      // If a new file was uploaded, update the attachment field
-      if (req.file) {
-        updateData.attachment = req.file.path;
-      }
-
-      // Perform the update
-      await assignment.update(updateData, { where: { admission_no } });
-
-      // Fetch the updated assignment record
-      const updatedAssignment = await assignment.findOne({ where: { admission_no } });
-
-      res.status(200).json({
+      await assignment.update(updateData, { where: { emp_id, admission_no } });
+      const updatedAssignment = await assignment.findOne({ where: { emp_id, admission_no } });
+      return res.status(200).json({
         message: "Assignment updated successfully",
         assignment: updatedAssignment,
       });
     } catch (error) {
       console.error("Error updating assignment:", error);
-      res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   });
 };
-
