@@ -1,6 +1,29 @@
-const { teacher,student,academics,examformat,user,attendance } = require('../models');
+const { teacher,student,academics,examformat,user,attendance,assignment } = require('../models');
 const bcrypt = require('bcrypt'); // For password hashing
+const multer = require('multer');
+const path = require('path');
 
+// Set up multer for PDF uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Ensure this directory exists
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueSuffix);
+  },
+});
+ 
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  },
+}).single('attachment');
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
@@ -353,3 +376,55 @@ exports.updateAttendance = async (req, res) => {
     res.status(500).json({ message: "An error occurred while updating the attendance record." });
   }
 };
+
+exports.uploadAssignment = async (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    try {
+      const { subject, title, admission_no, Date: assignmentDate } = req.body;
+      const { emp_id } = req.params; // Extract emp_id from the URL parameters
+
+      // Validate that all required fields are provided
+      if (!subject || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
+        return res.status(400).json({ message: "subject, title, Date, admission_no, emp_id, and attachment are required" });
+      }
+
+      // Check if the teacher exists and get emp_name
+      const foundTeacher = await teacher.findOne({ where: { emp_id } });
+      if (!foundTeacher) {
+        return res.status(404).json({ message: "Teacher not found" });
+      }
+
+      const emp_name = foundTeacher.emp_name; // Fetch the emp_name from the teacher record
+
+      // Check if the student exists
+      const foundStudent = await student.findOne({ where: { admission_no } });
+      if (!foundStudent) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      // Get file path from multer
+      const filePath = req.file.path;
+
+      // Create assignment record in the database with emp_name
+      const newAssignment = await assignment.create({
+        subject,
+        title,
+        Date: assignmentDate,
+        attachment: filePath,
+        admission_no,
+        emp_id,
+        emp_name, // Store emp_name in the assignment table
+      });
+
+      res.status(201).json({ message: "Assignment uploaded successfully", assignment: newAssignment });
+    } catch (error) {
+      console.error("Error uploading assignment:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+};
+
