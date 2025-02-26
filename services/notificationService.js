@@ -23,11 +23,11 @@ const sendSMS = (notification) => {
 
   recipients.forEach((number) => {
     twilioClient.messages
-      .create({
-        body: `${notification.type}: ${notification.title} - ${notification.message}`,
-        messagingServiceSid: process.env.TWILIO_SERVICE_SID,
-        to: number,
-      })
+    .create({
+      body: `${notification.type}: ${notification.title} - ${notification.message}`,
+      messagingServiceSid: process.env.TWILIO_SERVICE_SID, // ✅ Use this instead of 'from'
+      to: number,
+    })
       .then((message) => console.log(`SMS sent to ${number}:`, message.sid))
       .catch((error) => console.error("Twilio Error:", error));
   });
