@@ -11,6 +11,7 @@ const _assignment = require('./assignment');
 const _examformat = require('./examformat');
 const _attendance=require('./attendance');
 const _fee = require('./fee');
+const _forms=require('./forms');
 const _subject=require('./subject');
 
 const user = _user(sequelize, DataTypes);
@@ -22,6 +23,7 @@ const assignment = _assignment(sequelize, DataTypes);
 const examformat = _examformat(sequelize, DataTypes);
 const attendance=_attendance(sequelize,DataTypes);
 const fee = _fee(sequelize, DataTypes);
+const forms=_forms(sequelize,DataTypes)
 const subject=_subject(sequelize,DataTypes);
 
 // Define associations
@@ -66,6 +68,8 @@ teacher.hasMany(attendance, {foreignKey: "emp_id",sourceKey: "emp_id",as: "atten
 student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no", onDelete: "CASCADE", onUpdate: "CASCADE" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
+forms.hasOne(teacher,{foreignKey:'id', targetkey:'id',as:'forms'});
+
 
 subject.hasOne(principal,{foreignKey:'id',targetKey:'id',as:'subjects'});
 
@@ -80,5 +84,6 @@ module.exports = {
   examformat,
   attendance,
   fee,
+  forms,
   subject,
 };
