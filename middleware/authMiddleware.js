@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-
+const {user} = require("../models");
 // JWT secret key (make sure it is stored securely, e.g., in an environment variable)
 const JWT_SECRET = process.env.JWT_SECRET ;
 
@@ -21,5 +21,33 @@ const authenticateToken = (req, res, next) => {
     next();  // Call the next middleware or route handler
   });
 };
+const authenticateUser = async (req, res, next) => {
+  try {
+    const token = req.header("Authorization")?.split(" ")[1];
+    if (!token) return res.status(401).json({ success: false, message: "Unauthorized" });
+    console.log("Received Token:", token); 
 
-module.exports = authenticateToken;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded Token:", decoded);
+    const User = await user.findByPk(decoded.unique_id);
+    
+
+    if (!User) return res.status(401).json({ success: false, message: "User not found" })
+    req.user = User;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
+};
+
+// Authorize specific roles
+const authorizeRole = (roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: "Forbidden: Insufficient permissions" });
+    }
+    next();
+  };
+};
+
+module.exports = { authenticateToken ,authenticateUser, authorizeRole };

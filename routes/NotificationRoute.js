@@ -1,34 +1,26 @@
 const express = require("express");
+const NotificationController = require("../controllers/NotificationController");
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
+
 const router = express.Router();
-const { addNotification, getNotifications, sendSMS } = require("../services/notificationService");
 
-// ✅ Get all notifications
-router.get("/getNotification", (req, res) => {
-  res.json({ notifications: getNotifications() });
-});
+// Allow only Teachers and Management to send notifications
+router.post(
+  "/postnot",
+  authenticateUser,
+  authorizeRole(["teacher", "Management"]),
+  NotificationController.createNotification
+);
 
-// ✅ Send a new notification
-router.post("/sendNotification", (req, res) => {
-  try {
-    const { type, title, message, recipient } = req.body;
+// Get all notifications (accessible to all logged-in users)
+router.get("/", authenticateUser, NotificationController.getNotifications);
 
-    if (!type || !title || !message || !recipient) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    // Save notification
-    const newNotification = addNotification({ type, title, message, recipient });
-
-    // Send SMS for selected types
-    if (["General Announcement", "Event Announcement", "Academic Results"].includes(type)) {
-      sendSMS(newNotification);
-    }
-
-    res.status(201).json({ message: "Notification sent successfully", notification: newNotification });
-  } catch (error) {
-    console.error("Error sending notification:", error);
-    res.status(500).json({ message: "Internal server error", error });
-  }
-});
+// Delete a notification (only Teachers and Management can delete)
+router.delete(
+  "/:id",
+  authenticateUser,
+  authorizeRole(["Teacher", "Management"]),
+  NotificationController.deleteNotification
+);
 
 module.exports = router;

@@ -11,6 +11,7 @@ const _assignment = require('./assignment');
 const _examformat = require('./examformat');
 const _attendance=require('./attendance');
 const _fee = require('./fee');
+const _notification=require('./notification');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -21,6 +22,7 @@ const assignment = _assignment(sequelize, DataTypes);
 const examformat = _examformat(sequelize, DataTypes);
 const attendance=_attendance(sequelize,DataTypes);
 const fee = _fee(sequelize, DataTypes);
+const notification = _notification(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -63,6 +65,10 @@ teacher.hasMany(attendance, {foreignKey: "emp_id",sourceKey: "emp_id",as: "atten
 
 student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no", onDelete: "CASCADE", onUpdate: "CASCADE" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
+
+user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id", onDelete: "CASCADE" });
+notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id", onDelete: "CASCADE" });
+
 module.exports = {
   sequelize,
   user,
@@ -74,4 +80,5 @@ module.exports = {
   examformat,
   attendance,
   fee,
+  notification,
 };

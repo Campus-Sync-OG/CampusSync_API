@@ -10,7 +10,7 @@ const principalRoutes = require('./routes/PrincipalRoute');
 const assignmentRoutes = require('./routes/AssignmentRoutes');
 const examformatRoutes=require('./routes/ExamformatRoute');
 const feeRoutes = require("./routes/FeeRoutes");
-const { setupNotificationSocket } = require("./controllers/NotificationController");
+
 const notificationRoutes = require("./routes/NotificationRoute");
 
 const server = http.createServer(app);
@@ -32,7 +32,7 @@ app.use('/api/exam',examformatRoutes);
 app.use('/api/fee', feeRoutes);
 app.use("/api/notification", notificationRoutes);
 
-setupNotificationSocket(server);
+
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });

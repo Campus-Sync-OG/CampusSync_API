@@ -1,28 +1,72 @@
-const { addNotification, getNotifications, sendSMS } = require("../services/notificationService");
-const { Server } = require("socket.io");
+const { notification } = require("../models");
+const NotificationService = require("../services/notificationService");
 
-const setupNotificationSocket = (server) => {
-  const io = new Server(server, { cors: { origin: "*" } });
+class NotificationController {
+  // Create a new notification
+  static async createNotification(req, res) {
+    try {
+      const { notification_type, title, message } = req.body;
+      const user_id = req.unique_id; 
+      
+      const Notification = await notification.create({ notification_type, title, message, user_id });
+      
+      // Send notifications
+      await NotificationService.sendSMS(notification_type, title, message);
+      await NotificationService.sendPushNotification(notification_type, title, message);
+      
+      return res.status(201).json({ success: true, message: "Notification created successfully", data: Notification });
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      return res.status(500).json({ success: false, message: "Failed to create notification" });
+    }
+  }
 
-  io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
-
-    socket.on("sendNotification", (data) => {
-      console.log("New Notification:", data);
-
-      addNotification(data); // Store notification
-      io.emit("newNotification", data); // Broadcast to all clients
-
-      // Send SMS only for selected types
-      if (["General Announcement", "Event Announcement", "Academic Results"].includes(data.type)) {
-        sendSMS(data);
+    // Get notifications based on user role
+    static async getNotifications(req, res) {
+      try {
+        const { role } = req.user; // Assuming role is stored in req.user
+  
+        let notifications;
+        if (role === "Student") {
+          // Students see only SMS-based and push notifications
+          notifications = await Notification.findAll({
+            where: {
+              notification_type: ["Fee Reminder", "Academic Update", "Leave Update", "General Announcement"]
+            },
+            order: [["createdAt", "DESC"]]
+          });
+        } else {
+          // Teachers & Management see all notifications
+          notifications = await Notification.findAll({
+            order: [["createdAt", "DESC"]]
+          });
+        }
+  
+        return res.status(200).json({ success: true, data: notifications });
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        return res.status(500).json({ success: false, message: "Failed to retrieve notifications" });
       }
-    });
+    }
+  
 
-    socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
-    });
-  });
-};
+  // Delete a notification by ID
+  static async deleteNotification(req, res) {
+    try {
+      const { id } = req.params;
+      const notification = await Notification.findByPk(id);
+      
+      if (!notification) {
+        return res.status(404).json({ success: false, message: "Notification not found" });
+      }
+      
+      await notification.destroy();
+      return res.status(200).json({ success: true, message: "Notification deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      return res.status(500).json({ success: false, message: "Failed to delete notification" });
+    }
+  }
+}
 
-module.exports = { setupNotificationSocket };
+module.exports = NotificationController;
