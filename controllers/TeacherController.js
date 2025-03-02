@@ -249,7 +249,7 @@ exports.addStudentMarks = async (req, res) => {
 exports.updateAcademicRecord = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { admission_no, subjects, exam_format, marks_obtained, total_marks, academic_year, exam_date } = req.body;
+    const { admission_no, subjects, exam_format, class_grade,marks_obtained, total_marks, academic_year, exam_date } = req.body;
 
     if (!admission_no || !subjects || !exam_format) {
       return res.status(400).json({ message: "Admission no, subject, and exam format are required." });
@@ -273,6 +273,7 @@ exports.updateAcademicRecord = async (req, res) => {
       total_marks: total_marks !== undefined ? total_marks : academicRecord.total_marks,
       academic_year: academic_year || academicRecord.academic_year,
       exam_date: exam_date || academicRecord.exam_date,
+      class_grade: class_grade || academicRecord.class_grade,
     });
 
     return res.status(200).json({ message: "Academic record updated successfully.", data: academicRecord });
