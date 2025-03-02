@@ -7,9 +7,13 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    subject: {
+    subjects: {
         type: DataTypes.STRING,
         allowNull: false,
+        references:{
+            model:'subject',
+            key:'subject_name',
+        },
     },
     title: {
         type: DataTypes.STRING,
