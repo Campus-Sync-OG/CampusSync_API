@@ -11,11 +11,11 @@ const refreshTokens = new Set();
 
 
 // Function to send OTP via Twilio
-const sendOTP = async (phoneNumber) => {
+const sendOTP = async (phone_number) => {
   try {
     const verification = await client.verify.v2
       .services(verifyServiceSid)
-      .verifications.create({ to: phoneNumber, channel: "sms" });
+      .verifications.create({ to: phone_number, channel: "sms" });
     return verification;
   } catch (error) {
     throw error;
@@ -23,11 +23,11 @@ const sendOTP = async (phoneNumber) => {
 };
 
 // Function to verify OTP via Twilio
-const verifyOTP = async (phoneNumber, code) => {
+const verifyOTP = async (phone_number, code) => {
   try {
     const verificationCheck = await client.verify.v2
       .services(verifyServiceSid)
-      .verificationChecks.create({ to: phoneNumber, code });
+      .verificationChecks.create({ to: phone_number, code });
     return verificationCheck;
   } catch (error) {
     throw error;
@@ -37,14 +37,14 @@ const verifyOTP = async (phoneNumber, code) => {
 // Controller to handle sending OTP
 exports.sendOTP = async (req, res) => {
   try {
-    const { phonenumber } = req.body;
-    if (!phonenumber) {
+    const { phone_number } = req.body;
+    if (!phone_number) {
       return res
         .status(400)
         .send({ success: false, message: "Phone number is required" });
     }
 
-    const verification = await sendOTP(phonenumber);
+    const verification = await sendOTP(phone_number);
     res.status(200).send({ success: true, status: verification.status });
   } catch (error) {
     res.status(500).send({
@@ -58,24 +58,24 @@ exports.sendOTP = async (req, res) => {
 // Controller to handle verifying OTP
 exports.verifyOTP = async (req, res) => {
   try {
-    const { phonenumber, code, role } = req.body; // Extract role from request body
+    const { phone_number, code, role } = req.body; // Extract role from request body
 
     console.log("Incoming Request Data:", req.body); // DEBUGGING: Check received data
 
-    if (!phonenumber || !code) {
+    if (!phone_number || !code) {
       return res
         .status(400)
         .send({ success: false, message: "Phone number and OTP are required" });
     }
 
     // Verify OTP
-    const verificationCheck = await verifyOTP(phonenumber, code);
+    const verificationCheck = await verifyOTP(phone_number, code);
     if (verificationCheck.status !== "approved") {
       return res.status(400).send({ success: false, message: "Invalid OTP" });
     }
 
     // Check if user already exists
-    let user = await User.findOne({ where: { phonenumber } });
+    let user = await User.findOne({ where: { phone_number } });
 
     if (!user) {
       // Ensure role is valid
@@ -87,7 +87,7 @@ exports.verifyOTP = async (req, res) => {
       // Create new user
       user = await User.create({
         name: "Guest",
-        phonenumber,
+        phone_number,
         role: assignedRole, // Assign role dynamically
         status: "active",
       });
@@ -107,12 +107,12 @@ exports.verifyOTP = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { unique_id: user.unique_id, phonenumber: user.phonenumber, role: user.role },
+      { unique_id: user.unique_id, phone_number: user.phone_number, role: user.role },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
     const refreshToken = jwt.sign(
-      { unique_id: user.unique_id, phonenumber: user.phonenumber },
+      { unique_id: user.unique_id, phone_number: user.phone_number },
       REFRESH_SECRET,
       { expiresIn: "1h" } // Refresh token valid for 7 days
     );
@@ -128,7 +128,7 @@ exports.verifyOTP = async (req, res) => {
       user: {
         unique_id: user.unique_id,
         name: user.name,
-        phonenumber: user.phonenumber,
+        phone_number: user.phone_number,
         role: user.role,
         status: user.status,
         created_at: user.created_at,
