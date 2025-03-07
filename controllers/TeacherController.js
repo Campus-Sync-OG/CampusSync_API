@@ -422,3 +422,40 @@ exports.updateAssignment = async (req, res) => {
     }
   });
 };
+
+exports.updateStudentRollNo = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+    const { admission_no, new_roll_no } = req.query;
+
+    if (!admission_no || !new_roll_no) {
+      return res.status(400).json({ message: "Admission number and new roll number are required." });
+    }
+
+    // Check if teacher exists and has the role of 'class teacher'
+    const foundTeacher = await teacher.findOne({ where: { emp_id, role: 'classteacher' } });
+    if (!foundTeacher) {
+      return res.status(403).json({ message: "Only class teachers can update roll numbers." });
+    }
+
+    // Find the student
+    const foundStudent = await student.findOne({ where: { admission_no } });
+    if (!foundStudent) {
+      return res.status(404).json({ message: "Student not found." });
+    }
+
+    // Check if the teacher is responsible for the student's class
+   
+
+    // Update the roll number
+    await foundStudent.update({ roll_no: new_roll_no });
+
+    return res.status(200).json({
+      message: "Roll number updated successfully.",
+      student: { admission_no, new_roll_no },
+    });
+  } catch (error) {
+    console.error("Error updating roll number:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};

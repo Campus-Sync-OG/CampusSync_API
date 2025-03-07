@@ -24,4 +24,6 @@ router.post('/:emp_id/assignment', teacherController.uploadAssignment);
 
 router.put('/:emp_id/update/assignment', teacherController.updateAssignment);
 
+router.put("/update-roll/:emp_id", teacherController.updateStudentRollNo);
+
 module.exports = router;
