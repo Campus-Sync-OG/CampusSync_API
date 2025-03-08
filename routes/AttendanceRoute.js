@@ -1,15 +1,16 @@
 const express = require("express");
 const attendanceController = require("../controllers/AttendanceController");
+const Auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Route to get all attendance records
-router.get("/list", attendanceController.getAllAttendance);
+router.get("/list", Auth.verifyToken, attendanceController.getAllAttendance);
 
 // Route to get a specific attendance record by ID
-router.get("/:admission_no", attendanceController.getAttendanceById);
+router.get("/:admission_no", Auth.verifyToken, attendanceController.getAttendanceById);
 
 // Route to delete an attendance record by ID
-router.delete("/delete/:admission_no", attendanceController.deleteAttendanceById);
+router.delete("/delete/:admission_no", Auth.verifyToken, attendanceController.deleteAttendanceById);
 
 module.exports = router;

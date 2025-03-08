@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET ;
 
 // Middleware to authenticate the user based on the JWT token
-const authenticateToken = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   // Get token from Authorization header (Bearer <token>)
   const token = req.header('Authorization')?.split(' ')[1];
 
@@ -22,4 +22,4 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-module.exports = authenticateToken;
+module.exports = {verifyToken};

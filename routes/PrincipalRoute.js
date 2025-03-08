@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const principalController = require('../controllers/PrincipalController');
+const Auth = require("../middleware/authMiddleware");
 
-// Routes for Principal CRUD Operations
-router.post('/create', principalController.createPrincipal); // Create a new principal
-router.put('/update/:p_id', principalController.updatePrincipal); // Update principal details
-router.delete('/delete/:p_id', principalController.softDeletePrincipal); // Delete a principal
-router.get('/:p_id', principalController.getPrincipalDetails); // Get principal details
-router.post('/:p_id/subjects', principalController.createSubject);
-router.put("/:p_id/update/subjects/:id", principalController.updateSubject);
+router.post('/create', Auth.verifyToken, principalController.createPrincipal);
+router.put('/update/:p_id', Auth.verifyToken, principalController.updatePrincipal);
+router.delete('/delete/:p_id', Auth.verifyToken, principalController.softDeletePrincipal);
+router.get('/:p_id', Auth.verifyToken, principalController.getPrincipalDetails);
+router.post('/:p_id/subjects', Auth.verifyToken, principalController.createSubject);
+router.put("/:p_id/update/subjects/:id", Auth.verifyToken, principalController.updateSubject);
 
 module.exports = router;

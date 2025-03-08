@@ -6,7 +6,7 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined. Set it in environment variables.");
 }
 
-const authenticateToken = (req, res, next) => {
+const refreshToken = (req, res, next) => {
   const authHeader = req.header('Authorization');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
@@ -28,4 +28,4 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-module.exports = authenticateToken;
+module.exports = {refreshToken};

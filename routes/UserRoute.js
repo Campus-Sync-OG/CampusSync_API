@@ -2,27 +2,33 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/UserController'); // Adjust path if necessary
 const { sendOTP, verifyOTP } = require('../controllers/authController'); // Import functions from authController
-const { uploadFeesCSV, upload } = require("../controllers/CsvController"); 
-// Routes
-router.get('/list', userController.getAllUsers);
+const { uploadFeesCSV, upload } = require("../controllers/CsvController");
+const RefreshToken = require("../middleware/refreshtoken");
+const Auth = require("../middleware/authMiddleware");
 
-router.get('/list/:unique_id', userController.getUserByUniqueId);
+router.get('/list', Auth.verifyToken, userController.getAllUsers);
 
-router.post('/create', userController.createUser);
+router.get('/:unique_id', Auth.verifyToken, userController.getUserByUniqueId);
 
-router.put('/update/:unique_id', userController.updateUser);
+router.post('/create', Auth.verifyToken, userController.createUser);
 
-router.delete('/delete/:unique_id', userController.deleteUser);
+router.put('/update/:unique_id', Auth.verifyToken, userController.updateUser);
+
+router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser);
+
+router.post("/upload-fees", Auth.verifyToken, upload.single("file"), uploadFeesCSV);
+router.post("/addfee", Auth.verifyToken, userController.addFee);
 router.get('/profile', (req, res) => {
-    // Your existing logic for profile route
-    res.send("User profile data here");
-  });
-  
-  // Route for sending OTP
-  router.post('/send-otp', sendOTP);  // Use the sendOTP function from authController
-  
-  // Route for verifying OTP
-  router.post('/verify-otp', verifyOTP);  // Use the verifyOTP function from authController
-  router.post("/upload-fees", upload.single("file"), uploadFeesCSV);
-  router.post("/addfee", userController.addFee);
+  // Your existing logic for profile route
+  res.send("User profile data here");
+});
+
+
+router.post('/send-otp', sendOTP);  // Use the sendOTP function from authController
+
+
+router.post('/verify-otp', verifyOTP);
+router.post("/token/refresh", RefreshToken.refreshToken);
+
+
 module.exports = router;
