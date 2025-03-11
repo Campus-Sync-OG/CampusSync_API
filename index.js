@@ -10,6 +10,7 @@ const assignmentRoutes = require('./routes/AssignmentRoutes');
 const examformatRoutes=require('./routes/ExamformatRoute');
 const feeRoutes = require("./routes/FeeRoutes");
 const FormRoutes = require("./routes/FormRoutes");
+const imageRoutes = require('./routes/ImageRoute');
 
 const academicRoutes=require('./routes/AcademicsRoute');
 const  attendanceRoutes=require('./routes/AttendanceRoute');
@@ -31,9 +32,9 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/exam',examformatRoutes);
 app.use('/api/fee', feeRoutes);
 app.use('/api/forms', FormRoutes);
-
 app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
+app.use('/api/images', imageRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
