@@ -1,4 +1,4 @@
-const { notification } = require("../models");
+const { notification ,user } = require("../models");
 const NotificationService = require("../services/notificationService");
 
 class NotificationController {
@@ -6,7 +6,7 @@ class NotificationController {
   static async createNotification(req, res) {
     try {
       const { notification_type, title, message } = req.body;
-      const user_id = req.unique_id; 
+      const user_id = req.user.unique_id; 
       
       const Notification = await notification.create({ notification_type, title, message, user_id });
       
@@ -24,14 +24,17 @@ class NotificationController {
     // Get notifications based on user role
     static async getNotifications(req, res) {
       try {
-        const { role } = req.user; // Assuming role is stored in req.user
-  
+        const role = req.user.role; // Corrected destructuring
+        
         let notifications;
-        if (role === "Student") {
+        if (role === "student") {
           // Students see only SMS-based and push notifications
           notifications = await Notification.findAll({
+          
             where: {
-              notification_type: ["Fee Reminder", "Academic Update", "Leave Update", "General Announcement"]
+              notification_type: {
+                [Op.in]: ["Fee Reminder", "Academic Update", "Leave Update", "General Announcement"]
+              }
             },
             order: [["createdAt", "DESC"]]
           });
@@ -49,7 +52,6 @@ class NotificationController {
       }
     }
   
-
   // Delete a notification by ID
   static async deleteNotification(req, res) {
     try {

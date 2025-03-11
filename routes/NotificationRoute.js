@@ -13,7 +13,7 @@ router.post(
 );
 
 // Get all notifications (accessible to all logged-in users)
-router.get("/", authenticateUser, NotificationController.getNotifications);
+router.get("/getnot", authenticateUser, NotificationController.getNotifications);
 
 // Delete a notification (only Teachers and Management can delete)
 router.delete(
