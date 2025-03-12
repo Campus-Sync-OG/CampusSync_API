@@ -19,7 +19,7 @@ router.get("/getnot", authenticateUser, NotificationController.getNotifications)
 router.delete(
   "/:id",
   authenticateUser,
-  authorizeRole(["Teacher", "Management"]),
+  authorizeRole(["teacher", "Management"]),
   NotificationController.deleteNotification
 );
 

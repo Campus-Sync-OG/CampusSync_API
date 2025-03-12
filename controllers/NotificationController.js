@@ -29,7 +29,7 @@ class NotificationController {
         let notifications;
         if (role === "student") {
           // Students see only SMS-based and push notifications
-          notifications = await Notification.findAll({
+          notifications = await notification.findAll({
           
             where: {
               notification_type: {
@@ -40,7 +40,7 @@ class NotificationController {
           });
         } else {
           // Teachers & Management see all notifications
-          notifications = await Notification.findAll({
+          notifications = await notification.findAll({
             order: [["createdAt", "DESC"]]
           });
         }
@@ -56,19 +56,25 @@ class NotificationController {
   static async deleteNotification(req, res) {
     try {
       const { id } = req.params;
-      const notification = await Notification.findByPk(id);
-      
+  
+      // Check if user has the correct role
+      if (req.user.role !== "teacher" && req.user.role !== "admin") {
+        return res.status(403).json({ success: false, message: "Forbidden: Insufficient permissions" });
+      }
+  
+      const Notification = await notification.findByPk(id);
       if (!notification) {
         return res.status(404).json({ success: false, message: "Notification not found" });
       }
-      
-      await notification.destroy();
+  
+      await Notification.destroy();
       return res.status(200).json({ success: true, message: "Notification deleted successfully" });
     } catch (error) {
       console.error("Error deleting notification:", error);
       return res.status(500).json({ success: false, message: "Failed to delete notification" });
     }
   }
+  
 }
 
 module.exports = NotificationController;
