@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/UserController'); // Adjust path if necessary
-const { sendOTP, verifyOTP } = require('../controllers/authController'); // Import functions from authController
+const authControlller = require('../controllers/authController'); // Import functions from authController
 const { uploadFeesCSV, upload } = require("../controllers/CsvController");
 const RefreshToken = require("../middleware/refreshtoken");
 const Auth = require("../middleware/authMiddleware");
@@ -24,10 +24,10 @@ router.get('/profile', (req, res) => {
 });
 
 
-router.post('/send-otp', sendOTP);  // Use the sendOTP function from authController
+router.post('/send-otp', authControlller.sendOTP);  // Use the sendOTP function from authController
 
 
-router.post('/verify-otp', verifyOTP);
+router.post('/verify-otp', authControlller.verifyOTP);
 router.post("/token/refresh", RefreshToken.refreshToken);
 
 
