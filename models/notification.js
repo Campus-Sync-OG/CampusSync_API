@@ -11,7 +11,7 @@ module.exports = function (sequelize, DataTypes) {
         primaryKey: true,
       },
       notification_type: {
-        type: DataTypes.ENUM('General Announcement', 'fee update','Event Announcement','Academic Results'),
+        type: DataTypes.ENUM('General Announcement', 'Fee Update','Event Announcement','Academic Results','Leave Update'),
         allowNull: false,
         defaultValue: 'General Announcement'
       },

@@ -12,7 +12,7 @@ class NotificationController {
       
       // Send notifications
       await NotificationService.sendSMS(notification_type, title, message);
-      await NotificationService.sendPushNotification(notification_type, title, message);
+      //await NotificationService.sendPushNotification(notification_type, title, message);
       
       return res.status(201).json({ success: true, message: "Notification created successfully", data: Notification });
     } catch (error) {
@@ -33,7 +33,7 @@ class NotificationController {
           
             where: {
               notification_type: {
-                [Op.in]: ["Fee Reminder", "Academic Update", "Leave Update", "General Announcement"]
+                [Op.in]: ["Fee Update", "Academic Update", "Leave Update", "General Announcement"]
               }
             },
             order: [["createdAt", "DESC"]]
