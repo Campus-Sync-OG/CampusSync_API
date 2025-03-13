@@ -6,31 +6,30 @@ const path = require("path");
 // Get Fees by Admission No (Student)
 exports.getFeesByAdmissionNo = async (req, res) => {
     try {
-        const { admission_no } = req.params;  // Fetch admission_no from URL params
+        const { admission_no } = req.params;  // Get admission_no from request params
 
-        console.log(`Fetching fees for admission_no: ${admission_no}`);  // Log admission_no
+        console.log(`Fetching fees for admission_no: ${admission_no}`);  // Log for debugging
         
-        // Find the student by admission_no
-        const Student = await student.findOne({ where: { admission_no } });
+        // Fetch fees directly without needing to query Student first
+        const fees = await fee.findAll({ 
+            where: { 
+                admission_no,
+                deletedAt: null // Ensure soft-deleted fees are not included
+            }
+        });
 
-        if (!Student) {
-            return res.status(404).json({ message: "Student not found" });
-        }
-
-        // Fetch fees associated with the student
-        const fees = await fee.findAll({ where: { admission_no: Student.admission_no } });
-
-        // Log the fees to check if they are fetched correctly
+        // Log fetched fees
         console.log("Fetched fees:", fees);
 
         if (fees.length === 0) {
-            return res.status(404).json({ message: "No fees found for this student" });
+            return res.status(404).json({ success: false, message: "No fees found for this student" });
         }
 
-        res.json(fees);
+        return res.status(200).json({ success: true, data: fees });
+
     } catch (error) {
         console.error("Error fetching fees:", error);
-        res.status(500).json({ message: "Error fetching fees for the student" });
+        return res.status(500).json({ success: false, message: "Error fetching fees for the student" });
     }
 };
 
@@ -78,5 +77,47 @@ exports.downloadFeePDF = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error generating PDF" });
+    }
+};
+exports.deleteFee = async (req, res) => {
+    try {
+        const { id } = req.params;  // Fetch fee ID from URL params
+
+        console.log(`Deleting fee record with ID: ${id}`);  // Log deletion attempt
+
+        // Find the fee record
+        const Fee = await fee.findByPk(id);
+        if (!Fee) {
+            return res.status(404).json({ message: "Fee record not found" });
+        }
+
+        // Soft delete by updating the 'deleted_at' field
+        await Fee.update({ deletedAt: new Date() });
+
+        console.log(`Fee record with ID: ${id} marked as deleted.`);  // Log soft delete success
+
+        res.status(200).json({ message: "Fee record deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting fee:", error);
+        res.status(500).json({ message: "Failed to delete fee record" });
+    }
+};
+exports.getAllFees = async (req, res) => {
+    try {
+        console.log("Fetching all fee records (excluding deleted ones)..."); // Log action
+
+        // Fetch all fee records excluding soft-deleted ones
+        const fees = await fee.findAll({ where: { deletedAt: null } });
+
+        console.log("Fetched fees:", fees); // Log retrieved records
+
+        if (fees.length === 0) {
+            return res.status(404).json({ message: "No fee records found" });
+        }
+
+        res.status(200).json(fees);
+    } catch (error) {
+        console.error("Error fetching fee records:", error);
+        res.status(500).json({ message: "Failed to fetch fee records" });
     }
 };
