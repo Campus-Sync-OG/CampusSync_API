@@ -1,5 +1,5 @@
 const { student, user } = require("../models");
-const { uploadImageToAzure, deleteImageFromAzure } = require("../services/azureBlobService");
+const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
 

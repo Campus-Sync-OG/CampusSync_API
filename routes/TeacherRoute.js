@@ -21,7 +21,7 @@ router.put('/:emp_id', Auth.verifyToken, teacherController.updateAcademicRecord)
 
 router.put('/attendance-update/:emp_id', Auth.verifyToken, teacherController.updateAttendance);
 
-router.post('/:emp_id/assignment', Auth.verifyToken, teacherController.uploadAssignment);
+router.post('/:emp_id/assignment', teacherController.uploadAssignment);
 
 router.put('/:emp_id/update/assignment', Auth.verifyToken, teacherController.updateAssignment);
 
