@@ -1,20 +1,50 @@
-const { student } = require('../models'); // Changed to lowercase
-const { user } = require('../models');   // Changed to lowercase
+const { student, user } = require("../models");
+const { uploadImageToAzure, deleteImageFromAzure } = require("../services/azureBlobService");
+const multer = require("multer");
+const sharp = require("sharp"); // For image resizing and validation
 
-// Create a student
+// Configure Multer for handling file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only JPEG and PNG are allowed."), false);
+    }
+  },
+});
+
+// Create a student with profile picture upload
 exports.createStudent = async (req, res) => {
   try {
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section,roll_no } = req.body;
+    console.log("Received Request Body:", req.body); // Debugging log
+    console.log("Received File:", req.file); // Debugging log
 
-    // Check if the user exists and their role is 'student'
-    const userRecord = await user.findOne({
-      where: { unique_id: admission_no, role: 'student' },
-    });
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section, roll_no } = req.body;
+
+    if (!admission_no) {
+      return res.status(400).json({ message: "Admission number is required" });
+    }
+
+    // Check if the user exists
+    const userRecord = await user.findOne({ where: { unique_id: admission_no, role: "student" } });
 
     if (!userRecord) {
-      return res.status(400).json({
-        message: `No user found with unique_id '${admission_no}' and role 'student'`,
-      });
+      return res.status(400).json({ message: `No user found with unique_id '${admission_no}' and role 'student'` });
+    }
+
+    let imageUrl = null;
+    if (req.file) {
+      const resizedImageBuffer = await sharp(req.file.buffer)
+        .resize(200, 200)
+        .toFormat("jpeg")
+        .toBuffer();
+
+      imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "student-profiles");
     }
 
     // Create the student record
@@ -29,17 +59,17 @@ exports.createStudent = async (req, res) => {
       status,
       class: classname,
       section,
-      roll_no
+      roll_no,
+      images: imageUrl,
     });
 
-    res.status(201).json({ message: 'Student created successfully', student: newStudent });
+    res.status(201).json({ message: "Student created successfully", student: newStudent });
   } catch (error) {
-    console.error('Error creating student:', error);
+    console.error("Error creating student:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get all students
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await student.findAll({
@@ -106,28 +136,25 @@ exports.updateStudent = async (req, res) => {
 };
 
 // Soft delete a student
-exports.softDeleteStudent = async (req, res) => {
+exports.deleteStudentImage = async (req, res) => {
   try {
     const { admission_no } = req.params;
-   
+    const studentRecord = await student.findOne({ where: { admission_no } });
 
-    // Find the student by admission number, class, and section
-    const studentRecord = await student.findOne({
-      where: { admission_no},
-    });
-
-    if (!studentRecord) {
-      return res.status(404).json({ message: 'Student not found' });
+    if (!studentRecord || !studentRecord.image) {
+      return res.status(404).json({ message: "Student or image not found" });
     }
 
-    // Soft delete the student
-    await studentRecord.destroy();
+    await deleteImageFromAzure(studentRecord.image);
+    studentRecord.image = null;
+    await studentRecord.save();
 
-    res.status(200).json({ message: 'Student soft-deleted successfully' });
+    res.status(200).json({ message: "Profile picture deleted successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    console.error("Error deleting profile picture:", error);
+    res.status(500).json({ message: "Failed to delete profile picture", error: error.message });
   }
 };
+exports.upload=upload;
 
 
