@@ -27,4 +27,6 @@ router.put('/:emp_id/update/assignment', Auth.verifyToken, teacherController.upd
 
 router.put("/update-roll/:emp_id", Auth.verifyToken, teacherController.updateStudentRollNo);
 
+router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAssignmentsCSV);
+
 module.exports = router;
