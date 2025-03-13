@@ -5,7 +5,7 @@ const Auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post('/create', Auth.verifyToken, teacherController.createTeacher);
+router.post('/create',  teacherController.createTeacher);
 router.get('/all', Auth.verifyToken, teacherController.getAllTeachers);
 router.get('/list/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
 router.put('/update/:emp_id', Auth.verifyToken, teacherController.updateTeacher);

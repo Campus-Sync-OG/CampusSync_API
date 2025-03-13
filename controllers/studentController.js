@@ -4,7 +4,14 @@ const { user } = require('../models');   // Changed to lowercase
 // Create a student
 exports.createStudent = async (req, res) => {
   try {
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section,roll_no } = req.body;
+    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section, roll_no } = req.body;
+
+    // Validate required fields
+    if (!admission_no || !student_name || !password || !classname || !section || !roll_no) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    console.log("Received request body:", req.body); // Debugging log
 
     // Check if the user exists and their role is 'student'
     const userRecord = await user.findOne({
@@ -33,9 +40,10 @@ exports.createStudent = async (req, res) => {
     });
 
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
+
   } catch (error) {
     console.error('Error creating student:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

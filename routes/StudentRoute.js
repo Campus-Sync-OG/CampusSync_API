@@ -4,7 +4,7 @@ const studentController = require('../controllers/studentController');
 const Auth = require("../middleware/authMiddleware");
 
 // Create a new student
-router.post('/create', Auth.verifyToken, studentController.createStudent);
+router.post('/create', studentController.createStudent);
 
 // Get all students
 router.get('/list', Auth.verifyToken, studentController.getAllStudents);

@@ -1,4 +1,4 @@
-const { user,student,fee } = require('../models');
+const { user,student,fee,teacher } = require('../models');
 
 exports.createUser = async (req, res) => {
   const { role, name, password,phone_number,status } = req.body;
@@ -146,5 +146,49 @@ exports.addFee = async (req, res) => {
   } catch (error) {
       console.error("Error adding fee:", error);
       res.status(500).json({ message: "Error adding fee" });
+  }
+};
+
+exports.assignClassTeacher = async (req, res) => {
+  try {
+    const { emp_id, class:className, section } = req.body;
+
+    if (!emp_id || !className|| !section) {
+      return res.status(400).json({ message: "emp_id, class, and section are required" });
+    }
+
+    // Check if the teacher exists
+    const teachers = await teacher.findOne({ where: { emp_id } });
+    if (!teachers) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Check if the class and section exist in the students table
+    const studentExists = await student.findOne({ where: { class: className, section } });
+    if (!studentExists) {
+      return res.status(400).json({ message: "Invalid class or section" });
+    }
+
+    // Update the teacher's role to "class teacher"
+    await teacher.update(
+      { role: "classTeacher" },
+      { where: { emp_id } }
+    );
+
+    // Return updated teacher details
+    return res.status(200).json({
+      message: "Class teacher assigned successfully and role updated",
+      data: {
+        emp_id: teachers.emp_id,
+        emp_name: teachers.emp_name,
+        role: "classTeacher",
+        class: className,
+        section,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error assigning class teacher:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
