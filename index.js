@@ -13,7 +13,7 @@ const FormRoutes = require("./routes/FormRoutes");
 
 const academicRoutes=require('./routes/AcademicsRoute');
 const  attendanceRoutes=require('./routes/AttendanceRoute');
-
+const AnnouncementRoutes = require("./routes/AnnouncementRoute");
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
@@ -34,6 +34,7 @@ app.use('/api/forms', FormRoutes);
 
 app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
+app.use('/api/announcement', AnnouncementRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
