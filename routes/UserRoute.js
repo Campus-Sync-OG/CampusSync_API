@@ -24,10 +24,10 @@ router.get('/profile', (req, res) => {
 });
 
 
-router.post('/send-otp', authControlller.sendOTP);  // Use the sendOTP function from authController
+router.post('/Otp', authControlller.sendOTP);  // Use the sendOTP function from authController
 
 
-router.post('/verify-otp', authControlller.verifyOTP);
+router.post('/verify', authControlller.verifyOTP);
 router.post("/token/refresh", RefreshToken.refreshToken);
 
 
