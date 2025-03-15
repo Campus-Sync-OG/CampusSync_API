@@ -459,3 +459,34 @@ exports.updateStudentRollNo = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.assignSubjectsToTeacher = async (req, res) => {
+  try {
+      const { teacher_id, assignments } = req.body;
+
+      if (!teacher_id || !assignments || !Array.isArray(assignments)) {
+          return res.status(400).json({ message: "Invalid input" });
+      }
+       const teachers= await teacher.findOne({where:{emp_id:teacher_id}})
+      if (!teachers) {
+          return res.status(404).json({ message: "Teacher not found" });
+      }
+
+      // Prepare response data (without storing it in the database)
+      const responseData = assignments.map(({ class_name, section, subject_name }) => ({
+          teacher_id,
+          class_name,
+          section,
+          subject_name
+      }));
+
+      res.status(200).json({
+          message: "Subjects assigned successfully (not stored in DB)",
+          assignedSubjects: responseData
+      });
+
+  } catch (error) {
+      console.error("Error assigning subjects:", error);
+      res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -1,4 +1,8 @@
 const { user,student,fee,teacher } = require('../models');
+const multer = require('multer');
+// Configure Multer for file uploads (in-memory storage)
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 exports.createUser = async (req, res) => {
   const { role, name, password,phone_number,status } = req.body;
@@ -192,3 +196,61 @@ exports.assignClassTeacher = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.assignSubjectTeacher = async (req, res) => {
+  try {
+    const { emp_id, subject } = req.query ;
+
+    if (!emp_id || !subject) {
+      return res.status(400).json({ message: "emp_id and subject are required" });
+    }
+
+    // Check if the teacher exists
+    const teachers = await teacher.findOne({ where: { emp_id } });
+    if (!teachers) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    
+
+    // Return updated teacher details
+    return res.status(200).json({
+      message: "Subject teacher assigned successfully and role updated",
+      data: {
+        emp_id: teachers.emp_id,
+        emp_name: teachers.emp_name,
+        role: "subjectTeacher",
+        subject,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error assigning subject teacher:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.uploadWithMetadata = async (req, res) => {
+  try {
+      if (!req.file) return res.status(400).json({ message: "File is required" });
+
+      const blobName = `${Date.now()}-${req.file.originalname}`;
+      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+      // Define expiry timestamp
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1); // Expires in 1 hour
+
+      // Upload file with metadata
+      await blockBlobClient.uploadStream(streamifier.createReadStream(req.file.buffer), req.file.size, undefined, {
+          metadata: { expires_at: expiresAt.toISOString() }
+      });
+
+      res.status(201).json({ message: "File uploaded", url: blockBlobClient.url });
+
+  } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ message: "Internal server error" });
+  }
+};
+
