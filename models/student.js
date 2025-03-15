@@ -1,6 +1,7 @@
 const { Sequelize } = require('sequelize');
 const sequelize = require('../config/sequelize');
 
+
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('student', {
     admission_no: {
@@ -62,11 +63,14 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    images: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   }, {
     sequelize,
     tableName: 'student',
     timestamps: false,
-    id:false, // Disable createdAt/updatedAt timestamps
   }
   );
 };

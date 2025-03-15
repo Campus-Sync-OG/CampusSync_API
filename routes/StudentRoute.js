@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
 const Auth = require("../middleware/authMiddleware");
+const { upload } = require('../controllers/studentController');
 
 // Create a new student
-router.post('/create', Auth.verifyToken, studentController.createStudent);
+router.post("/create", upload.single("file"), studentController.createStudent);
+
 
 // Get all students
 router.get('/list', Auth.verifyToken, studentController.getAllStudents);
@@ -16,7 +18,7 @@ router.get('/:admission_no', Auth.verifyToken, studentController.getStudentByAdm
 router.put('/update/:admission_no', Auth.verifyToken, studentController.updateStudent);
 
 // Delete a student by admission_no
-router.delete('/delete/:admission_no', Auth.verifyToken, studentController.softDeleteStudent);
+router.delete('/delete/:admission_no', Auth.verifyToken, studentController.deleteStudentImage);
 
 
 

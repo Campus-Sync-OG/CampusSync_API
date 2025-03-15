@@ -2,17 +2,11 @@ const { teacher, student, academics, examformat, user, attendance, assignment,su
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
+const { uploadImageToAzure } = require('../services/AzureBlobService');
 
 // Set up multer for PDF uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Ensure this directory exists
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueSuffix);
-  },
-});
+const storage = multer.memoryStorage(); // Use memory storage to access buffer
+
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
@@ -23,6 +17,7 @@ const upload = multer({
     }
   },
 }).single('attachment');
+
 
 /* Helper Functions */
 const findTeacherById = async (emp_id, res) => {
@@ -327,6 +322,7 @@ exports.updateAttendance = async (req, res) => {
   }
 };
 
+
 exports.uploadAssignment = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) return res.status(400).json({ message: err.message });
@@ -334,6 +330,7 @@ exports.uploadAssignment = async (req, res) => {
     try {
       const { subjects, title, admission_no, Date: assignmentDate } = req.body;
       const { emp_id } = req.params;
+      
       if (!subjects || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
         return res.status(400).json({
           message: "subject, title, Date, admission_no, emp_id, and attachment are required",
@@ -351,11 +348,16 @@ exports.uploadAssignment = async (req, res) => {
         return res.status(400).json({ message: `Invalid subject name: ${subjects}. Please provide a valid subject name.` });
       }
 
+      // Upload PDF to Azure Blob Storage
+      const fileBuffer = req.file.buffer; // Assuming multer stores buffer
+      const fileName = `${Date.now()}_${req.file.originalname}`;
+      const azureUrl = await uploadImageToAzure(fileBuffer, fileName);
+
       const newAssignment = await assignment.create({
         subjects,
         title,
         Date: assignmentDate,
-        attachment: req.file.path,
+        attachment: azureUrl, // Store Azure URL
         admission_no,
         emp_id,
         emp_name: foundTeacher.emp_name,
