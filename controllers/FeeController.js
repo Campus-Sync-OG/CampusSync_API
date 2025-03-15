@@ -81,27 +81,30 @@ exports.downloadFeePDF = async (req, res) => {
 };
 exports.deleteFee = async (req, res) => {
     try {
-        const { id } = req.params;  // Fetch fee ID from URL params
+        const { admission_no } = req.params;  // Fetch admission_no from URL params
 
-        console.log(`Deleting fee record with ID: ${id}`);  // Log deletion attempt
-
-        // Find the fee record
-        const Fee = await fee.findByPk(id);
-        if (!Fee) {
-            return res.status(404).json({ message: "Fee record not found" });
+        // Find all fee records for the admission_no
+        const fees = await fee.findAll({ where: { admission_no } });
+        if (fees.length === 0) {
+            return res.status(404).json({ message: "No fee records found for this admission number" });
         }
 
-        // Soft delete by updating the 'deleted_at' field
-        await Fee.update({ deletedAt: new Date() });
+        // Soft delete all records by updating 'deleted_at' field
+        await fee.update(
+            { deletedAt: new Date() },
+            { where: { admission_no } }
+        );
 
-        console.log(`Fee record with ID: ${id} marked as deleted.`);  // Log soft delete success
+        console.log(`All fee records for Admission No: ${admission_no} marked as deleted.`);  // Log soft delete success
 
-        res.status(200).json({ message: "Fee record deleted successfully" });
+        res.status(200).json({ message: "All fee records deleted successfully" });
     } catch (error) {
-        console.error("Error deleting fee:", error);
-        res.status(500).json({ message: "Failed to delete fee record" });
+        console.error("Error deleting fee records:", error);
+        res.status(500).json({ message: "Failed to delete fee records" });
     }
 };
+
+
 exports.getAllFees = async (req, res) => {
     try {
         console.log("Fetching all fee records (excluding deleted ones)..."); // Log action

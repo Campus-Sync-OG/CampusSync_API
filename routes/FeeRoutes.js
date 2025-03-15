@@ -8,7 +8,7 @@ const Auth = require("../middleware/authMiddleware");
 
 // Generate and Download Fee PDF
 router.get('/download-fee/:receipt_no', feeController.downloadFeePDF);
-router.get('/getfee',Auth.verifyToken, feeController.getAllFees);
-router.delete('/:id',Auth.verifyToken, feeController.deleteFee);
+router.get('/getfee', feeController.getAllFees);
+router.delete('/:admission_no', feeController.deleteFee);
 
 module.exports = router;
