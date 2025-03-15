@@ -12,13 +12,13 @@ router.put("/:id", announcementController.updateAnnouncement); // Update announc
 router.post(
     "/add",
     authenticateUser,
-    authorizeRole(["teacher"]),
+    authorizeRole(["principal"]),
     announcementController.createAnnouncement
   );
 router.delete(
     "/:id",
     authenticateUser,
-    authorizeRole(["teacher"]),
+    authorizeRole(["principal"]),
     announcementController.deleteAnnouncement
   );
 module.exports = router;
