@@ -8,7 +8,7 @@ const router = express.Router();
 router.post(
   "/postnot",
   authenticateUser,
-  authorizeRole(["teacher", "Management"]),
+  authorizeRole(["teacher", "principal"]),
   NotificationController.createNotification
 );
 
@@ -19,7 +19,7 @@ router.get("/getnot", authenticateUser, NotificationController.getNotifications)
 router.delete(
   "/:id",
   authenticateUser,
-  authorizeRole(["teacher", "Management"]),
+  authorizeRole(["teacher", "principal"]),
   NotificationController.deleteNotification
 );
 
