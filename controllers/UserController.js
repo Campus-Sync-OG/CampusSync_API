@@ -1,5 +1,19 @@
 const { user,student,fee } = require('../models');
+const { uploadImageToAzure } = require('../services/AzureBlobService');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
+const storage = multer.memoryStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Store files in 'uploads' folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  }
+});
+
+const upload = multer({ storage }).single('file');
 exports.createUser = async (req, res) => {
   const { role, name, password,phone_number,status } = req.body;
 
@@ -148,3 +162,45 @@ exports.addFee = async (req, res) => {
       res.status(500).json({ message: "Error adding fee" });
   }
 };
+
+exports.uploadWithMetadata = async (req, res) => {
+  try {
+    console.log("Received file:", req.file);
+
+    if (!req.file) {
+      return res.status(400).json({ message: "File is required" });
+    }
+
+    const fileType = req.file.mimetype.startsWith("image") ? "image" : "video";
+    const filePath = path.join(__dirname, "../", req.file.path);
+    const fileBuffer = fs.readFileSync(filePath);
+    const uploadDate = new Date().toISOString();
+
+    // Upload with metadata
+    const metadata = {
+      category: "gallery",
+      uploadDate,
+      originalName: req.file.originalname,
+    };
+
+    const fileUrl = await uploadImageToAzure(fileBuffer, req.file.originalname, fileType, metadata);
+
+    // Delete file from local storage after upload
+    fs.unlink(filePath, (err) => {
+      if (err) console.error("Error deleting file:", err);
+    });
+
+    res.status(201).json({
+      message: "File uploaded successfully",
+      url: fileUrl,
+      metadata,
+    });
+
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+exports.upload=upload;

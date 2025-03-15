@@ -10,6 +10,7 @@ const assignmentRoutes = require('./routes/AssignmentRoutes');
 const examformatRoutes=require('./routes/ExamformatRoute');
 const feeRoutes = require("./routes/FeeRoutes");
 const FormRoutes = require("./routes/FormRoutes");
+const galleryRoutes = require("./routes/GalleryRoute");
 
 
 const academicRoutes=require('./routes/AcademicsRoute');
@@ -34,6 +35,7 @@ app.use('/api/fee', feeRoutes);
 app.use('/api/forms', FormRoutes);
 app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
+app.use('/api/image', galleryRoutes);
 
 
 app.listen(PORT, () => {

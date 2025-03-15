@@ -9,7 +9,7 @@ router.post("/create", upload.single("file"), studentController.createStudent);
 
 
 // Get all students
-router.get('/list', Auth.verifyToken, studentController.getAllStudents);
+router.get('/list',  studentController.getAllStudents);
 
 // Get a student by admission_no
 router.get('/:admission_no', Auth.verifyToken, studentController.getStudentByAdmissionNo);
