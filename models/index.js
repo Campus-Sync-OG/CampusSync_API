@@ -13,6 +13,7 @@ const _attendance=require('./attendance');
 const _fee = require('./fee');
 const _forms=require('./forms');
 const _subject=require('./subject');
+const _parent=require('./parent');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -25,6 +26,7 @@ const attendance=_attendance(sequelize,DataTypes);
 const fee = _fee(sequelize, DataTypes);
 const forms=_forms(sequelize,DataTypes)
 const subject=_subject(sequelize,DataTypes);
+const parent=_parent(sequelize,DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -73,6 +75,9 @@ forms.hasOne(teacher,{foreignKey:'id', targetkey:'id',as:'forms'});
 
 subject.hasOne(principal,{foreignKey:'id',targetKey:'id',as:'subjects'});
 
+student.hasOne(parent ,{ foreignKey: "admission_no",sourceKey: "admission_no", as: "parentInfo" });
+parent.belongsTo(student, { foreignKey: "admission_no",targetKey: "admission_no", as: "student" });
+
 module.exports = {
   sequelize,
   user,
@@ -86,4 +91,5 @@ module.exports = {
   fee,
   forms,
   subject,
+  parent,
 };
