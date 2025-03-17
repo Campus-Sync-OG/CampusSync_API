@@ -13,6 +13,8 @@ const FormRoutes = require("./routes/FormRoutes");
 
 const academicRoutes=require('./routes/AcademicsRoute');
 const  attendanceRoutes=require('./routes/AttendanceRoute');
+const schoolInfoRoutes = require('./routes/SchoolRoute');
+
 
 app.use(express.json());
 //routes needs to be defined 
@@ -34,6 +36,7 @@ app.use('/api/forms', FormRoutes);
 
 app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
+app.use('/api/school', schoolInfoRoutes); // Prefix routes with /api
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
