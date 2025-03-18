@@ -99,33 +99,29 @@ exports.getStudentByAdmissionNo = async (req, res) => {
   }
 };
 
-// Update a student
-
-
-// Function to update the details of a principal
 exports.updateStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
     const updateFields = req.body;
 
-    console.log("🟠 Request Params:", req.params);
-    console.log("🔵 Received update fields:", req.body);
-    console.log("📷 File Upload Debug:", req.file);
+    console.log(" Request Params:", req.params);
+    console.log("Received update fields:", req.body);
+    console.log(" File Upload Debug:", req.file);
 
     const studentRecord = await student.findOne({ where: { admission_no } });
 
     if (!studentRecord) {
-      console.log("🔴 Student not found for admission_no:", admission_no);
+      console.log(" Student not found for admission_no:", admission_no);
       return res.status(404).json({ message: "Student not found" });
     }
 
-    console.log("🟢 Existing Student Data:", studentRecord.toJSON());
+    console.log("Existing Student Data:", studentRecord.toJSON());
 
     let updatedFields = {}; // Track updated fields
 
-    // ✅ Handle profile picture update
+    // Handle profile picture update
     if (req.file) {
-      console.log("🟣 Profile picture upload detected");
+      console.log(" Profile picture upload detected");
 
       if (studentRecord.images) {
         await deleteImageFromAzure(studentRecord.images);
@@ -144,14 +140,14 @@ exports.updateStudent = async (req, res) => {
         );
 
         updatedFields.images = imageUrl;
-        console.log("✅ Uploaded Image URL:", imageUrl);
+        console.log(" Uploaded Image URL:", imageUrl);
       } catch (error) {
-        console.error("❌ Image Upload Failed:", error.message);
+        console.error(" Image Upload Failed:", error.message);
         return res.status(500).json({ message: "Image upload failed", error: error.message });
       }
     }
 
-    // ✅ List of allowed fields to update
+    //  List of allowed fields to update
     const allowedFields = [
       "student_name",
       "password",
@@ -171,27 +167,27 @@ exports.updateStudent = async (req, res) => {
       }
     }
 
-    console.log("🟣 Fields to Update:", updatedFields);
+    console.log(" Fields to Update:", updatedFields);
 
     if (Object.keys(updatedFields).length === 0) {
-      console.log("🟡 No changes detected");
+      console.log("No changes detected");
       return res.status(200).json({ message: "No changes detected" });
     }
 
-    // ✅ Update student record
+    // Update student record
     await studentRecord.update(updatedFields);
 
-    // ✅ Fetch updated record
+    // Fetch updated record
     const updatedStudent = await student.findOne({ where: { admission_no } });
 
-    console.log("✅ Student updated successfully:", updatedStudent.toJSON());
+    console.log("Student updated successfully:", updatedStudent.toJSON());
 
     res.status(200).json({
-      message: "✅ Student updated successfully",
+      message: "Student updated successfully",
       student: updatedStudent,
     });
   } catch (error) {
-    console.error("❌ Error updating student:", error.message);
+    console.error(" Error updating student:", error.message);
     res.status(500).json({
       message: "Error updating student",
       error: error.message,
