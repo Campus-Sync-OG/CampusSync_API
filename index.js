@@ -33,6 +33,7 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/exam',examformatRoutes);
 app.use('/api/fee', feeRoutes);
 app.use('/api/forms', FormRoutes);
+app.use('api/parents',parentRoutes);
 app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
 app.use('/api/school', schoolInfoRoutes); // Prefix routes with /api
