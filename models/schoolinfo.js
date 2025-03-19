@@ -3,7 +3,7 @@ const sequelize = require("../config/sequelize"); // Sequelize instance
 
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
-    "schoolinfo",
+    "Schoolinfo",
     {
       school_name: {
         type: DataTypes.STRING,
