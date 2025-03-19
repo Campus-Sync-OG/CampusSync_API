@@ -34,14 +34,14 @@ const verifyOTP = async (phone_number, code) => {
   }
 };
 
+// Function to generate unique ID
+
 // Controller to handle sending OTP
 exports.sendOTP = async (req, res) => {
   try {
     const { phone_number } = req.body;
     if (!phone_number) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Phone number is required" });
+      return res.status(400).send({ success: false, message: "Phone number is required" });
     }
 
     const verification = await sendOTP(phone_number);
@@ -55,20 +55,25 @@ exports.sendOTP = async (req, res) => {
   }
 };
 
-// Controller to handle verifying OTP
+const generateRandomPassword = (length = 8) => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
+// Controller to handle verifying OTP and registering user
 exports.verifyOTP = async (req, res) => {
   try {
-    const { phone_number, code, role } = req.body; // Extract role from request body
-
-    console.log("Incoming Request Data:", req.body); // DEBUGGING: Check received data
+    const { phone_number, code, role } = req.body;
 
     if (!phone_number || !code) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Phone number and OTP are required" });
+      return res.status(400).send({ success: false, message: "Phone number and OTP are required" });
     }
 
-    // Verify OTP
+    // Verify OTP using Twilio
     const verificationCheck = await verifyOTP(phone_number, code);
     if (verificationCheck.status !== "approved") {
       return res.status(400).send({ success: false, message: "Invalid OTP" });
@@ -78,69 +83,89 @@ exports.verifyOTP = async (req, res) => {
     let user = await User.findOne({ where: { phone_number } });
 
     if (!user) {
-      // Ensure role is valid
-      const validRoles = ["student", "teacher", "principal"];
-      const assignedRole = validRoles.includes(role) ? role : "student";
+      const validRoles = ["admin", "operator"];
+      const assignedRole = validRoles.includes(role) ? role : "admin";
 
-      console.log(`Assigned Role: ${assignedRole}`); // DEBUGGING: Check assigned role
+      const password = generateRandomPassword(); // Generate plain text password
 
-      // Create new user
       user = await User.create({
-        name: "Guest",
         phone_number,
-        role: assignedRole, // Assign role dynamically
+        role: assignedRole,
+        password, // Pass the plain text password, but it will be hashed inside model hooks
         status: "active",
       });
 
-      console.log(`New User Created: ${user.unique_id}, Role: ${user.role}`);
+      // The unique_id will be automatically generated from the model's hook
+      return res.status(201).send({
+        success: true,
+        message: "User registered successfully",
+        unique_id: user.unique_id, // Take generated unique_id from the model
+        password, // Send plain password for first-time login
+      });
     } else {
-      // If user exists, update status if inactive
-      if (user.status === "inactive") {
-        await user.update({ status: "active" });
-        console.log(`User ${user.unique_id} reactivated.`);
-      }
+      return res.status(400).send({
+        success: false,
+        message: "User already registered. Use unique_id and password to login.",
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Failed to verify OTP",
+      error: error.message,
+    });
+  }
+};
 
-      // Increment login count
-      user.login_count = user.login_count ? user.login_count + 1 : 1;
-      await user.save();
+// Controller to handle login using unique_id and password
+exports.login = async (req, res) => {
+  try {
+    const { unique_id, password } = req.body;
+
+    if (!unique_id || !password) {
+      return res.status(400).send({ success: false, message: "Unique ID and password are required" });
     }
 
-    // Generate JWT token
+    const user = await User.findOne({ where: { unique_id } });
+
+    if (!user) {
+      return res.status(404).send({ success: false, message: "User not found" });
+    }
+
+    if (user.password !== password) {
+      return res.status(401).send({ success: false, message: "Invalid password" });
+    }
+
     const token = jwt.sign(
       { unique_id: user.unique_id, phone_number: user.phone_number, role: user.role },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
+
     const refreshToken = jwt.sign(
       { unique_id: user.unique_id, phone_number: user.phone_number },
       REFRESH_SECRET,
-      { expiresIn: "1h" } // Refresh token valid for 7 days
+      { expiresIn: "7d" }
     );
 
-    refreshTokens.add(refreshToken); 
+    refreshTokens.add(refreshToken);
 
-    // Send response with token and user details
     res.status(200).send({
       success: true,
-      message: "OTP verified successfully",
+      message: "Login successful",
       token: `Bearer ${token}`,
-      refreshToken, 
+      refreshToken,
       user: {
         unique_id: user.unique_id,
-        name: user.name,
         phone_number: user.phone_number,
         role: user.role,
         status: user.status,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        login_count: user.login_count,
       },
     });
   } catch (error) {
-    console.error("Verification failed:", error);
     res.status(500).send({
       success: false,
-      message: "Failed to verify OTP",
+      message: "Login failed",
       error: error.message,
     });
   }

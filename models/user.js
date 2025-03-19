@@ -9,16 +9,8 @@ module.exports = function (sequelize, DataTypes) {
         primaryKey: true,
       },
       role: {
-        type: DataTypes.ENUM('student', 'teacher', 'principal'),
+        type: DataTypes.ENUM('admin','operator'),
         allowNull: false,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: true,
       },
       phone_number: {
         type: DataTypes.BIGINT,
@@ -28,6 +20,11 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.ENUM('active', 'inactive'), 
         allowNull: false,
         defaultValue: 'active',
+      },
+      password:{
+        type: DataTypes.STRING,
+        allowNull: false,
+
       },
       created_at: {
         type: DataTypes.DATE,
@@ -44,7 +41,7 @@ module.exports = function (sequelize, DataTypes) {
       hooks: {
         beforeValidate: async (user, options) => {
           if (!user.unique_id) {
-            const prefix = user.role === 'student' ? 'S' : user.role === 'teacher' ? 'T' : 'P';
+            const prefix = "U"; // Single prefix for all roles
             const year = new Date().getFullYear();
 
             // Start a transaction (if not already started)
