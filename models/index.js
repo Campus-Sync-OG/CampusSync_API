@@ -13,6 +13,7 @@ const _attendance=require('./attendance');
 const _fee = require('./fee');
 const _forms=require('./forms');
 const _subject=require('./subject');
+const _schoolinfo = require('./schoolinfo');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -25,6 +26,7 @@ const attendance=_attendance(sequelize,DataTypes);
 const fee = _fee(sequelize, DataTypes);
 const forms=_forms(sequelize,DataTypes)
 const subject=_subject(sequelize,DataTypes);
+const schoolinfo = _schoolinfo(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -86,4 +88,5 @@ module.exports = {
   fee,
   forms,
   subject,
+  schoolinfo,
 };

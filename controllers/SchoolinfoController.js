@@ -1,57 +1,67 @@
-const SchoolInfo = require('../models/schoolinfo');
+const { schoolinfo } = require('../models');
 
-// Create a new school record
-exports.create = async (req, res) => {
+const createSchool = async (req, res) => {
   try {
-    const school = await SchoolInfo.create(req.body);
-    res.status(201).json(school);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+    const { school_name, address, phone_number, email, website, established_year, affiliation } = req.body;
 
-// Retrieve all school records
-exports.getAll = async (req, res) => {
-  try {
-    const schools = await SchoolInfo.findAll();
-    res.status(200).json(schools);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+    if (!school_name || !address || !phone_number || !email) {
+      return res.status(400).json({ message: "School name, address, phone number, and email are required" });
+    }
 
-// Retrieve a single school record by ID
-exports.getById = async (req, res) => {
-  try {
-    const school = await SchoolInfo.findByPk(req.params.id);
-    if (!school) return res.status(404).json({ error: 'School not found' });
-    res.status(200).json(school);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+    const newSchool = await schoolinfo.create({ school_name, address, phone_number, email, website, established_year, affiliation });
 
-// Update a school record
-exports.update = async (req, res) => {
-  try {
-    const [updated] = await SchoolInfo.update(req.body, {
-      where: { id: req.params.id },
+    return res.status(201).json({
+      message: "School created successfully",
+      school: newSchool,
     });
-    if (!updated) return res.status(404).json({ error: 'School not found' });
-    const updatedSchool = await SchoolInfo.findByPk(req.params.id);
-    res.status(200).json(updatedSchool);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("Error creating school:", error.message || error);
+    return res.status(500).json({ message: "Internal server error", error: error.message || error });
   }
 };
 
-// Delete a school record
-exports.delete = async (req, res) => {
+const updateSchool = async (req, res) => {
   try {
-    const deleted = await SchoolInfo.destroy({ where: { id: req.params.id } });
-    if (!deleted) return res.status(404).json({ error: 'School not found' });
-    res.status(204).send();
+    const { id } = req.params;
+    const { school_name, address, phone_number, email, website, established_year, affiliation } = req.body;
+
+    const school = await schoolinfo.findByPk(id);
+    if (!school) {
+      return res.status(404).json({ message: "School not found" });
+    }
+
+    await school.update({ school_name, address, phone_number, email, website, established_year, affiliation });
+    return res.status(200).json({ message: "School updated successfully", school });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error updating school:", error);
+    return res.status(500).json({ message: "Error updating school", error });
   }
 };
+
+const getSchoolById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const school = await schoolinfo.findByPk(id);
+    if (!school) {
+      return res.status(404).json({ message: "School not found" });
+    }
+
+    return res.status(200).json({ school });
+  } catch (error) {
+    console.error("Error fetching school:", error);
+    return res.status(500).json({ message: "Error fetching school", error });
+  }
+};
+
+const getAllSchools = async (req, res) => {
+  try {
+    const allSchools = await schoolinfo.findAll();
+    return res.status(200).json({ schools: allSchools });
+  } catch (error) {
+    console.error("Error fetching all schools:", error);
+    return res.status(500).json({ message: "Error fetching all schools", error });
+  }
+};
+
+module.exports = { createSchool, updateSchool, getSchoolById, getAllSchools };

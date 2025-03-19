@@ -1,21 +1,17 @@
 const express = require('express');
+const router = express.Router();
 const schoolInfoController = require('../controllers/SchoolinfoController');
 
-const router = express.Router();
-
 // Create a new school record
-router.post('/create', schoolInfoController.create);
+router.post('/create', schoolInfoController.createSchool);
 
-// Retrieve all school records
-router.get('/all', schoolInfoController.getAll);
+// Get all school records
+router.get('/list', schoolInfoController.getAllSchools);
 
-// Retrieve a single school record by ID
-router.get('/schoolinfo/:id', schoolInfoController.getById);
+// Get a specific school record by ID
+router.get('/list/:id', schoolInfoController.getSchoolById);
 
 // Update a school record
-router.put('/update/:id', schoolInfoController.update);
-
-// Delete a school record
-router.delete('/delete/:id', schoolInfoController.delete);
+router.put('/update/:id', schoolInfoController.updateSchool);
 
 module.exports = router;
