@@ -54,10 +54,10 @@ module.exports = function (sequelize, DataTypes) {
                 prefix = 'P';
                 break;
               case 'admin':
-                prefix = 'A'; // Use 'A' for Administrator
+                prefix = 'U'; // Use 'A' for Administrator
                 break;
               case 'operator':
-                prefix = 'O'; // Use 'O' for Operator
+                prefix = 'U'; // Use 'O' for Operator
                 break;
               default:
                 throw new Error('Invalid role');
