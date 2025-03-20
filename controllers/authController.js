@@ -117,6 +117,49 @@ exports.verifyOTP = async (req, res) => {
   }
 };
 
+
+
+// Controller to create a new user (Student, Teacher, Principal)
+// Controller to create a new user (Student, Teacher, Principal)
+// Controller to create a new user (Student, Teacher, Principal)
+exports.createUser = async (req, res) => {
+  try {
+    const { role, phone_number } = req.body; // Include phone_number
+
+    if (!req.user || !["admin", "operator"].includes(req.user.role)) {
+      return res.status(403).send({ success: false, message: "Only admin or operator can create users." });
+    }
+
+    if (!role || !["student", "teacher", "principal"].includes(role)) {
+      return res.status(400).send({ success: false, message: "Invalid role. Must be student, teacher, or principal." });
+    }
+
+    if (!phone_number) {
+      return res.status(400).send({ success: false, message: "Phone number is required." });
+    }
+
+    const password = generateRandomPassword();
+
+    const newUser = await User.create({
+      phone_number, // Ensure phone_number is included
+      role,
+      password,
+      status: "active",
+    });
+
+    res.status(201).send({
+      success: true,
+      message: `${role} created successfully`,
+      unique_id: newUser.unique_id, // Sequelize should generate this
+      password,
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: "User creation failed", error: error.message });
+  }
+};
+
+
+
 // Controller to handle login using unique_id and password
 exports.login = async (req, res) => {
   try {
