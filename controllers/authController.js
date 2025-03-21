@@ -179,6 +179,16 @@ exports.login = async (req, res) => {
       return res.status(401).send({ success: false, message: "Invalid password" });
     }
 
+    // Check if this is the first login
+    if (user.first_time_login) {
+      return res.status(200).send({
+        success: true,
+        message: "Please reset your password before logging in",
+        reset_required: true, // Indicate to the frontend that reset is required
+      });
+    }
+
+    // Generate JWT token after password reset
     const token = jwt.sign(
       { unique_id: user.unique_id, phone_number: user.phone_number, role: user.role },
       JWT_SECRET,
@@ -209,6 +219,39 @@ exports.login = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Login failed",
+      error: error.message,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { unique_id, new_password } = req.body;
+
+    if (!unique_id || !new_password) {
+      return res.status(400).send({ success: false, message: "Unique ID and new password are required" });
+    }
+
+    const user = await User.findOne({ where: { unique_id } });
+
+    if (!user) {
+      return res.status(404).send({ success: false, message: "User not found" });
+    }
+
+    // Update the user's password and set first_time_login to false
+    await user.update({
+      password: new_password,
+      first_time_login: false, // Mark that the user has reset their password
+    });
+
+    res.status(200).send({
+      success: true,
+      message: "Password reset successful. Please log in with your new password.",
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Password reset failed",
       error: error.message,
     });
   }

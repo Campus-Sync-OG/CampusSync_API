@@ -26,6 +26,10 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
 
       },
+      first_time_login: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true, // Indicates whether the user has logged in for the first time
+      },
       created_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.NOW,

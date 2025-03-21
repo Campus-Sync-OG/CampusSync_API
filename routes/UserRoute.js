@@ -18,6 +18,8 @@ router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser)
 
 router.post("/create-user", Auth.verifyToken, authControlller.createUser); 
 
+router.post("/reset-password",  authControlller.resetPassword); 
+
 router.post("/upload-fees", Auth.verifyToken, upload.single("file"), uploadFeesCSV);
 router.post("/addfee", Auth.verifyToken, userController.addFee);
 router.get('/profile', (req, res) => {
