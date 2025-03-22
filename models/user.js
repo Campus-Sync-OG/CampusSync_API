@@ -30,6 +30,10 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.BOOLEAN,
         defaultValue: true, // Indicates whether the user has logged in for the first time
       },
+      last_password_reset: { 
+      type: DataTypes.DATE,
+       allowNull: true 
+      }, 
       created_at: {
         type: DataTypes.DATE,
         defaultValue: Sequelize.NOW,
@@ -61,7 +65,7 @@ module.exports = function (sequelize, DataTypes) {
                 prefix = 'U'; // Use 'A' for Administrator
                 break;
               case 'operator':
-                prefix = 'U'; // Use 'O' for Operator
+                prefix = 'O'; // Use 'O' for Operator
                 break;
               default:
                 throw new Error('Invalid role');

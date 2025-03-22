@@ -124,24 +124,35 @@ exports.verifyOTP = async (req, res) => {
 // Controller to create a new user (Student, Teacher, Principal)
 exports.createUser = async (req, res) => {
   try {
-    const { role, phone_number } = req.body; // Include phone_number
+    const { role, phone_number } = req.body;
 
+    // Ensure the requester is either an admin or operator
     if (!req.user || !["admin", "operator"].includes(req.user.role)) {
-      return res.status(403).send({ success: false, message: "Only admin or operator can create users." });
+      return res.status(403).send({ success: false, message: "Unauthorized access" });
     }
 
-    if (!role || !["student", "teacher", "principal"].includes(role)) {
-      return res.status(400).send({ success: false, message: "Invalid role. Must be student, teacher, or principal." });
+    // Admin can create Operator, Student, Teacher, Principal
+    // Operator can only create Student, Teacher, Principal
+    if (req.user.role === "operator" && role === "operator") {
+      return res.status(403).send({ success: false, message: "Operator cannot create another operator" });
+    }
+
+    if (req.user.role === "operator" && role === "admin") {
+      return res.status(403).send({ success: false, message: "Operator cannot create an admin" });
+    }
+
+    if (!role || !["admin", "operator", "student", "teacher", "principal"].includes(role)) {
+      return res.status(400).send({ success: false, message: "Invalid role" });
     }
 
     if (!phone_number) {
-      return res.status(400).send({ success: false, message: "Phone number is required." });
+      return res.status(400).send({ success: false, message: "Phone number is required" });
     }
 
     const password = generateRandomPassword();
 
     const newUser = await User.create({
-      phone_number, // Ensure phone_number is included
+      phone_number,
       role,
       password,
       status: "active",
@@ -150,13 +161,14 @@ exports.createUser = async (req, res) => {
     res.status(201).send({
       success: true,
       message: `${role} created successfully`,
-      unique_id: newUser.unique_id, // Sequelize should generate this
+      unique_id: newUser.unique_id,
       password,
     });
   } catch (error) {
     res.status(500).send({ success: false, message: "User creation failed", error: error.message });
   }
 };
+
 
 
 
@@ -192,7 +204,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { unique_id: user.unique_id, phone_number: user.phone_number, role: user.role },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
     const refreshToken = jwt.sign(
@@ -226,10 +238,13 @@ exports.login = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
   try {
-    const { unique_id, new_password } = req.body;
+    const { unique_id, old_password, new_password } = req.body;
 
-    if (!unique_id || !new_password) {
-      return res.status(400).send({ success: false, message: "Unique ID and new password are required" });
+    if (!unique_id || !old_password || !new_password) {
+      return res.status(400).send({
+        success: false,
+        message: "Unique ID, old password, and new password are required",
+      });
     }
 
     const user = await User.findOne({ where: { unique_id } });
@@ -238,10 +253,29 @@ exports.resetPassword = async (req, res) => {
       return res.status(404).send({ success: false, message: "User not found" });
     }
 
+    // Check if old password matches the existing password
+    if (user.password !== old_password) {
+      return res.status(400).send({ success: false, message: "Old password is incorrect" });
+    }
+
+    // Check if the password was reset within the last 30 days
+    if (user.last_password_reset) {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+      if (new Date(user.last_password_reset) > oneMonthAgo) {
+        return res.status(403).send({
+          success: false,
+          message: "You can only reset your password once every 30 days.",
+        });
+      }
+    }
+
     // Update the user's password and set first_time_login to false
     await user.update({
       password: new_password,
-      first_time_login: false, // Mark that the user has reset their password
+      first_time_login: false,
+      last_password_reset: new Date(), // Update reset timestamp
     });
 
     res.status(200).send({
@@ -256,3 +290,4 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
