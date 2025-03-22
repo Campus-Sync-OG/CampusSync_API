@@ -18,6 +18,10 @@ router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser)
 
 router.post("/upload-fees", Auth.verifyToken, upload.single("file"), uploadFeesCSV);
 router.post("/addfee", Auth.verifyToken, userController.addFee);
+
+router.post('/create-school', userController.createSchool);
+
+router.put('/update-school/:id', userController.updateSchool);
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route
   res.send("User profile data here");
