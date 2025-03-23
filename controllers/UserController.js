@@ -1,5 +1,19 @@
 const { user,student,fee ,schoolinfo} = require('../models');
+const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const storage = multer.memoryStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Store files in 'uploads' folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+  }
+});
+
+const upload = multer({ storage }).single('file');const multer = require('multer');
 // Configure Multer for file uploads (in-memory storage)
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -153,125 +167,44 @@ exports.addFee = async (req, res) => {
   }
 };
 
-exports.createSchool = async (req, res) => {
-  try {
-    const school = await schoolinfo.create(req.body);
-    res.status(201).json(school);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-exports.updateSchool = async (req, res) => {
-  try {
-    const [updated] = await schoolinfo.update(req.body, {
-      where: { id: req.params.id },
-    });
-    if (!updated) return res.status(404).json({ error: 'School not found' });
-    const updatedSchool = await schoolinfo.findByPk(req.params.id);
-    res.status(200).json(updatedSchool);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-exports.assignClassTeacher = async (req, res) => {
-  try {
-    const { emp_id, class:className, section } = req.body;
-
-    if (!emp_id || !className|| !section) {
-      return res.status(400).json({ message: "emp_id, class, and section are required" });
-    }
-
-    // Check if the teacher exists
-    const teachers = await teacher.findOne({ where: { emp_id } });
-    if (!teachers) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-
-    // Check if the class and section exist in the students table
-    const studentExists = await student.findOne({ where: { class: className, section } });
-    if (!studentExists) {
-      return res.status(400).json({ message: "Invalid class or section" });
-    }
-
-    // Update the teacher's role to "class teacher"
-    await teacher.update(
-      { role: "classTeacher" },
-      { where: { emp_id } }
-    );
-
-    // Return updated teacher details
-    return res.status(200).json({
-      message: "Class teacher assigned successfully and role updated",
-      data: {
-        emp_id: teachers.emp_id,
-        emp_name: teachers.emp_name,
-        role: "classTeacher",
-        class: className,
-        section,
-      },
-    });
-
-  } catch (error) {
-    console.error("Error assigning class teacher:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-exports.assignSubjectTeacher = async (req, res) => {
-  try {
-    const { emp_id, subject } = req.query ;
-
-    if (!emp_id || !subject) {
-      return res.status(400).json({ message: "emp_id and subject are required" });
-    }
-
-    // Check if the teacher exists
-    const teachers = await teacher.findOne({ where: { emp_id } });
-    if (!teachers) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-
-    
-
-    // Return updated teacher details
-    return res.status(200).json({
-      message: "Subject teacher assigned successfully and role updated",
-      data: {
-        emp_id: teachers.emp_id,
-        emp_name: teachers.emp_name,
-        role: "subjectTeacher",
-        subject,
-      },
-    });
-
-  } catch (error) {
-    console.error("Error assigning subject teacher:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
 exports.uploadWithMetadata = async (req, res) => {
   try {
-      if (!req.file) return res.status(400).json({ message: "File is required" });
+    console.log("Received file:", req.file);
 
-      const blobName = `${Date.now()}-${req.file.originalname}`;
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    if (!req.file) {
+      return res.status(400).json({ message: "File is required" });
+    }
 
-      // Define expiry timestamp
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 1); // Expires in 1 hour
+    const fileType = req.file.mimetype.startsWith("image") ? "image" : "video";
+    const filePath = path.join(__dirname, "../", req.file.path);
+    const fileBuffer = fs.readFileSync(filePath);
+    const uploadDate = new Date().toISOString();
 
-      // Upload file with metadata
-      await blockBlobClient.uploadStream(streamifier.createReadStream(req.file.buffer), req.file.size, undefined, {
-          metadata: { expires_at: expiresAt.toISOString() }
-      });
+    // Upload with metadata
+    const metadata = {
+      category: "gallery",
+      uploadDate,
+      originalName: req.file.originalname,
+    };
 
-      res.status(201).json({ message: "File uploaded", url: blockBlobClient.url });
+    const fileUrl = await uploadImageToAzure(fileBuffer, req.file.originalname, fileType, metadata);
+
+    // Delete file from local storage after upload
+    fs.unlink(filePath, (err) => {
+      if (err) console.error("Error deleting file:", err);
+    });
+
+    res.status(201).json({
+      message: "File uploaded successfully",
+      url: fileUrl,
+      metadata,
+    });
 
   } catch (error) {
-      console.error("Upload error:", error);
-      res.status(500).json({ message: "Internal server error" });
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
+
+exports.upload=upload;

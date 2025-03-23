@@ -12,6 +12,7 @@ const examformatRoutes=require('./routes/ExamformatRoute');
 const feeRoutes = require("./routes/FeeRoutes");
 const FormRoutes = require("./routes/FormRoutes");
 const parentRoutes = require("./routes/ParentRoute");
+const galleryRoutes = require("./routes/GalleryRoute");
 const academicRoutes=require('./routes/AcademicsRoute');
 const attendanceRoutes=require('./routes/AttendanceRoute');
 const schoolInfoRoutes = require('./routes/SchoolRoute');
@@ -44,6 +45,7 @@ app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
 app.use('/api/school', schoolInfoRoutes); // Prefix routes with /api
 app.use("/api/notification", notificationRoutes);
+app.use('/api/image', galleryRoutes);
 
 app.use('/api/announcement', AnnouncementRoutes);
 

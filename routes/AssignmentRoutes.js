@@ -5,7 +5,7 @@ const csvController = require('../controllers/CsvController');
 const Auth = require("../middleware/authMiddleware");
 
 
-router.get('/all', Auth.verifyToken, AssignmentController.getAllAssignments);
+router.get('/all',  AssignmentController.getAllAssignments);
 router.get('/all/:admission_no', Auth.verifyToken, AssignmentController.getAssignmentsByAdmissionNo);
 router.delete('/delete/:admission_no', Auth.verifyToken, AssignmentController.deleteAssignment);
 
