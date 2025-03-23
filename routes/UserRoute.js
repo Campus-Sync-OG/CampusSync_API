@@ -19,10 +19,8 @@ router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser)
 router.post("/upload-fees", Auth.verifyToken, upload.single("file"), uploadFeesCSV);
 router.post("/addfee", Auth.verifyToken, userController.addFee);
 
-router.post('/create-school', userController.createSchool);
 
-router.put('/update-school/:id', userController.updateSchool);
-router.post("/assign-class-teacher", userController.assignClassTeacher);
+
 
 router.post('/upload', upload.single('file'), userController.uploadWithMetadata);
 

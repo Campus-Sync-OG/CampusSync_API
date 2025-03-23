@@ -15,10 +15,9 @@ const _forms=require('./forms');
 const _subject=require('./subject');
 const _parent=require('./parent');
 const _schoolinfo=require('./schoolinfo');
-
 const _notification=require('./notification');
 const _announcement = require('./announcement');
-
+const _feedback = require('./feedback');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -35,6 +34,7 @@ const parent=_parent(sequelize,DataTypes);
 const schoolinfo=_schoolinfo(sequelize,DataTypes);
 const notification = _notification(sequelize, DataTypes);
 const announcement=_announcement(sequelize,DataTypes);
+const feedback = _feedback(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -75,7 +75,7 @@ student.hasMany(attendance, {foreignKey: "admission_no",sourceKey: "admission_no
 teacher.hasMany(attendance, {foreignKey: "emp_id",sourceKey: "emp_id",as: "attendances",});
 
 
-student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no", onDelete: "CASCADE", onUpdate: "CASCADE" });
+student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no"});
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
 forms.hasOne(teacher,{foreignKey:'id', targetkey:'id',as:'forms'});
@@ -85,11 +85,12 @@ subject.hasOne(principal,{foreignKey:'id',targetKey:'id',as:'subjects'});
 
 student.hasOne(parent ,{ foreignKey: "admission_no",sourceKey: "admission_no", as: "parentInfo" });
 parent.belongsTo(student, { foreignKey: "admission_no",targetKey: "admission_no", as: "student" });
-user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id", onDelete: "CASCADE" });
-notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id", onDelete: "CASCADE" });
+user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id" });
+notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
 announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator'});
 user.hasMany(announcement, {foreignKey: 'user_id',sourceKey: 'unique_id',as: 'announcements'});
-
+user.hasMany(feedback, { foreignKey: "unique_id", as: "received_feedbacks" });
+feedback.belongsTo(user, { foreignKey: "unique_id", as: "teacher" });
 module.exports = {
   sequelize,
   user,
@@ -107,4 +108,5 @@ module.exports = {
   schoolinfo,
   notification,
   announcement,
+  feedback,
 };
