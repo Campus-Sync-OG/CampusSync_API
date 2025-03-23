@@ -1,4 +1,4 @@
-const { user,student,fee } = require('../models');
+const { user,student,fee ,schoolinfo} = require('../models');
 
 exports.createUser = async (req, res) => {
   const { role, name, password,phone_number,status } = req.body;
@@ -146,5 +146,27 @@ exports.addFee = async (req, res) => {
   } catch (error) {
       console.error("Error adding fee:", error);
       res.status(500).json({ message: "Error adding fee" });
+  }
+};
+
+exports.createSchool = async (req, res) => {
+  try {
+    const school = await schoolinfo.create(req.body);
+    res.status(201).json(school);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.updateSchool = async (req, res) => {
+  try {
+    const [updated] = await schoolinfo.update(req.body, {
+      where: { id: req.params.id },
+    });
+    if (!updated) return res.status(404).json({ error: 'School not found' });
+    const updatedSchool = await schoolinfo.findByPk(req.params.id);
+    res.status(200).json(updatedSchool);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };
