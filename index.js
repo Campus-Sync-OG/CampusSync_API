@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const http = require("http");
 const userRoutes = require("./routes/UserRoute");
 const studentRoutes = require('./routes/StudentRoute');
 const teacherRoutes = require('./routes/TeacherRoute');
@@ -12,10 +13,11 @@ const feeRoutes = require("./routes/FeeRoutes");
 const FormRoutes = require("./routes/FormRoutes");
 const parentRoutes = require("./routes/ParentRoute");
 const academicRoutes=require('./routes/AcademicsRoute');
-const  attendanceRoutes=require('./routes/AttendanceRoute');
+const attendanceRoutes=require('./routes/AttendanceRoute');
 const schoolInfoRoutes = require('./routes/SchoolRoute');
+const notificationRoutes = require("./routes/NotificationRoute");
 
-
+const server = http.createServer(app);
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
@@ -37,6 +39,8 @@ app.use('api/parents',parentRoutes);
 app.use('/api/academics', academicRoutes);
 app.use('/api/attendance',attendanceRoutes);
 app.use('/api/school', schoolInfoRoutes); // Prefix routes with /api
+app.use("/api/notification", notificationRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);

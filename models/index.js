@@ -16,6 +16,7 @@ const _subject=require('./subject');
 const _parent=require('./parent');
 const _schoolinfo=require('./schoolinfo');
 
+const _notification=require('./notification');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -30,6 +31,7 @@ const forms=_forms(sequelize,DataTypes)
 const subject=_subject(sequelize,DataTypes);
 const parent=_parent(sequelize,DataTypes);
 const schoolinfo=_schoolinfo(sequelize,DataTypes);
+const notification = _notification(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -80,6 +82,8 @@ subject.hasOne(principal,{foreignKey:'id',targetKey:'id',as:'subjects'});
 
 student.hasOne(parent ,{ foreignKey: "admission_no",sourceKey: "admission_no", as: "parentInfo" });
 parent.belongsTo(student, { foreignKey: "admission_no",targetKey: "admission_no", as: "student" });
+user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id", onDelete: "CASCADE" });
+notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id", onDelete: "CASCADE" });
 
 module.exports = {
   sequelize,
@@ -95,5 +99,6 @@ module.exports = {
   forms,
   subject,
   parent,
-  schoolinfo
+  schoolinfo,
+  notification,
 };
