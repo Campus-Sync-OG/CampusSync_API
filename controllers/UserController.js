@@ -15,8 +15,6 @@ const storage = multer.memoryStorage({
 
 const upload = multer({ storage }).single('file');const multer = require('multer');
 // Configure Multer for file uploads (in-memory storage)
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
 
 exports.createUser = async (req, res) => {
   const { role, name, password,phone_number,status } = req.body;
