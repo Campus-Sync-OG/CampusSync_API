@@ -30,14 +30,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      father_dob: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-      },
-      father_bloodgroup: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
       mother_name: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -47,14 +39,6 @@ module.exports = {
         allowNull: false,
       },
       mother_email: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      mother_dob: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-      },
-      mother_bloodgroup: {
         type: Sequelize.STRING,
         allowNull: true,
       },
