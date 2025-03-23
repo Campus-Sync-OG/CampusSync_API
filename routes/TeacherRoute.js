@@ -5,7 +5,7 @@ const Auth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post('/create', Auth.verifyToken, teacherController.createTeacher);
+router.post('/create', teacherController.createTeacher);
 router.get('/all', Auth.verifyToken, teacherController.getAllTeachers);
 router.get('/list/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
 router.put('/update/:emp_id', Auth.verifyToken, teacherController.updateTeacher);
@@ -28,5 +28,6 @@ router.put('/:emp_id/update/assignment', Auth.verifyToken, teacherController.upd
 router.put("/update-roll/:emp_id", Auth.verifyToken, teacherController.updateStudentRollNo);
 
 router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAssignmentsCSV);
+router.post('/assign-subjects', teacherController.assignSubjectsToTeacher);
 
 module.exports = router;

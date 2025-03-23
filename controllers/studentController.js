@@ -21,11 +21,12 @@ const upload = multer({
 // Create a student with profile picture upload
 exports.createStudent = async (req, res) => {
   try {
-    console.log("Received Request Body:", req.body); // Debugging log
-    console.log("Received File:", req.file); // Debugging log
-
     const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section, roll_no } = req.body;
 
+    // Validate required fields
+    if (!admission_no || !student_name || !password || !classname || !section || !roll_no) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
     if (!admission_no) {
       return res.status(400).json({ message: "Admission number is required" });
     }
@@ -62,11 +63,11 @@ exports.createStudent = async (req, res) => {
       roll_no,
       images: imageUrl,
     });
+    res.status(201).json({ message: 'Student created successfully', student: newStudent });
 
-    res.status(201).json({ message: "Student created successfully", student: newStudent });
   } catch (error) {
-    console.error("Error creating student:", error);
-    res.status(500).json({ message: error.message });
+    console.error('Error creating student:', error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

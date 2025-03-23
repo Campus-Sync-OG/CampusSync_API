@@ -49,9 +49,9 @@ module.exports = function (sequelize, DataTypes) {
         defaultValue: DataTypes.NOW,
       },
       role: {
-        type: DataTypes.ENUM('classteacher', 'subjectteacher'),
+        type: DataTypes.ENUM('classTeacher', 'subjectTeacher'),
         allowNull: false,
-        defaultValue: 'classteacher',
+        defaultValue: 'subjectTeacher', // Default value for role
       },
       status: {
         type: DataTypes.ENUM('active', 'inactive'),
