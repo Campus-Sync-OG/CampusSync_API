@@ -40,8 +40,12 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false,
     },
+    deletedAt: { 
+      type: DataTypes.DATE, 
+      allowNull: true },
   }, {
     sequelize,
+    paranoid: true,
     tableName: "fee",
     timestamps: false, // Disable createdAt/updatedAt timestamps
   });

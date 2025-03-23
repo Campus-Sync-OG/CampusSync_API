@@ -27,14 +27,6 @@ module.exports = (sequelize, DataTypes) => {
           type: DataTypes.STRING,
           allowNull: true,
         },
-        father_dob: {
-            type: DataTypes.DATEONLY,
-            allowNull: true,
-          },
-        father_bloodgroup: {
-            type: DataTypes.STRING,
-            allowNull: true,
-          },
         mother_name: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -47,14 +39,6 @@ module.exports = (sequelize, DataTypes) => {
           type: DataTypes.STRING,
           allowNull: true,
         },
-        mother_dob: {
-            type: DataTypes.DATEONLY,
-            allowNull: true,
-          },
-        mother_bloodgroup: {
-            type: DataTypes.STRING,
-            allowNull: true,
-          },
         address: {
           type: DataTypes.TEXT,
           allowNull: false,
