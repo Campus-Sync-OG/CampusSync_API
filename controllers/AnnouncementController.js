@@ -70,7 +70,10 @@ exports.updateAnnouncement = async (req, res) => {
       return res.status(404).json({ success: false, message: "Announcement not found" });
     }
 
-    await announcement.update({ title, date, message, status });
+    await announcement.update(
+      { title, date, message, status },
+      { where: { id: id } } // Ensure `announcementId` is defined
+  );
     res.status(200).json({ success: true, message: "Announcement updated successfully!", announcement });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
