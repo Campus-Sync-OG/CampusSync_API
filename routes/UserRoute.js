@@ -16,10 +16,6 @@ router.put('/update/:unique_id', Auth.verifyToken, userController.updateUser);
 
 router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser);
 
-router.post("/create-user", Auth.verifyToken, authControlller.createUser); 
-
-router.post("/reset-password",  authControlller.resetPassword); 
-
 router.post("/upload-fees", Auth.verifyToken, upload.single("file"), uploadFeesCSV);
 router.post("/addfee", Auth.verifyToken, userController.addFee);
 router.get('/profile', (req, res) => {
@@ -28,15 +24,10 @@ router.get('/profile', (req, res) => {
 });
 
 
-
 router.post('/Otp', authControlller.sendOTP);  // Use the sendOTP function from authController
 
 
-router.post('/Verify', authControlller.verifyOTP);
-
-router.post("/login", authControlller.login);
-
-
+router.post('/verify', authControlller.verifyOTP);
 router.post("/token/refresh", RefreshToken.refreshToken);
 
 
