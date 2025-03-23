@@ -1,4 +1,4 @@
-const { user,student,fee ,schoolinfo} = require('../models');
+const { user, student, fee, schoolinfo,teacher } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');
@@ -13,14 +13,14 @@ const storage = multer.memoryStorage({
   }
 });
 
-const upload = multer({ storage }).single('file');const multer = require('multer');
+const upload = multer({ storage }).single('file');
 // Configure Multer for file uploads (in-memory storage)
 
 exports.createUser = async (req, res) => {
-  const { role, name, password,phone_number,status } = req.body;
+  const { role, name, password, phone_number, status } = req.body;
 
   try {
-    const newUser = await user.create({ role, name, password,phone_number,status });
+    const newUser = await user.create({ role, name, password, phone_number, status });
     res.status(201).json({
       message: 'User created successfully',
       user: newUser,
@@ -140,28 +140,28 @@ exports.deleteUser = async (req, res) => {
 
 exports.addFee = async (req, res) => {
   try {
-      const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date } = req.body;
+    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date } = req.body;
 
-      // Check if student exists for the provided admission_no
-      const Student = await student.findOne({ where: { admission_no } });
-      if (!Student) {
-          return res.status(404).json({ message: "Student not found" });
-      }
+    // Check if student exists for the provided admission_no
+    const Student = await student.findOne({ where: { admission_no } });
+    if (!Student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-      // Create the new fee record
-      const newFee = await fee.create({
-          admission_no, 
-          pay_date, 
-          pay_method, 
-          paid_amount, 
-          receipt_no, 
-          status, 
-          due_date 
-      });
-      res.status(201).json(newFee);
+    // Create the new fee record
+    const newFee = await fee.create({
+      admission_no,
+      pay_date,
+      pay_method,
+      paid_amount,
+      receipt_no,
+      status,
+      due_date
+    });
+    res.status(201).json(newFee);
   } catch (error) {
-      console.error("Error adding fee:", error);
-      res.status(500).json({ message: "Error adding fee" });
+    console.error("Error adding fee:", error);
+    res.status(500).json({ message: "Error adding fee" });
   }
 };
 
@@ -204,5 +204,99 @@ exports.uploadWithMetadata = async (req, res) => {
   }
 };
 
+exports.assignClassTeacher = async (req, res) => {
+  try {
+    const { emp_id, class: className, section } = req.body;
 
-exports.upload=upload;
+    if (!emp_id || !className || !section) {
+      return res.status(400).json({ message: "emp_id, class, and section are required" });
+    }
+
+    // Check if the teacher exists
+    const teachers = await teacher.findOne({ where: { emp_id } });
+    if (!teachers) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Check if the class and section exist in the students table
+    const studentExists = await student.findOne({ where: { class: className, section } });
+    if (!studentExists) {
+      return res.status(400).json({ message: "Invalid class or section" });
+    }
+
+    // Update the teacher's role to "class teacher"
+    await teacher.update(
+      { role: "classTeacher" },
+      { where: { emp_id } }
+    );
+
+    // Return updated teacher details
+    return res.status(200).json({
+      message: "Class teacher assigned successfully and role updated",
+      data: {
+        emp_id: teachers.emp_id,
+        emp_name: teachers.emp_name,
+        role: "classTeacher",
+        class: className,
+        section,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error assigning class teacher:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.assignSubjectTeacher = async (req, res) => {
+  try {
+    const { emp_id, subject } = req.query;
+
+    if (!emp_id || !subject) {
+      return res.status(400).json({ message: "emp_id and subject are required" });
+    }
+
+    // Check if the teacher exists
+    const teachers = await teacher.findOne({ where: { emp_id } });
+    if (!teachers) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+    return res.status(200).json({
+      message: "Subject teacher assigned successfully and role updated",
+      data: {
+        emp_id: teachers.emp_id,
+        emp_name: teachers.emp_name,
+        role: "subjectTeacher",
+        subject,
+      },
+    });
+
+  } catch (error) {
+    console.error("Error assigning subject teacher:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.createSchool = async (req, res) => {
+  try {
+    const school = await SchoolInfo.create(req.body);
+    res.status(201).json(school);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.updateSchool = async (req, res) => {
+  try {
+    const [updated] = await SchoolInfo.update(req.body, {
+      where: { id: req.params.id },
+    });
+    if (!updated) return res.status(404).json({ error: 'School not found' });
+    const updatedSchool = await SchoolInfo.findByPk(req.params.id);
+    res.status(200).json(updatedSchool);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.upload = upload;
