@@ -15,7 +15,7 @@ router.get('/list', Auth.verifyToken, studentController.getAllStudents);
 router.get('/:admission_no', Auth.verifyToken, studentController.getStudentByAdmissionNo);
 
 // Update a student by admission_no
-router.put('/update/:admission_no', Auth.verifyToken, studentController.updateStudent);
+router.put("/update/:admission_no", upload.single("image"), studentController.updateStudent)
 
 // Delete a student by admission_no
 router.delete('/delete/:admission_no', Auth.verifyToken, studentController.deleteStudentImage);

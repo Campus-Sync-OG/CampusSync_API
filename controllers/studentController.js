@@ -99,41 +99,102 @@ exports.getStudentByAdmissionNo = async (req, res) => {
   }
 };
 
-// Update a student
 exports.updateStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
-    const { student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section } = req.body;
+    const updateFields = req.body;
+
+    console.log(" Request Params:", req.params);
+    console.log("Received update fields:", req.body);
+    console.log(" File Upload Debug:", req.file);
 
     const studentRecord = await student.findOne({ where: { admission_no } });
-    if (!studentRecord) return res.status(404).json({ message: 'Student not found' });
 
-    // Only update fields if a new value is provided
-    if (student_name) studentRecord.student_name = student_name;
-    if (password) studentRecord.password = password;
-    if (phone_no) studentRecord.phone_no = phone_no;
-    if (alter_no) studentRecord.alter_no = alter_no;
-    if (dob) studentRecord.dob = dob;
-    if (gender) studentRecord.gender = gender;
-    if (status) studentRecord.status = status;
-    if (classname) studentRecord.class = classname;
-    if (section) studentRecord.section = section;
+    if (!studentRecord) {
+      console.log(" Student not found for admission_no:", admission_no);
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-    // Save the updated student record
-    await studentRecord.save();
+    console.log("Existing Student Data:", studentRecord.toJSON());
+
+    let updatedFields = {}; // Track updated fields
+
+    // Handle profile picture update
+    if (req.file) {
+      console.log(" Profile picture upload detected");
+
+      if (studentRecord.images) {
+        await deleteImageFromAzure(studentRecord.images);
+      }
+
+      try {
+        const resizedImageBuffer = await sharp(req.file.buffer)
+          .resize(200, 200)
+          .toFormat("jpeg")
+          .toBuffer();
+
+        const imageUrl = await uploadImageToAzure(
+          resizedImageBuffer,
+          req.file.originalname,
+          "student-profiles"
+        );
+
+        updatedFields.images = imageUrl;
+        console.log(" Uploaded Image URL:", imageUrl);
+      } catch (error) {
+        console.error(" Image Upload Failed:", error.message);
+        return res.status(500).json({ message: "Image upload failed", error: error.message });
+      }
+    }
+
+    //  List of allowed fields to update
+    const allowedFields = [
+      "student_name",
+      "password",
+      "phone_no",
+      "alter_no",
+      "dob",
+      "gender",
+      "status",
+      "class",
+      "section",
+      "roll_no",
+    ];
+
+    for (const field of allowedFields) {
+      if (updateFields[field] !== undefined && String(studentRecord[field]) !== String(updateFields[field])) {
+        updatedFields[field] = updateFields[field];
+      }
+    }
+
+    console.log(" Fields to Update:", updatedFields);
+
+    if (Object.keys(updatedFields).length === 0) {
+      console.log("No changes detected");
+      return res.status(200).json({ message: "No changes detected" });
+    }
+
+    // Update student record
+    await studentRecord.update(updatedFields);
+
+    // Fetch updated record
+    const updatedStudent = await student.findOne({ where: { admission_no } });
+
+    console.log("Student updated successfully:", updatedStudent.toJSON());
 
     res.status(200).json({
-      message: 'Student updated successfully',
-      student: studentRecord,
+      message: "Student updated successfully",
+      student: updatedStudent,
     });
   } catch (error) {
-    console.error('Error updating student:', error.message);
+    console.error(" Error updating student:", error.message);
     res.status(500).json({
-      message: 'Error updating student',
+      message: "Error updating student",
       error: error.message,
     });
   }
 };
+
 
 // Soft delete a student
 exports.deleteStudentImage = async (req, res) => {
