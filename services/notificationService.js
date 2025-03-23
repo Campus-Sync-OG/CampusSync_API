@@ -27,7 +27,7 @@ class NotificationService {
       for (const number of recipientNumbers) {
         await twilioClient.messages.create({
           body: `${title}: ${message}`,
-          messagingServiceSid: process.env.TWILIO_SERVICE_SID,
+          messagingServiceSid: process.env.TWILIO_MESSAGE_SERVICE_SID,
           to: number, // Send SMS to each student
         });
         console.log(`✅ SMS sent to ${number}`);
