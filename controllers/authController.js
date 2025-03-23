@@ -1,4 +1,5 @@
 const twilio = require("twilio");
+
 const jwt = require("jsonwebtoken");
 const { user: User } = require("../models"); // Import User model
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -14,13 +15,11 @@ const refreshTokens = new Set();
 const sendOTP = async (phone_number) => {
   try {
     // Ensure phone_number is a string and remove extra spaces
-    phone_number = phone_number.toString().trim();
-
+    phone_number = phone_number.toString().trim();    
     // If the number is 10 digits (without country code), prepend "+91"
     if (/^\d{10}$/.test(phone_number)) {
       phone_number = `+91${phone_number}`;
     }
-
     // Validate the final format (should be E.164 format)
     if (!/^\+91\d{10}$/.test(phone_number)) {
       throw new Error("Invalid phone number format");

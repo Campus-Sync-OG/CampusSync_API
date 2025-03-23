@@ -26,8 +26,6 @@ const authenticateUser = async (req, res, next) => {
     const token = req.header("Authorization")?.split(" ")[1];
     if (!token) return res.status(401).json({ success: false, message: "Unauthorized" });
     
-
-module.exports = {verifyToken};
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     const User = await user.findByPk(decoded.unique_id);
@@ -52,3 +50,4 @@ const authorizeRole = (roles) => {
 };
 
 module.exports = {  verifyToken ,authenticateUser, authorizeRole };
+
