@@ -34,14 +34,14 @@ const verifyOTP = async (phone_number, code) => {
   }
 };
 
+// Function to generate unique ID
+
 // Controller to handle sending OTP
 exports.sendOTP = async (req, res) => {
   try {
     const { phone_number } = req.body;
     if (!phone_number) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Phone number is required" });
+      return res.status(400).send({ success: false, message: "Phone number is required" });
     }
 
     const verification = await sendOTP(phone_number);
@@ -55,20 +55,25 @@ exports.sendOTP = async (req, res) => {
   }
 };
 
-// Controller to handle verifying OTP
+const generateRandomPassword = (length = 8) => {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
+// Controller to handle verifying OTP and registering user
 exports.verifyOTP = async (req, res) => {
   try {
-    const { phone_number, code, role } = req.body; // Extract role from request body
-
-    console.log("Incoming Request Data:", req.body); // DEBUGGING: Check received data
+    const { phone_number, code, role } = req.body;
 
     if (!phone_number || !code) {
-      return res
-        .status(400)
-        .send({ success: false, message: "Phone number and OTP are required" });
+      return res.status(400).send({ success: false, message: "Phone number and OTP are required" });
     }
 
-    // Verify OTP
+    // Verify OTP using Twilio
     const verificationCheck = await verifyOTP(phone_number, code);
     if (verificationCheck.status !== "approved") {
       return res.status(400).send({ success: false, message: "Invalid OTP" });
@@ -78,66 +83,32 @@ exports.verifyOTP = async (req, res) => {
     let user = await User.findOne({ where: { phone_number } });
 
     if (!user) {
-      // Ensure role is valid
-      const validRoles = ["student", "teacher", "principal"];
-      const assignedRole = validRoles.includes(role) ? role : "student";
+      const validRoles = ["admin", "operator"];
+      const assignedRole = validRoles.includes(role) ? role : "admin";
 
-      console.log(`Assigned Role: ${assignedRole}`); // DEBUGGING: Check assigned role
+      const password = generateRandomPassword(); // Generate plain text password
 
-      // Create new user
       user = await User.create({
-        name: "Guest",
         phone_number,
-        role: assignedRole, // Assign role dynamically
+        role: assignedRole,
+        password, // Pass the plain text password, but it will be hashed inside model hooks
         status: "active",
       });
 
-      console.log(`New User Created: ${user.unique_id}, Role: ${user.role}`);
+      // The unique_id will be automatically generated from the model's hook
+      return res.status(201).send({
+        success: true,
+        message: "User registered successfully",
+        unique_id: user.unique_id, // Take generated unique_id from the model
+        password, // Send plain password for first-time login
+      });
     } else {
-      // If user exists, update status if inactive
-      if (user.status === "inactive") {
-        await user.update({ status: "active" });
-        console.log(`User ${user.unique_id} reactivated.`);
-      }
-
-      // Increment login count
-      user.login_count = user.login_count ? user.login_count + 1 : 1;
-      await user.save();
+      return res.status(400).send({
+        success: false,
+        message: "User already registered. Use unique_id and password to login.",
+      });
     }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { unique_id: user.unique_id, phone_number: user.phone_number, role: user.role },
-      JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-    const refreshToken = jwt.sign(
-      { unique_id: user.unique_id, phone_number: user.phone_number },
-      REFRESH_SECRET,
-      { expiresIn: "1h" } // Refresh token valid for 7 days
-    );
-
-    refreshTokens.add(refreshToken); 
-
-    // Send response with token and user details
-    res.status(200).send({
-      success: true,
-      message: "OTP verified successfully",
-      token: `Bearer ${token}`,
-      refreshToken, 
-      user: {
-        unique_id: user.unique_id,
-        name: user.name,
-        phone_number: user.phone_number,
-        role: user.role,
-        status: user.status,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        login_count: user.login_count,
-      },
-    });
   } catch (error) {
-    console.error("Verification failed:", error);
     res.status(500).send({
       success: false,
       message: "Failed to verify OTP",
@@ -145,3 +116,178 @@ exports.verifyOTP = async (req, res) => {
     });
   }
 };
+
+
+
+// Controller to create a new user (Student, Teacher, Principal)
+// Controller to create a new user (Student, Teacher, Principal)
+// Controller to create a new user (Student, Teacher, Principal)
+exports.createUser = async (req, res) => {
+  try {
+    const { role, phone_number } = req.body;
+
+    // Ensure the requester is either an admin or operator
+    if (!req.user || !["admin", "operator"].includes(req.user.role)) {
+      return res.status(403).send({ success: false, message: "Unauthorized access" });
+    }
+
+    // Admin can create Operator, Student, Teacher, Principal
+    // Operator can only create Student, Teacher, Principal
+    if (req.user.role === "operator" && role === "operator") {
+      return res.status(403).send({ success: false, message: "Operator cannot create another operator" });
+    }
+
+    if (req.user.role === "operator" && role === "admin") {
+      return res.status(403).send({ success: false, message: "Operator cannot create an admin" });
+    }
+
+    if (!role || !["admin", "operator", "student", "teacher", "principal"].includes(role)) {
+      return res.status(400).send({ success: false, message: "Invalid role" });
+    }
+
+    if (!phone_number) {
+      return res.status(400).send({ success: false, message: "Phone number is required" });
+    }
+
+    const password = generateRandomPassword();
+
+    const newUser = await User.create({
+      phone_number,
+      role,
+      password,
+      status: "active",
+    });
+
+    res.status(201).send({
+      success: true,
+      message: `${role} created successfully`,
+      unique_id: newUser.unique_id,
+      password,
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: "User creation failed", error: error.message });
+  }
+};
+
+
+
+
+// Controller to handle login using unique_id and password
+exports.login = async (req, res) => {
+  try {
+    const { unique_id, password } = req.body;
+
+    if (!unique_id || !password) {
+      return res.status(400).send({ success: false, message: "Unique ID and password are required" });
+    }
+
+    const user = await User.findOne({ where: { unique_id } });
+
+    if (!user) {
+      return res.status(404).send({ success: false, message: "User not found" });
+    }
+
+    if (user.password !== password) {
+      return res.status(401).send({ success: false, message: "Invalid password" });
+    }
+
+    // Check if this is the first login
+    if (user.first_time_login) {
+      return res.status(200).send({
+        success: true,
+        message: "Please reset your password before logging in",
+        reset_required: true, // Indicate to the frontend that reset is required
+      });
+    }
+
+    // Generate JWT token after password reset
+    const token = jwt.sign(
+      { unique_id: user.unique_id, phone_number: user.phone_number, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    const refreshToken = jwt.sign(
+      { unique_id: user.unique_id, phone_number: user.phone_number },
+      REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    refreshTokens.add(refreshToken);
+
+    res.status(200).send({
+      success: true,
+      message: "Login successful",
+      token: `Bearer ${token}`,
+      refreshToken,
+      user: {
+        unique_id: user.unique_id,
+        phone_number: user.phone_number,
+        role: user.role,
+        status: user.status,
+      },
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Login failed",
+      error: error.message,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { unique_id, old_password, new_password } = req.body;
+
+    if (!unique_id || !old_password || !new_password) {
+      return res.status(400).send({
+        success: false,
+        message: "Unique ID, old password, and new password are required",
+      });
+    }
+
+    const user = await User.findOne({ where: { unique_id } });
+
+    if (!user) {
+      return res.status(404).send({ success: false, message: "User not found" });
+    }
+
+    // Check if old password matches the existing password
+    if (user.password !== old_password) {
+      return res.status(400).send({ success: false, message: "Old password is incorrect" });
+    }
+
+    // Check if the password was reset within the last 30 days
+    if (user.last_password_reset) {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+      if (new Date(user.last_password_reset) > oneMonthAgo) {
+        return res.status(403).send({
+          success: false,
+          message: "You can only reset your password once every 30 days.",
+        });
+      }
+    }
+
+    // Update the user's password and set first_time_login to false
+    await user.update({
+      password: new_password,
+      first_time_login: false,
+      last_password_reset: new Date(), // Update reset timestamp
+    });
+
+    res.status(200).send({
+      success: true,
+      message: "Password reset successful. Please log in with your new password.",
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Password reset failed",
+      error: error.message,
+    });
+  }
+};
+
