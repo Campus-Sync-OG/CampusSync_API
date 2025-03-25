@@ -462,33 +462,55 @@ exports.updateStudentRollNo = async (req, res) => {
   }
 };
 
+const teacherAssignments = {}; // Object to store assignments in-memory
+
 exports.assignSubjectsToTeacher = async (req, res) => {
   try {
-      const { teacher_id, assignments } = req.body;
+    const { teacher_id, assignments } = req.body;
 
-      if (!teacher_id || !assignments || !Array.isArray(assignments)) {
-          return res.status(400).json({ message: "Invalid input" });
-      }
-       const teachers= await teacher.findOne({where:{emp_id:teacher_id}})
-      if (!teachers) {
-          return res.status(404).json({ message: "Teacher not found" });
-      }
+    if (!teacher_id || !assignments || !Array.isArray(assignments)) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
 
-      // Prepare response data (without storing it in the database)
-      const responseData = assignments.map(({ class_name, section, subject_name }) => ({
-          teacher_id,
-          class_name,
-          section,
-          subject_name
-      }));
+    const teacherRecord = await teacher.findOne({ where: { emp_id: teacher_id } });
+    if (!teacherRecord) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
 
-      res.status(200).json({
-          message: "Subjects assigned successfully (not stored in DB)",
-          assignedSubjects: responseData
-      });
+    // Store assignments in an object (in-memory storage)
+    teacherAssignments[teacher_id] = assignments;
+
+    res.status(200).json({
+      message: "Subjects assigned successfully",
+      assignedSubjects: assignments,
+    });
 
   } catch (error) {
-      console.error("Error assigning subjects:", error);
-      res.status(500).json({ message: "Internal server error" });
+    console.error("Error assigning subjects:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+exports.getAssignedSubjects = async (req, res) => {
+  try {
+    const { teacher_id } = req.params;
+
+    if (!teacher_id) {
+      return res.status(400).json({ message: "Teacher ID is required" });
+    }
+
+    if (!teacherAssignments[teacher_id]) {
+      return res.status(404).json({ message: "No subjects assigned to this teacher" });
+    }
+
+    res.status(200).json({
+      message: "Assigned subjects retrieved successfully",
+      assignedSubjects: teacherAssignments[teacher_id],
+    });
+
+  } catch (error) {
+    console.error("Error retrieving assigned subjects:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
