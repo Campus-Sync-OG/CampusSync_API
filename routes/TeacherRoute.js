@@ -32,4 +32,6 @@ router.post('/assign-subjects', teacherController.assignSubjectsToTeacher);
 
 router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjects);
 
+router.get("/certificates", teacherController.getCertificates);
+
 module.exports = router;

@@ -5,11 +5,6 @@ module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
     "achievement",
     {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-      },
       admission_no: {
         type: DataTypes.STRING,
         allowNull: false,

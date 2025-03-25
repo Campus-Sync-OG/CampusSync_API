@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment,subject} = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment,subject,achievement} = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -514,3 +514,19 @@ exports.getAssignedSubjects = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.getCertificates = async (req, res) => {
+  try {
+    const certificates = await achievement.findAll(); // Fetch all certificates
+
+    if (!certificates || certificates.length === 0) {
+      return res.status(404).json({ message: "No certificates found" });
+    }
+
+    res.status(200).json({ message: "Certificates retrieved successfully", certificates });
+  } catch (error) {
+    console.error("Error fetching certificates:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+

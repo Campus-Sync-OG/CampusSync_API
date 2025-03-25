@@ -1,23 +1,20 @@
-const { student, user } = require("../models");
+const { student, user,achievement } = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
 
-// Configure Multer for handling file uploads
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-    if (allowedTypes.includes(file.mimetype)) {
+    if (file.mimetype === "application/pdf") {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only JPEG and PNG are allowed."), false);
+      cb(new Error("Invalid file type. Only PDF is allowed."), false);
     }
   },
 });
-
 // Create a student with profile picture upload
 exports.createStudent = async (req, res) => {
   try {
@@ -215,6 +212,39 @@ exports.deleteStudentImage = async (req, res) => {
   } catch (error) {
     console.error("Error deleting profile picture:", error);
     res.status(500).json({ message: "Failed to delete profile picture", error: error.message });
+  }
+};
+
+exports.uploadCertificate = async (req, res) => {
+  try {
+    const { admission_no, title, description, className, section, date } = req.body;
+    
+    if (!admission_no || !title || !className || !section || !date) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Certificate file is required" });
+    }
+
+    // Upload certificate to Azure Blob Storage
+    const certificateUrl = await uploadImageToAzure(req.file.buffer, req.file.originalname, "certificates");
+    
+    // Store record in the database
+    const newAchievement = await achievement.create({
+      admission_no,
+      className,
+      section,
+      title,
+      description,
+      Certificateurl: certificateUrl,
+      date,
+    });
+
+    res.status(201).json({ message: "Certificate uploaded successfully", achievement: newAchievement });
+  } catch (error) {
+    console.error("Error uploading certificate:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
