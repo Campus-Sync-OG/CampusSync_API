@@ -1,4 +1,4 @@
-const { student, user } = require("../models");
+const { student, user ,feedback } = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -217,6 +217,23 @@ exports.deleteStudentImage = async (req, res) => {
     res.status(500).json({ message: "Failed to delete profile picture", error: error.message });
   }
 };
+exports.createFeedback = async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ message: "Feedback message is required" });
+    }
+
+    const newFeedback = await feedback.create({ message });
+
+    res.status(201).json({ message: "Feedback submitted successfully", feedback: newFeedback });
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    res.status(500).json({ message: "Error submitting feedback", error: error.message });
+  }
+};
+
 exports.upload=upload;
 
 
