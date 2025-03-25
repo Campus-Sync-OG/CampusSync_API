@@ -15,7 +15,6 @@ const _forms=require('./forms');
 const _subject=require('./subject');
 const _parent=require('./parent');
 const _schoolinfo=require('./schoolinfo');
-
 const _notification=require('./notification');
 const _announcement = require('./announcement');
 

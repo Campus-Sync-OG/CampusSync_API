@@ -5,18 +5,7 @@ exports.createAnnouncement = async (req, res) => {
     try {
       const { title, date, message, status } = req.body;
       const user_id = req.user.unique_id;
-      // Check if the user exists and is a teacher or principal
-    //   const User = await user.findOne({ where: { unique_id: user_id } });
-  
-    //   if (!User) {
-    //     return res.status(404).json({ success: false, message: "User not found" });
-    //   }
-  
-    //   if (User.role !== "teacher" && user.role !== "principal") {
-    //     return res.status(403).json({ success: false, message: "Only teachers and principals can create announcements" });
-    //   }
-  
-    
+
       // Create the announcement
       const Announcement = await announcement.create({
         title,
