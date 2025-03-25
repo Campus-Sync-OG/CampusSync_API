@@ -29,4 +29,6 @@ router.put("/update-roll/:emp_id", Auth.verifyToken, teacherController.updateStu
 
 router.post('/assign-subjects', teacherController.assignSubjectsToTeacher);
 
+router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjects);
+
 module.exports = router;
