@@ -9,14 +9,15 @@ const _principal = require('./principal');
 const _academics = require('./academics');
 const _assignment = require('./assignment');
 const _examformat = require('./examformat');
-const _attendance=require('./attendance');
+const _attendance = require('./attendance');
 const _fee = require('./fee');
-const _forms=require('./forms');
-const _subject=require('./subject');
-const _parent=require('./parent');
-const _schoolinfo=require('./schoolinfo');
-const _notification=require('./notification');
+const _forms = require('./forms');
+const _subject = require('./subject');
+const _parent = require('./parent');
+const _schoolinfo = require('./schoolinfo');
+const _notification = require('./notification');
 const _announcement = require('./announcement');
+const _achievement = require('./achievement');
 
 
 const user = _user(sequelize, DataTypes);
@@ -26,14 +27,15 @@ const principal = _principal(sequelize, DataTypes);
 const academics = _academics(sequelize, DataTypes);
 const assignment = _assignment(sequelize, DataTypes);
 const examformat = _examformat(sequelize, DataTypes);
-const attendance=_attendance(sequelize,DataTypes);
+const attendance = _attendance(sequelize, DataTypes);
 const fee = _fee(sequelize, DataTypes);
-const forms=_forms(sequelize,DataTypes)
-const subject=_subject(sequelize,DataTypes);
-const parent=_parent(sequelize,DataTypes);
-const schoolinfo=_schoolinfo(sequelize,DataTypes);
+const forms = _forms(sequelize, DataTypes)
+const subject = _subject(sequelize, DataTypes);
+const parent = _parent(sequelize, DataTypes);
+const schoolinfo = _schoolinfo(sequelize, DataTypes);
 const notification = _notification(sequelize, DataTypes);
-const announcement=_announcement(sequelize,DataTypes);
+const announcement = _announcement(sequelize, DataTypes);
+const achievement = _achievement(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -70,24 +72,24 @@ examformat.hasOne(academics, { foreignKey: 'exam_format', targetKey: 'exam_name'
 academics.belongsTo(examformat, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'examFormatDetails' });
 
 
-student.hasMany(attendance, {foreignKey: "admission_no",sourceKey: "admission_no",as: "attendances",});
-teacher.hasMany(attendance, {foreignKey: "emp_id",sourceKey: "emp_id",as: "attendances",});
+student.hasMany(attendance, { foreignKey: "admission_no", sourceKey: "admission_no", as: "attendances", });
+teacher.hasMany(attendance, { foreignKey: "emp_id", sourceKey: "emp_id", as: "attendances", });
 
 
 student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no", onDelete: "CASCADE", onUpdate: "CASCADE" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
-forms.hasOne(teacher,{foreignKey:'id', targetkey:'id',as:'forms'});
+forms.hasOne(teacher, { foreignKey: 'id', targetkey: 'id', as: 'forms' });
 
 
-subject.hasOne(principal,{foreignKey:'id',targetKey:'id',as:'subjects'});
+subject.hasOne(principal, { foreignKey: 'id', targetKey: 'id', as: 'subjects' });
 
-student.hasOne(parent ,{ foreignKey: "admission_no",sourceKey: "admission_no", as: "parentInfo" });
-parent.belongsTo(student, { foreignKey: "admission_no",targetKey: "admission_no", as: "student" });
+student.hasOne(parent, { foreignKey: "admission_no", sourceKey: "admission_no", as: "parentInfo" });
+parent.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no", as: "student" });
 user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id", onDelete: "CASCADE" });
 notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id", onDelete: "CASCADE" });
-announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator'});
-user.hasMany(announcement, {foreignKey: 'user_id',sourceKey: 'unique_id',as: 'announcements'});
+announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
+user.hasMany(announcement, { foreignKey: 'user_id', sourceKey: 'unique_id', as: 'announcements' });
 
 module.exports = {
   sequelize,
@@ -106,4 +108,5 @@ module.exports = {
   schoolinfo,
   notification,
   announcement,
+  achievement,
 };

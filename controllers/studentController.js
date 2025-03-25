@@ -217,6 +217,8 @@ exports.deleteStudentImage = async (req, res) => {
     res.status(500).json({ message: "Failed to delete profile picture", error: error.message });
   }
 };
+
+
 exports.upload=upload;
 
 

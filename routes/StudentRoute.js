@@ -19,4 +19,4 @@ router.put("/update/:admission_no", upload.single("image"), studentController.up
 // Delete a student by admission_no
 router.delete('/delete/:admission_no', Auth.verifyToken, studentController.deleteStudentImage);
 
-module.exports = router;
+ module.exports = router;
