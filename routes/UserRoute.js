@@ -26,6 +26,10 @@ router.post("/assign-class-teacher", userController.assignClassTeacher);
 
 router.post('/upload', upload.single('file'), userController.uploadWithMetadata);
 
+router.post("/create-user",Auth.verifyToken, authControlller.createUser);
+router.post("/login", authControlller.login);
+router.post("/reset-password", authControlller.resetPassword);
+
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route
   res.send("User profile data here");
