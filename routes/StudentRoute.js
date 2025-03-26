@@ -23,4 +23,7 @@ router.delete('/delete/:admission_no', Auth.verifyToken, studentController.delet
 
 router.post("/upload-certificate", upload.single("certificate"), studentController.uploadCertificate);
 
+router.delete("/certificates/:admission_no", studentController.deleteCertificate);
+
+
  module.exports = router;

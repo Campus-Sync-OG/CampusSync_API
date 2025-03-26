@@ -248,6 +248,31 @@ exports.uploadCertificate = async (req, res) => {
   }
 };
 
+exports.deleteCertificate = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+
+    // Find the certificate records in the database by admission_no
+    const certificates = await achievement.findAll({ where: { admission_no } });
+    if (!certificates.length) {
+      return res.status(404).json({ message: "No certificates found for this admission number" });
+    }
+
+    // Delete all certificates and their associated files from Azure Blob Storage
+    for (const certificate of certificates) {
+      if (certificate.Certificateurl) {
+        await deleteImageFromAzure(certificate.Certificateurl);
+      }
+      await certificate.destroy();
+    }
+
+    res.status(200).json({ message: "All certificates deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting certificates:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 
 exports.upload=upload;
 
