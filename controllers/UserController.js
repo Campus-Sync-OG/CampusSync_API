@@ -1,4 +1,4 @@
-const { user, student, fee, schoolinfo,teacher } = require('../models');
+const { user, student, fee, schoolinfo, teacher } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');

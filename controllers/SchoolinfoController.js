@@ -1,4 +1,4 @@
-const {schoolinfo}= require('../models');
+const { schoolinfo } = require('../models');
 
 // Retrieve all school records
 exports.getAll = async (req, res) => {

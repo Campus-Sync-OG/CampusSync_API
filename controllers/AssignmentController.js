@@ -1,5 +1,5 @@
 const { assignment, student, teacher } = require('../models');
-const {deleteImageFromAzure}=require('../services/AzureBlobService');
+const { deleteImageFromAzure } = require('../services/AzureBlobService');
 
 // Get all assignments
 const getAllAssignments = async (req, res) => {
@@ -9,7 +9,7 @@ const getAllAssignments = async (req, res) => {
         {
           model: student,
           as: 'student',
-          attributes: ['admission_no','student_name'],
+          attributes: ['admission_no', 'student_name'],
         },
         {
           model: teacher,

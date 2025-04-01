@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment,subject,achievement} = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -244,7 +244,7 @@ exports.addStudentMarks = async (req, res) => {
 exports.updateAcademicRecord = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { admission_no, subjects, exam_format, class_grade,marks_obtained, total_marks, academic_year, exam_date } = req.body;
+    const { admission_no, subjects, exam_format, class_grade, marks_obtained, total_marks, academic_year, exam_date } = req.body;
 
     if (!admission_no || !subjects || !exam_format) {
       return res.status(400).json({ message: "Admission no, subject, and exam format are required." });
@@ -330,7 +330,7 @@ exports.uploadAssignment = async (req, res) => {
     try {
       const { subjects, title, admission_no, Date: assignmentDate } = req.body;
       const { emp_id } = req.params;
-      
+
       if (!subjects || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
         return res.status(400).json({
           message: "subject, title, Date, admission_no, emp_id, and attachment are required",
@@ -435,7 +435,7 @@ exports.updateStudentRollNo = async (req, res) => {
     }
 
     // Check if teacher exists and has the role of 'class teacher'
-    const foundTeacher = await teacher.findOne({ where: { emp_id, role: 'classteacher' } });
+    const foundTeacher = await teacher.findOne({ where: { emp_id, role: 'classTeacher' } });
     if (!foundTeacher) {
       return res.status(403).json({ message: "Only class teachers can update roll numbers." });
     }
@@ -447,7 +447,7 @@ exports.updateStudentRollNo = async (req, res) => {
     }
 
     // Check if the teacher is responsible for the student's class
-   
+
 
     // Update the roll number
     await foundStudent.update({ roll_no: new_roll_no });

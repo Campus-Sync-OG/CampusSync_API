@@ -1,4 +1,4 @@
-const{attendance}=require('../models');
+const { attendance } = require('../models');
 
 // Get all attendance records
 const getAllAttendance = async (req, res) => {
@@ -14,7 +14,7 @@ const getAllAttendance = async (req, res) => {
 // Get attendance record by ID
 const getAttendanceById = async (req, res) => {
   try {
-    const {admission_no } = req.params;
+    const { admission_no } = req.params;
     const attendances = await attendance.findOne({ where: { admission_no } });
 
     if (!attendances) {

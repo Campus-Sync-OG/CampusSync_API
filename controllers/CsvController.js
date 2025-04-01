@@ -1,7 +1,7 @@
 const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
-const { assignment, academics, teacher,examformat,fee,student } = require("../models");
+const { assignment, academics, teacher, examformat, fee, student } = require("../models");
 const moment = require("moment");  // Using moment.js for date parsing
 
 // Multer Storage Configuration
@@ -63,7 +63,7 @@ const processCSV = async (filePath, model, res, type) => {
               let record = {};
               if (type === "assignment") {
                 record = {
-                  subject: subject.trim(),
+                  subjects: subject.trim(),
                   title: row.title || "Untitled",
                   admission_no: admissionNo,
                   emp_id: row.emp_id || null,
@@ -78,10 +78,10 @@ const processCSV = async (filePath, model, res, type) => {
                   const examRecord = await examformat.findOne({ where: { exam_name: row.exam_format } });
                   if (examRecord) exam_format = examRecord.exam_name;
                 }
-              
+
                 record = {
                   admission_no: admissionNo,
-                  subject: subject.trim(),
+                  subjects: subject.trim(),
                   class_grade: row.class_grade || "Unknown",
                   exam_format: exam_format,  // Updated to fetch from examformat table
                   academic_year: row.academic_year || "Unknown",
@@ -92,60 +92,60 @@ const processCSV = async (filePath, model, res, type) => {
               } else if (type === "fee") {
                 // Ensure required fields are present
                 if (!row.admission_no || !row.receipt_no || !row.paid_amount) {
-                    console.warn(`Skipping fee record due to missing fields: ${JSON.stringify(row)}`);
-                    return;
+                  console.warn(`Skipping fee record due to missing fields: ${JSON.stringify(row)}`);
+                  return;
                 }
-            
+
                 // Check if student exists
                 const existingStudent = await student.findOne({
-                    where: { admission_no: row.admission_no.trim() },
+                  where: { admission_no: row.admission_no.trim() },
                 });
-            
+
                 if (!existingStudent) {
-                    console.warn(`Skipping fee record. Student not found for admission_no: ${row.admission_no}`);
-                    return;
+                  console.warn(`Skipping fee record. Student not found for admission_no: ${row.admission_no}`);
+                  return;
                 }
-            
+
                 // Parse Dates (Only Pay Date and Due Date)
                 let formattedPayDate = null;
                 let formattedDueDate = null;
-            
+
                 let rawPayDate = row.pay_date ? row.pay_date.toString().trim() : null;
                 let rawDueDate = row.due_date ? row.due_date.toString().trim() : null;
-            
+
                 if (rawPayDate) {
                   let parsedPayDate = moment(rawPayDate, ["YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY"], true);
                   if (parsedPayDate.isValid()) {
-                      formattedPayDate = parsedPayDate.format("YYYY-MM-DD");
+                    formattedPayDate = parsedPayDate.format("YYYY-MM-DD");
                   } else {
-                      console.warn(`Invalid date format for pay_date: ${rawPayDate}`);
+                    console.warn(`Invalid date format for pay_date: ${rawPayDate}`);
                   }
-              } else {
-                  console.warn("Missing pay_date in CSV row.");
-              }
-            
-              if (rawDueDate) {
-                let parsedDueDate = moment(rawDueDate, ["YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY"], true);
-                if (parsedDueDate.isValid()) {
-                    formattedDueDate = parsedDueDate.format("YYYY-MM-DD");
                 } else {
-                    console.warn(`Invalid date format for due_date: ${rawDueDate}`);
+                  console.warn("Missing pay_date in CSV row.");
                 }
-            } else {
-                console.warn("Missing due_date in CSV row.");
-            }
-            
+
+                if (rawDueDate) {
+                  let parsedDueDate = moment(rawDueDate, ["YYYY-MM-DD", "MM/DD/YYYY", "DD/MM/YYYY"], true);
+                  if (parsedDueDate.isValid()) {
+                    formattedDueDate = parsedDueDate.format("YYYY-MM-DD");
+                  } else {
+                    console.warn(`Invalid date format for due_date: ${rawDueDate}`);
+                  }
+                } else {
+                  console.warn("Missing due_date in CSV row.");
+                }
+
                 // Construct Fee Record (No Exam Date!)
                 record = {
-                    admission_no: row.admission_no.trim(),
-                    pay_date: formattedPayDate,
-                    pay_method: row.pay_method || "Unknown",
-                    paid_amount: parseFloat(row.paid_amount) || 0,
-                    receipt_no: row.receipt_no.trim(),
-                    status: row.status || "unpaid",
-                    due_date: formattedDueDate,
+                  admission_no: row.admission_no.trim(),
+                  pay_date: formattedPayDate,
+                  pay_method: row.pay_method || "Unknown",
+                  paid_amount: parseFloat(row.paid_amount) || 0,
+                  receipt_no: row.receipt_no.trim(),
+                  status: row.status || "unpaid",
+                  due_date: formattedDueDate,
                 };
-            }
+              }
               console.log("Processed Record:", record); // Debugging
 
               // Ensure `admission_no` is not null or empty before adding to records
@@ -203,7 +203,7 @@ const uploadFeesCSV = (req, res) => {
 
 module.exports = {
   uploadAssignmentsCSV,
-  uploadAcademicsCSV, 
+  uploadAcademicsCSV,
   uploadFeesCSV,
   upload,
 };

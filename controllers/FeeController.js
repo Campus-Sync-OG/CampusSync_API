@@ -1,4 +1,4 @@
-const {fee,student} = require("../models");  
+const { fee, student } = require("../models");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
@@ -9,10 +9,10 @@ exports.getFeesByAdmissionNo = async (req, res) => {
         const { admission_no } = req.params;  // Get admission_no from request params
 
         console.log(`Fetching fees for admission_no: ${admission_no}`);  // Log for debugging
-        
+
         // Fetch fees directly without needing to query Student first
-        const fees = await fee.findAll({ 
-            where: { 
+        const fees = await fee.findAll({
+            where: {
                 admission_no,
                 deletedAt: null // Ensure soft-deleted fees are not included
             }

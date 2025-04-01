@@ -14,7 +14,8 @@ const createForm = async (req, res) => {
 
     return res.status(201).json({
       message: "Form created successfully",
-      form: newForm,    });
+      form: newForm,
+    });
   } catch (error) {
     console.error("Error creating form:", error.message || error);
     return res.status(500).json({ message: "Internal server error", error: error.message || error });

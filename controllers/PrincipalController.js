@@ -108,7 +108,7 @@ exports.createSubject = async (req, res) => {
   try {
     const { p_id } = req.params;
     // If you're using POST, you may prefer req.body over req.query.
-    const { subject_name } = req.query; 
+    const { subject_name } = req.query;
     // const { subject_name } = req.body; // Uncomment if using req.body
 
     if (!subject_name) {

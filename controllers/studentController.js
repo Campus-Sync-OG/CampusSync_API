@@ -1,4 +1,4 @@
-const { student, user,achievement } = require("../models");
+const { student, user, achievement } = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -83,7 +83,7 @@ exports.getAllStudents = async (req, res) => {
 exports.getStudentByAdmissionNo = async (req, res) => {
   try {
     const { admission_no } = req.params;
-   
+
 
     const studentRecord = await student.findOne({
       where: { admission_no },
@@ -218,7 +218,7 @@ exports.deleteStudentImage = async (req, res) => {
 exports.uploadCertificate = async (req, res) => {
   try {
     const { admission_no, title, description, className, section, date } = req.body;
-    
+
     if (!admission_no || !title || !className || !section || !date) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -229,7 +229,7 @@ exports.uploadCertificate = async (req, res) => {
 
     // Upload certificate to Azure Blob Storage
     const certificateUrl = await uploadImageToAzure(req.file.buffer, req.file.originalname, "certificates");
-    
+
     // Store record in the database
     const newAchievement = await achievement.create({
       admission_no,
@@ -274,6 +274,6 @@ exports.deleteCertificate = async (req, res) => {
 };
 
 
-exports.upload=upload;
+exports.upload = upload;
 
 
