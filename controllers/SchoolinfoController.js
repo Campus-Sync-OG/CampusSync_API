@@ -25,6 +25,7 @@ exports.getById = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const deleted = await schoolinfo.destroy({ where: { id: req.params.id } });
+    res.status(200).json({ message: 'Schollinfo deleted successfully' });
     if (!deleted) return res.status(404).json({ error: 'School not found' });
     res.status(204).send();
   } catch (error) {
