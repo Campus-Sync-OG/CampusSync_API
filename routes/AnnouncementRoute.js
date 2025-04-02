@@ -6,7 +6,7 @@ const { authenticateUser, authorizeRole } = require("../middleware/authMiddlewar
 // Define routes
 
 router.get("/getall", announcementController.getAllAnnouncements); // Get all announcements
-router.get("/:id", announcementController.getAnnouncementByTitle); // Get announcement by ID
+router.get("/:title", announcementController.getAnnouncementByTitle); // Get announcement by ID
 router.put("/:id", announcementController.updateAnnouncement); // Update announcement
 
 router.post(
