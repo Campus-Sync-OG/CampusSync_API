@@ -352,4 +352,25 @@ exports.updateCertificateStatus = async (req, res) => {
   }
 };
 
+exports.createAnnouncement = async (req, res) => {
+  try {
+    const { title, date, message, status } = req.body;
+    const user_id = req.user.unique_id;
+
+    // Create the announcement
+    const Announcement = await announcement.create({
+      title,
+      date,
+      message,
+      status,
+      user_id, // This should match unique_id from User
+    });
+
+    res.status(201).json({ success: true, Announcement });
+  } catch (error) {
+    console.error(error); // Log the error
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 exports.upload = upload;

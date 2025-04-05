@@ -5,6 +5,7 @@ const authControlller = require('../controllers/authController'); // Import func
 const { uploadFeesCSV, upload } = require("../controllers/CsvController");
 const RefreshToken = require("../middleware/refreshtoken");
 const Auth = require("../middleware/authMiddleware");
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
 router.get('/list', Auth.verifyToken, userController.getAllUsers);
 
@@ -36,6 +37,8 @@ router.get('/certificates/:admission_no',userController.getStudentRequests);
 // Admin
 router.get('/certificates/all',userController.getAllRequests);
 router.put('/certificates/update/:id', userController.updateCertificateStatus);
+
+router.post("/add", authenticateUser, authorizeRole(["admin","operator"]), userController.createAnnouncement)
 
 
 router.get('/profile', (req, res) => {
