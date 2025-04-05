@@ -195,23 +195,22 @@ exports.updateStudent = async (req, res) => {
 
 
 // Soft delete a student
-exports.deleteStudentImage = async (req, res) => {
+exports.softDeleteStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
+
     const studentRecord = await student.findOne({ where: { admission_no } });
 
-    if (!studentRecord || !studentRecord.image) {
-      return res.status(404).json({ message: "Student or image not found" });
+    if (!studentRecord) {
+      return res.status(404).json({ message: "Student not found" });
     }
 
-    await deleteImageFromAzure(studentRecord.image);
-    studentRecord.image = null;
-    await studentRecord.save();
+    await studentRecord.destroy(); // This soft-deletes the record (doesn't remove from DB)
 
-    res.status(200).json({ message: "Profile picture deleted successfully" });
+    res.status(200).json({ message: "Student soft deleted successfully" });
   } catch (error) {
-    console.error("Error deleting profile picture:", error);
-    res.status(500).json({ message: "Failed to delete profile picture", error: error.message });
+    console.error("Error soft deleting student:", error);
+    res.status(500).json({ message: "Failed to soft delete student", error: error.message });
   }
 };
 

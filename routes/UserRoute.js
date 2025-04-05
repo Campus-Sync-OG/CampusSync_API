@@ -40,6 +40,15 @@ router.put('/certificates/update/:id', userController.updateCertificateStatus);
 
 router.post("/add", authenticateUser, authorizeRole(["admin","operator"]), userController.createAnnouncement)
 
+router.post("/postinfo", userController.createParent);
+
+router.put("/:admission_no", userController.updateParent);
+
+router.post('/subjects', Auth.verifyToken, userController.createSubjects);
+
+router.put("/update/subjects/:id", userController.updateSubject);
+
+
 
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route
