@@ -1,4 +1,4 @@
-const { student, user, achievement } = require("../models");
+const { student, user, achievement,certificates } = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -270,6 +270,46 @@ exports.deleteCertificate = async (req, res) => {
   } catch (error) {
     console.error("Error deleting certificates:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+exports.requestCertificate = async (req, res) => {
+  try {
+    const { admission_no, certificate_type, reason, date } = req.body;
+
+    const validTypes = [
+      'bonafide',
+      'transfer',
+      'character',
+      'study',
+      'migration',
+      'scholarship'
+    ];
+
+    if (!admission_no || !certificate_type || !date) {
+      return res.status(400).json({ message: "admission_no, certificate_type, and date are required." });
+    }
+
+    if (!validTypes.includes(certificate_type)) {
+      return res.status(400).json({ error: 'Invalid certificate type' });
+    }
+
+    const request = await certificates.create({
+      admission_no,
+      certificate_type,
+      reason,
+      status: 'pending',
+      createdAt: new Date(date),
+      updatedAt: new Date(date),
+    });
+
+    res.status(201).json({
+      message: 'Certificate request submitted successfully',
+      data: request,
+    });
+  } catch (error) {
+    console.error('Error submitting certificate request:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 

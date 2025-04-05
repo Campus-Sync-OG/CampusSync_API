@@ -1,4 +1,4 @@
-const { user, student, fee, schoolinfo, teacher } = require('../models');
+const { user, student, fee, schoolinfo, teacher,certificates } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');
@@ -296,6 +296,59 @@ exports.updateSchool = async (req, res) => {
     res.status(200).json(updatedSchool);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+
+// 2. Get all requests for a student
+exports.getStudentRequests = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+
+    const requests = await certificates.findAll({
+      where: { admission_no }
+    });
+
+    res.status(200).json(requests);
+  } catch (error) {
+    console.error('Error fetching student requests:', error);
+    res.status(500).json({ error: 'Failed to retrieve certificate requests' });
+  }
+};
+
+// 3. Get all certificate requests (admin use)
+exports.getAllRequests = async (req, res) => {
+  try {
+    const requests = await certificates.findAll();
+    res.status(200).json(requests);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch requests' });
+  }
+};
+
+// 4. Update certificate request status (approve or reject)
+exports.updateCertificateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const request = await certificates.findByPk(id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'Certificate request not found' });
+    }
+
+    request.status = status;
+    await request.save();
+
+    res.status(200).json({ message: 'Status updated successfully', data: request });
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).json({ error: 'Failed to update status' });
   }
 };
 

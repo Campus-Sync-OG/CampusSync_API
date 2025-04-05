@@ -30,6 +30,14 @@ router.post("/create-user",Auth.verifyToken, authControlller.createUser);
 router.post("/login", authControlller.login);
 router.post("/reset-password", authControlller.resetPassword);
 
+
+router.get('/certificates/:admission_no',userController.getStudentRequests);
+
+// Admin
+router.get('/certificates/all',userController.getAllRequests);
+router.put('/certificates/update/:id', userController.updateCertificateStatus);
+
+
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route
   res.send("User profile data here");

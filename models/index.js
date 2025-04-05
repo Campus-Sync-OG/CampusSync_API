@@ -18,6 +18,7 @@ const _schoolinfo = require('./schoolinfo');
 const _notification = require('./notification');
 const _announcement = require('./announcement');
 const _achievement = require('./achievement');
+const _certificates = require('./certificates');
 
 
 const user = _user(sequelize, DataTypes);
@@ -36,6 +37,7 @@ const schoolinfo = _schoolinfo(sequelize, DataTypes);
 const notification = _notification(sequelize, DataTypes);
 const announcement = _announcement(sequelize, DataTypes);
 const achievement = _achievement(sequelize, DataTypes);
+const certificates = _certificates(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -109,4 +111,5 @@ module.exports = {
   notification,
   announcement,
   achievement,
+  certificates,
 };
