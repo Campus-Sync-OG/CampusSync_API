@@ -26,4 +26,6 @@ router.post("/upload-certificate", upload.single("certificate"), studentControll
 router.delete("/certificates/:admission_no", studentController.deleteCertificate);
 
 
+//add feedback 
+router.post("/add", Auth.verifyToken, studentController.createFeedback);
  module.exports = router;

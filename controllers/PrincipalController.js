@@ -1,4 +1,4 @@
-const { principal, user, subject } = require('../models');
+const { principal, user, subject ,feedback} = require('../models');
 
 exports.createPrincipal = async (req, res) => {
   try {
@@ -153,5 +153,17 @@ exports.updateSubject = async (req, res) => {
   } catch (error) {
     console.error("Error updating subject:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+exports.getAllFeedback = async (req, res) => {
+  try {
+    const feedbacks = await feedback.findAll({
+      attributes: ["id","message"], // No sender info
+    });
+
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error retrieving feedback:", error);
+    res.status(500).json({ message: "Error retrieving feedback", error: error.message });
   }
 };

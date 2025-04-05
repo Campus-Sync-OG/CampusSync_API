@@ -59,5 +59,8 @@ router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubject
 // Route to get certificates issued to teachers
 router.get("/certificates", teacherController.getCertificates);
 
+
+
+
 module.exports = router;
 

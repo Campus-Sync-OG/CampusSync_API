@@ -10,4 +10,6 @@ router.get('/:p_id', Auth.verifyToken, principalController.getPrincipalDetails);
 router.post('/:p_id/subjects', Auth.verifyToken, principalController.createSubject);
 router.put("/:p_id/update/subjects/:id", Auth.verifyToken, principalController.updateSubject);
 
+//get feedback
+router.get("/view",Auth.verifyToken, principalController.getAllFeedback);
 module.exports = router;

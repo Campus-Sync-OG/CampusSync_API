@@ -18,6 +18,7 @@ const attendanceRoutes=require('./routes/AttendanceRoute');
 const schoolInfoRoutes = require('./routes/SchoolRoute');
 const notificationRoutes = require("./routes/NotificationRoute");
 const AnnouncementRoutes = require("./routes/AnnouncementRoute");
+const feedbackRoutes = require("./routes/FeedbackRoute");
 
 const server = http.createServer(app);
 
@@ -46,9 +47,8 @@ app.use('/api/attendance',attendanceRoutes);
 app.use('/api/school', schoolInfoRoutes); // Prefix routes with /api
 app.use("/api/notification", notificationRoutes);
 app.use('/api/image', galleryRoutes);
-
 app.use('/api/announcement', AnnouncementRoutes);
-
+app.use('/api/feedback', feedbackRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });
