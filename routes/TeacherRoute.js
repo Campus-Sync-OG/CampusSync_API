@@ -45,7 +45,7 @@ router.post('/:emp_id/assignment', teacherController.uploadAssignment);
 router.put('/:emp_id/update/assignment', Auth.verifyToken, teacherController.updateAssignment);
 
 // Route to update a student's roll number (requires authentication)
-router.put("/update-roll/:emp_id", Auth.verifyToken, teacherController.updateStudentRollNo);
+router.put("/update-roll/:emp_id",  teacherController.updateStudentRollNo);
 
 // Route to upload assignments via CSV file (requires authentication)
 router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAssignmentsCSV);
