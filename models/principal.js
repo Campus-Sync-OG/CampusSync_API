@@ -35,10 +35,6 @@ module.exports = function (sequelize, DataTypes) {
           isEmail: true,
         },
       },
-      school_name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       joining_date: {
         type: DataTypes.DATE,
         allowNull: true,

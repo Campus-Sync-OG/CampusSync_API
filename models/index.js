@@ -111,4 +111,6 @@ module.exports = {
   schoolinfo,
   notification,
   announcement,
+  achievement,
+  feedback,
 };
