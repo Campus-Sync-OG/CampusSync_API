@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET ;
 // Middleware to authenticate the user based on the JWT token
 const verifyToken = (req, res, next) => {
   // Get token from Authorization header (Bearer <token>)
-  const token = req.header('Authorization')?.split(' ')[1];
+  const token = req.header('o-auth-token')?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ message: 'No token, authorization denied' });

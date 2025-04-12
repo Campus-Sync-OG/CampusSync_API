@@ -7,7 +7,7 @@ if (!JWT_SECRET) {
 }
 
 const refreshToken = (req, res, next) => {
-  const authHeader = req.header('Authorization');
+  const authHeader = req.header('o-auth-token');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
   if (!token) {
