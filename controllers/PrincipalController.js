@@ -1,38 +1,41 @@
-const { principal, user, subject ,feedback} = require('../models');
+const { principal, user ,feedback} = require('../models');
 
 exports.createPrincipal = async (req, res) => {
   try {
-    const { p_id, name, password, phone_no, email, school_name, joining_date } = req.body;
+    const { p_id, name, password, phone_no, email, joining_date } = req.body;
 
-    // Check if the `user` model exists and validate the principal's unique ID
+    if (!p_id || !name || !password || !joining_date) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Check if a principal already exists in the system
+    const existingPrincipal = await principal.findOne();
+    if (existingPrincipal) {
+      return res.status(400).json({ message: 'A principal already exists. Please remove the existing principal before adding a new one.' });
+    }
+
+    // Check if user exists with this ID and role
     const matchingUser = await user.findOne({ where: { unique_id: p_id, role: 'principal' } });
     if (!matchingUser) {
       return res.status(400).json({ message: 'No user found with this unique_id and role principal' });
     }
 
-    // Check if the principal is already created
-    const existingPrincipal = await principal.findOne({ where: { p_id } });
-    if (existingPrincipal) {
-      return res.status(400).json({ message: 'Principal with this ID already exists' });
-    }
-
-    // Create a new principal record
     const newPrincipal = await principal.create({
       p_id,
       name,
       password,
       phone_no,
       email,
-      school_name,
       joining_date,
     });
 
     res.status(201).json({ message: 'Principal created successfully', principal: newPrincipal });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    console.error('Error creating principal:', error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 };
+
 
 // Function to update the details of a principal
 exports.updatePrincipal = async (req, res) => {

@@ -1,4 +1,4 @@
-const { user, student, fee, schoolinfo, teacher } = require('../models');
+const { user, student, fee, schoolinfo, teacher,certificates,parent,subject } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');
@@ -296,6 +296,194 @@ exports.updateSchool = async (req, res) => {
     res.status(200).json(updatedSchool);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+
+// 2. Get all requests for a student
+exports.getStudentRequests = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+
+    const requests = await certificates.findAll({
+      where: { admission_no }
+    });
+
+    res.status(200).json(requests);
+  } catch (error) {
+    console.error('Error fetching student requests:', error);
+    res.status(500).json({ error: 'Failed to retrieve certificate requests' });
+  }
+};
+
+// 3. Get all certificate requests (admin use)
+exports.getAllRequests = async (req, res) => {
+  try {
+    const requests = await certificates.findAll();
+    res.status(200).json(requests);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch requests' });
+  }
+};
+
+// 4. Update certificate request status (approve or reject)
+exports.updateCertificateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const request = await certificates.findByPk(id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'Certificate request not found' });
+    }
+
+    request.status = status;
+    await request.save();
+
+    res.status(200).json({ message: 'Status updated successfully', data: request });
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).json({ error: 'Failed to update status' });
+  }
+};
+
+exports.createAnnouncement = async (req, res) => {
+  try {
+    const { title, date, message, status } = req.body;
+    const user_id = req.user.unique_id;
+
+    // Create the announcement
+    const Announcement = await announcement.create({
+      title,
+      date,
+      message,
+      status,
+      user_id, // This should match unique_id from User
+    });
+
+    res.status(201).json({ success: true, Announcement });
+  } catch (error) {
+    console.error(error); // Log the error
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.createParent = async (req, res) => {
+  try {
+    const { admission_no, father_name, father_contact, father_email, mother_name, mother_contact, mother_email, address, religion } = req.body;
+
+    // Check if parent info already exists for the given admission_no
+    const existingParent = await parent.findOne({ where: { admission_no } });
+    if (existingParent) {
+      return res.status(400).json({ success: false, message: "Parent info already exists for this admission number" });
+    }
+
+    const newParent = await parent.create({
+      admission_no,
+      father_name,
+      father_contact,
+      father_email,
+      mother_name,
+      mother_contact,
+      mother_email,
+      address,
+      religion
+    });
+
+    res.status(201).json({ success: true, message: "Parent info created successfully", data: newParent });
+  } catch (error) {
+    console.error("Error creating parent info:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+exports.updateParent = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+    const updatedData = req.body;
+
+    const Parent = await parent.findOne({ where: { admission_no } });
+
+    if (!Parent) {
+      return res.status(404).json({ success: false, message: "Parent info not found" });
+    }
+
+    await parent.update(updatedData, { where: { admission_no } });
+
+    res.status(200).json({ success: true, message: "Parent info updated successfully" });
+  } catch (error) {
+    console.error("Error updating parent info:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+exports.createSubjects = async (req, res) => {
+  try {
+    const { unique_id } = req.user; // Assuming you extract user from token middleware
+    const { subject_names } = req.body; // Expecting an array like ["Math", "Science", "History"]
+
+    if (!Array.isArray(subject_names) || subject_names.length === 0) {
+      return res.status(400).json({ message: "An array of subject names is required." });
+    }
+
+    // Validate user role if needed
+    const foundUser = await user.findOne({ where: {  unique_id } });
+
+    if (!foundUser || !['admin', 'operator'].includes(foundUser.role)) {
+      return res.status(403).json({ message: "You are not authorized to create subjects." });
+    }
+
+    // Filter out invalid names
+    const validSubjects = subject_names
+      .filter((name) => typeof name === "string" && name.trim() !== "")
+      .map((name) => ({ subject_name: name.trim() }));
+
+    if (validSubjects.length === 0) {
+      return res.status(400).json({ message: "No valid subject names provided." });
+    }
+
+    // Bulk insert
+    const createdSubjects = await subject.bulkCreate(validSubjects);
+
+    return res.status(201).json({
+      message: "Subjects created successfully",
+      subjects: createdSubjects,
+    });
+  } catch (error) {
+    console.error("Error creating subjects:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+
+exports.updateSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject_name } = req.query;
+
+    if (!subject_name) {
+      return res.status(400).json({ message: "Subject name is required" });
+    }
+
+    const foundSubject = await subject.findByPk(id);
+    if (!foundSubject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    // Update subject name
+    await foundSubject.update({ subject_name });
+    return res.status(200).json({
+      message: "Subject updated successfully",
+      subject: foundSubject,
+    });
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 

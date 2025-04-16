@@ -5,6 +5,7 @@ const authControlller = require('../controllers/authController'); // Import func
 const { uploadFeesCSV, upload } = require("../controllers/CsvController");
 const RefreshToken = require("../middleware/refreshtoken");
 const Auth = require("../middleware/authMiddleware");
+const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
 
 router.get('/list', Auth.verifyToken, userController.getAllUsers);
 
@@ -27,6 +28,25 @@ router.post('/upload', upload.single('file'), userController.uploadWithMetadata)
 router.post("/create-user",Auth.verifyToken, authControlller.createUser);
 router.post("/login", authControlller.login);
 router.post("/reset-password", authControlller.resetPassword);
+
+
+router.get('/certificates/:admission_no',userController.getStudentRequests);
+
+// Admin
+router.get('/certificates/all',userController.getAllRequests);
+router.put('/certificates/update/:id', userController.updateCertificateStatus);
+
+router.post("/add", authenticateUser, authorizeRole(["admin","operator"]), userController.createAnnouncement)
+
+router.post("/postinfo", userController.createParent);
+
+router.put("/:admission_no", userController.updateParent);
+
+router.post('/subjects', Auth.verifyToken, userController.createSubjects);
+
+router.put("/update/subjects/:id", userController.updateSubject);
+
+
 
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route

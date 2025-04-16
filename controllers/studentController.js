@@ -1,4 +1,4 @@
-const { student, user, achievement,feedback } = require("../models");
+const { student, user, achievement,feedback,certificates } = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -195,23 +195,22 @@ exports.updateStudent = async (req, res) => {
 
 
 // Soft delete a student
-exports.deleteStudentImage = async (req, res) => {
+exports.softDeleteStudent = async (req, res) => {
   try {
     const { admission_no } = req.params;
+
     const studentRecord = await student.findOne({ where: { admission_no } });
 
-    if (!studentRecord || !studentRecord.image) {
-      return res.status(404).json({ message: "Student or image not found" });
+    if (!studentRecord) {
+      return res.status(404).json({ message: "Student not found" });
     }
 
-    await deleteImageFromAzure(studentRecord.image);
-    studentRecord.image = null;
-    await studentRecord.save();
+    await studentRecord.destroy(); // This soft-deletes the record (doesn't remove from DB)
 
-    res.status(200).json({ message: "Profile picture deleted successfully" });
+    res.status(200).json({ message: "Student soft deleted successfully" });
   } catch (error) {
-    console.error("Error deleting profile picture:", error);
-    res.status(500).json({ message: "Failed to delete profile picture", error: error.message });
+    console.error("Error soft deleting student:", error);
+    res.status(500).json({ message: "Failed to soft delete student", error: error.message });
   }
 };
 
@@ -270,6 +269,46 @@ exports.deleteCertificate = async (req, res) => {
   } catch (error) {
     console.error("Error deleting certificates:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+exports.requestCertificate = async (req, res) => {
+  try {
+    const { admission_no, certificate_type, reason, date } = req.body;
+
+    const validTypes = [
+      'bonafide',
+      'transfer',
+      'character',
+      'study',
+      'migration',
+      'scholarship'
+    ];
+
+    if (!admission_no || !certificate_type || !date) {
+      return res.status(400).json({ message: "admission_no, certificate_type, and date are required." });
+    }
+
+    if (!validTypes.includes(certificate_type)) {
+      return res.status(400).json({ error: 'Invalid certificate type' });
+    }
+
+    const request = await certificates.create({
+      admission_no,
+      certificate_type,
+      reason,
+      status: 'pending',
+      createdAt: new Date(date),
+      updatedAt: new Date(date),
+    });
+
+    res.status(201).json({
+      message: 'Certificate request submitted successfully',
+      data: request,
+    });
+  } catch (error) {
+    console.error('Error submitting certificate request:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 

@@ -428,10 +428,10 @@ exports.updateAssignment = async (req, res) => {
 exports.updateStudentRollNo = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { admission_no, new_roll_no } = req.query;
+    const { admission_no, new_roll_no, className, section } = req.query;
 
-    if (!admission_no || !new_roll_no) {
-      return res.status(400).json({ message: "Admission number and new roll number are required." });
+    if (!admission_no || !new_roll_no || !className || !section) {
+      return res.status(400).json({ message: "Admission number, class, section, and new roll number are required." });
     }
 
     // Check if teacher exists and has the role of 'class teacher'
@@ -440,27 +440,38 @@ exports.updateStudentRollNo = async (req, res) => {
       return res.status(403).json({ message: "Only class teachers can update roll numbers." });
     }
 
-    // Find the student
-    const foundStudent = await student.findOne({ where: { admission_no } });
+    // Find the student with matching admission_no, class, and section
+    const foundStudent = await student.findOne({
+      where: {
+        admission_no,
+        class: className,
+        section: section
+      }
+    });
+
     if (!foundStudent) {
-      return res.status(404).json({ message: "Student not found." });
+      return res.status(404).json({ message: "Student not found for the given class and section." });
     }
 
-    // Check if the teacher is responsible for the student's class
-
-
     // Update the roll number
-    await foundStudent.update({ roll_no: new_roll_no });
+    foundStudent.roll_no = new_roll_no;
+    await foundStudent.save();
 
     return res.status(200).json({
       message: "Roll number updated successfully.",
-      student: { admission_no, new_roll_no },
+      student: {
+        admission_no,
+        class: className,
+        section,
+        new_roll_no
+      },
     });
   } catch (error) {
     console.error("Error updating roll number:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 const teacherAssignments = {}; // Object to store assignments in-memory
 

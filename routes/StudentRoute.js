@@ -19,11 +19,13 @@ router.get('/:admission_no', Auth.verifyToken, studentController.getStudentByAdm
 router.put("/update/:admission_no", upload.single("image"), studentController.updateStudent)
 
 // Delete a student by admission_no
-router.delete('/delete/:admission_no', Auth.verifyToken, studentController.deleteStudentImage);
+router.delete('/delete/:admission_no', Auth.verifyToken, studentController.softDeleteStudent);
 
 router.post("/upload-certificate", upload.single("certificate"), studentController.uploadCertificate);
 
 router.delete("/certificates/:admission_no", studentController.deleteCertificate);
+
+router.post('/request', studentController.requestCertificate);
 
 
 //add feedback 
