@@ -27,8 +27,10 @@ module.exports = function (sequelize, DataTypes) {
       status: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: "active",
+        Enum: ["present", "absent"],
+        defaultValue: "present",
       },
+
       emp_id: {
         type: DataTypes.STRING,
         allowNull: false,

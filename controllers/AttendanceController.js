@@ -15,15 +15,23 @@ const getAllAttendance = async (req, res) => {
 const getAttendanceById = async (req, res) => {
   try {
     const { admission_no } = req.params;
-    const attendances = await attendance.findOne({ where: { admission_no } });
 
-    if (!attendances) {
-      return res.status(404).json({ error: "Attendance record not found" });
+    // Fetch all attendance records for the admission number
+    const attendances = await attendance.findAll({
+      where: { admission_no },
+      order: [['date', 'ASC']], // Optional: sorts records by date
+      attributes: ['date', 'status'], // Optional: return only necessary fields
+    });
+
+    if (!attendances || attendances.length === 0) {
+      return res.status(404).json({ error: "No attendance records found" });
     }
+
+    // Return the array of records
     res.status(200).json(attendances);
   } catch (error) {
-    console.error("Error fetching attendance record:", error);
-    res.status(500).json({ error: "Failed to retrieve attendance record" });
+    console.error("Error fetching attendance records:", error);
+    res.status(500).json({ error: "Failed to retrieve attendance records" });
   }
 };
 
