@@ -12,7 +12,8 @@ const getAllAttendance = async (req, res) => {
 };
 
 // Get attendance record by ID
-const getAttendanceById = async (req, res) => {
+const  getAttendanceByAdmissionNo
+  = async (req, res) => {
   try {
     const { admission_no } = req.params;
 
@@ -51,4 +52,4 @@ const deleteAttendanceById = async (req, res) => {
   }
 };
 
-module.exports = { getAllAttendance, getAttendanceById, deleteAttendanceById };
+module.exports = { getAllAttendance, getAttendanceByAdmissionNo , deleteAttendanceById };
