@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
           allowNull: false
       },
   }, {
-      tableName: "feedbacks",
+      tableName: "feedback",
       timestamps: true
   });
 
