@@ -1,4 +1,4 @@
-const { student, user, achievement,feedback,certificates,leaveapplication } = require("../models");
+const { student, user, achievement,feedback,certificates,leaveapplication ,class_section} = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -16,25 +16,52 @@ const upload = multer({
   },
 });
 // Create a student with profile picture upload
+
+
 exports.createStudent = async (req, res) => {
   try {
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section, roll_no } = req.body;
+    const {
+      admission_no,
+      student_name,
+      password,
+      phone_no,
+      alter_no,
+      dob,
+      gender,
+      status,
+      class: classname,
+      section,
+      roll_no
+    } = req.body;
+        console.log("Received student data:", req.body);
 
     // Validate required fields
-    if (!admission_no || !student_name || !password || !classname || !section || !roll_no) {
+    if (!admission_no || !student_name || !classname || !section || !roll_no) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-    if (!admission_no) {
-      return res.status(400).json({ message: "Admission number is required" });
-    }
 
-    // Check if the user exists
-    const userRecord = await user.findOne({ where: { unique_id: admission_no, role: "student" } });
+
+    // Check if user exists
+    const userRecord = await user.findOne({
+      where: { unique_id: admission_no, role: "student" }
+    });
 
     if (!userRecord) {
       return res.status(400).json({ message: `No user found with unique_id '${admission_no}' and role 'student'` });
     }
 
+    // ✅ Check if class-section exists
+    const classSectionExists = await class_section.findOne({
+      where: {
+        className: classname,
+        section_name: section
+      }
+    });
+    if (!classSectionExists) {
+      return res.status(400).json({ message: `Class '${classname}' with section '${section}' does not exist` });
+    }
+
+    // Handle image if present
     let imageUrl = null;
     if (req.file) {
       const resizedImageBuffer = await sharp(req.file.buffer)
@@ -45,7 +72,7 @@ exports.createStudent = async (req, res) => {
       imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "student-profiles");
     }
 
-    // Create the student record
+    // Create the student
     const newStudent = await student.create({
       admission_no,
       student_name,
@@ -58,13 +85,14 @@ exports.createStudent = async (req, res) => {
       class: classname,
       section,
       roll_no,
-      images: imageUrl,
+      images: imageUrl
     });
+
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
 
   } catch (error) {
     console.error('Error creating student:', error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 

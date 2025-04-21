@@ -46,7 +46,12 @@ router.post('/subjects', Auth.verifyToken, userController.createSubjects);
 
 router.put("/update/subjects/:id", userController.updateSubject);
 
+router.post("/class-create", userController.createClassSection);
 
+// Delete a class-section by ID
+router.delete("/delete/:id", userController.deleteClassSection);
+
+router.post("/timetable-create", userController.uploadTimetable);
 
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route

@@ -1,4 +1,4 @@
-const { user, student, fee, schoolinfo, teacher,certificates,parent,subject } = require('../models');
+const { user, student, fee, schoolinfo, teacher,certificates,parent,subject,class_section,timetable } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');
@@ -486,5 +486,101 @@ exports.updateSubject = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.createClassSection = async (req, res) => {
+  try {
+    const classSections = req.body;  // Expecting an array of class-section objects
+
+    if (!Array.isArray(classSections) || classSections.length === 0) {
+      return res.status(400).json({ message: "You must provide an array of class-section objects" });
+    }
+
+    // Validate each class-section
+    for (const classSection of classSections) {
+      const { className, section_name } = classSection;
+      if (!className || !section_name) {
+        return res.status(400).json({ message: "className and section_name are required for each class-section" });
+      }
+    }
+
+    // Insert all class-sections at once using bulkCreate
+    const newClassSections = await class_section.bulkCreate(classSections);
+
+    res.status(201).json({
+      message: `${newClassSections.length} class-section(s) created successfully`,
+      data: newClassSections,
+    });
+  } catch (error) {
+    console.error("Error creating class-sections:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+
+exports. deleteClassSection = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const classSection = await class_section.findByPk(id);
+
+      if (!classSection) {
+        return res.status(404).json({ message: "Class Section not found" });
+      }
+
+      // Delete the class-section
+      await classSection.destroy();
+
+      res.status(200).json({ message: "Class Section deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting class-section:", error);
+      res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+  };
+
+exports.uploadTimetable = async(req, res) => {
+  try {
+    const { className, section_name, schedule } = req.body;
+
+    // 1. Check if class-section exists
+    const classSection = await class_section.findOne({
+      where: {
+        className,
+        section_name
+      }
+    });
+
+    if (!classSection) {
+      return res.status(404).json({ error: 'Class and Section not found' });
+    }
+
+    const classSectionId = classSection.id;
+
+    // 2. Delete old entries for that class-section
+    await timetable.destroy({ where: { classSectionId } });
+
+    // 3. Prepare new entries
+    const records = [];
+
+    for (const day of Object.keys(schedule)) {
+      for (const slot of schedule[day]) {
+        records.push({
+          classSectionId,
+          day,
+          time: slot.time,
+          subject: slot.subject
+        });
+      }
+    }
+
+    // 4. Bulk insert
+    await timetable.bulkCreate(records);
+
+    res.status(200).json({ message: 'Timetable uploaded successfully' });
+
+  } catch (error) {
+    console.error('Error uploading timetable:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 
 exports.upload = upload;

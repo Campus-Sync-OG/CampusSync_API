@@ -1,5 +1,6 @@
 const { Sequelize } = require('sequelize');
 const sequelize = require('../config/sequelize');
+const { on } = require('pdfkit');
 
 
 module.exports = function (sequelize, DataTypes) {
@@ -54,6 +55,8 @@ module.exports = function (sequelize, DataTypes) {
     class: {
       type: DataTypes.STRING,
       allowNull: true,
+   
+  
     },
     section: {
       type: DataTypes.STRING,

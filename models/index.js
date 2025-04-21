@@ -21,7 +21,8 @@ const _achievement = require('./achievement');
 const _feedback = require('./feedback');
 const _certificates = require('./certificates');
 const _leaveapplication = require('./leaveapplication');
-
+const _class_section = require('./class_section');
+const _timetable = require('./timetable');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -42,7 +43,8 @@ const achievement = _achievement(sequelize, DataTypes);
 const feedback = _feedback(sequelize, DataTypes);
 const certificates = _certificates(sequelize, DataTypes);
 const leaveapplication = _leaveapplication(sequelize, DataTypes);
-
+const class_section = _class_section(sequelize, DataTypes);
+const timetable = _timetable(sequelize, DataTypes);
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
 teacher.belongsTo(user, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'user' });
@@ -119,4 +121,6 @@ module.exports = {
   feedback,
   certificates,
   leaveapplication,
+  class_section,
+  timetable
 };
