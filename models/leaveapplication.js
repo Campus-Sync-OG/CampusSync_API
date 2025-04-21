@@ -1,9 +1,9 @@
-const { DataTypes } = require("sequelize");
+;
 const sequelize = require("../config/sequelize");
 
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
-    "leave_application",
+    "leaveapplication",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -42,7 +42,7 @@ module.exports = function (sequelize, DataTypes) {
       },
     },
     {
-      tableName: "leave_application",
+      tableName: "leaveapplication",
       timestamps: false,
     }
   );

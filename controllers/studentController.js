@@ -1,4 +1,4 @@
-const { student, user, achievement,feedback,certificates } = require("../models");
+const { student, user, achievement,feedback,certificates,leaveapplication } = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -330,6 +330,35 @@ exports.createFeedback = async (req, res) => {
     res.status(500).json({ message: "Error submitting feedback", error: error.message });
   }
 };
+
+// Submit leave application
+exports.submitLeaveApplication = async (req, res) => {
+  try {
+    const { admission_no, reason, from_date, to_date } = req.body;
+
+    if (!admission_no || !reason || !from_date || !to_date) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const leave = await leaveapplication.create({
+      admission_no,
+      reason,
+      from_date,
+      to_date,
+      status: "Pending",
+      created_at: new Date(),
+    });
+
+    res.status(201).json({
+      message: "Leave application submitted successfully",
+      leave,
+    });
+  } catch (error) {
+    console.error("Error submitting leave:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 
 exports.upload=upload;
 

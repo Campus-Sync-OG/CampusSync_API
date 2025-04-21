@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement,leaveapplication } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -540,5 +540,20 @@ exports.getCertificates = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+// Get all leave applications
+exports.getLeaveApplications = async (req, res) => {
+  try {
+    const leaves = await leaveapplication.findAll({
+      order: [['created_at', 'DESC']],
+    });
+
+    res.status(200).json({ leaves });
+  } catch (error) {
+    console.error("Error fetching leave applications:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 
 

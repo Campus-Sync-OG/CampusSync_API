@@ -54,10 +54,12 @@ router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single
 router.post('/assign-subjects', teacherController.assignSubjectsToTeacher);
 
 // Route to get subjects assigned to a teacher
-router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjects);
+router.get("/assignedSubjects/:teacher_id", Auth.verifyToken,teacherController.getAssignedSubjects);
 
 // Route to get certificates issued to teachers
-router.get("/certificates", teacherController.getCertificates);
+router.get("/certificates", Auth.verifyToken,teacherController.getCertificates);
+
+router.get("/leaves", teacherController.getLeaveApplications);
 
 
 

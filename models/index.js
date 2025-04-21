@@ -15,12 +15,12 @@ const _forms=require('./forms');
 const _subject=require('./subject');
 const _parent=require('./parent');
 const _schoolinfo=require('./schoolinfo');
-
 const _notification=require('./notification');
 const _announcement = require('./announcement');
 const _achievement = require('./achievement');
 const _feedback = require('./feedback');
 const _certificates = require('./certificates');
+const _leaveapplication = require('./leaveapplication');
 
 
 const user = _user(sequelize, DataTypes);
@@ -41,6 +41,7 @@ const announcement = _announcement(sequelize, DataTypes);
 const achievement = _achievement(sequelize, DataTypes);
 const feedback = _feedback(sequelize, DataTypes);
 const certificates = _certificates(sequelize, DataTypes);
+const leaveapplication = _leaveapplication(sequelize, DataTypes);
 
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
@@ -117,4 +118,5 @@ module.exports = {
   achievement,
   feedback,
   certificates,
+  leaveapplication,
 };

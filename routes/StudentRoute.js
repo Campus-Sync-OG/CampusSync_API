@@ -27,6 +27,8 @@ router.delete("/certificates/:admission_no", studentController.deleteCertificate
 
 router.post('/request', studentController.requestCertificate);
 
+router.post('/student-leave', Auth.verifyToken, studentController.submitLeaveApplication );
+
 
 //add feedback 
 router.post("/add", Auth.verifyToken, studentController.createFeedback);
