@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const sequelize = require('../config/sequelize');
+const { on } = require("pdfkit");
 
 module.exports = function (sequelize, DataTypes) {
     return sequelize.define('subject', {
@@ -11,13 +12,14 @@ module.exports = function (sequelize, DataTypes) {
         },
         subject_name: {
             type: DataTypes.STRING,
-            allowNull:false,
+            allowNull: false,
             unique: true,
+
         },
     }, {
         sequelize,
         tableName: 'subject',
-        timestaps: false,
+        timestamps: false,
     },
     );
 };
