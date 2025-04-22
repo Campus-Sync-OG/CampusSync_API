@@ -19,7 +19,7 @@ module.exports = function (sequelize, DataTypes) {
     }, {
         sequelize,
         tableName: 'subject',
-        timestaps: false,
+        timestamps: false,
     },
     );
 };

@@ -526,15 +526,32 @@ exports.getAssignedSubjects = async (req, res) => {
   }
 };
 
+
+
 exports.getCertificates = async (req, res) => {
   try {
-    const certificates = await achievement.findAll(); // Fetch all certificates
+    const certificates = await achievement.findAll({
+      include: {
+        model: student,
+        attributes: ['student_name'], // or 'student_name'
+        required: false
+      }
+    });
 
     if (!certificates || certificates.length === 0) {
       return res.status(404).json({ message: "No certificates found" });
     }
 
-    res.status(200).json({ message: "Certificates retrieved successfully", certificates });
+    // Optional: Flatten student_mname into root level
+    const formatted = certificates.map(cert => ({
+      ...cert.toJSON(),
+      student_name: cert.student?.student_name || null
+    }));
+
+    res.status(200).json({
+      message: "Certificates retrieved successfully",
+      certificates: formatted
+    });
   } catch (error) {
     console.error("Error fetching certificates:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });

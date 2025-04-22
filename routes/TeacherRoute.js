@@ -57,7 +57,7 @@ router.post('/assign-subjects', teacherController.assignSubjectsToTeacher);
 router.get("/assignedSubjects/:teacher_id", Auth.verifyToken,teacherController.getAssignedSubjects);
 
 // Route to get certificates issued to teachers
-router.get("/certificates", Auth.verifyToken,teacherController.getCertificates);
+router.get("/certificates", teacherController.getCertificates);
 
 router.get("/leaves", teacherController.getLeaveApplications);
 

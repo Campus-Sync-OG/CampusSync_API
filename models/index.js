@@ -79,6 +79,18 @@ principal.belongsTo(examformat, { foreignKey: 'id', targetKey: 'id', as: 'examfo
 examformat.hasOne(academics, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'academicDetails' });
 academics.belongsTo(examformat, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'examFormatDetails' });
 
+student.hasMany(achievement, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no'
+});
+
+achievement.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no'
+});
+
+
+
 
 student.hasMany(attendance, { foreignKey: "admission_no", sourceKey: "admission_no", as: "attendances", });
 teacher.hasMany(attendance, { foreignKey: "emp_id", sourceKey: "emp_id", as: "attendances", });
