@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement,leaveapplication } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement,leaveapplication,circular } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -571,6 +571,34 @@ exports.getLeaveApplications = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+exports.uploadCircular = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const fileName = `${Date.now()}-${file.originalname}`;
+    const blobUrl = await uploadImageToAzure (file.buffer, fileName); // returns full URL
+
+    const circulars = await circular.create({
+      title,
+      description,
+      attachment: blobUrl,  // ⬅️ storing URL in 'attachment' column
+    });
+
+    return res.status(201).json({ message: "Circular uploaded successfully", circulars });
+
+  } catch (error) {
+    console.error("Upload Circular Error:", error);
+    return res.status(500).json({ error: "Failed to upload circular" });
+  }
+};
+
+
 
 
 

@@ -61,6 +61,7 @@ router.get("/certificates", teacherController.getCertificates);
 
 router.get("/leaves", teacherController.getLeaveApplications);
 
+router.post("/circular",teacherController.uploadCircular);
 
 
 
