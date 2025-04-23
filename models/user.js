@@ -10,7 +10,7 @@ module.exports = function (sequelize) {
         primaryKey: true,
       },
       role: {
-        type: DataTypes.ENUM("admin", "operator"),
+        type: DataTypes.ENUM("admin", "operator", "student", "teacher", "principal"),
         allowNull: false,
       },
       name: {
