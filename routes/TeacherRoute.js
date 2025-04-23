@@ -2,6 +2,8 @@ const express = require('express');
 const teacherController = require('../controllers/TeacherController');
 const csvController = require('../controllers/CsvController');
 const Auth = require("../middleware/authMiddleware");
+const multer = require("multer");
+const upload = multer();
 
 const router = express.Router();
 
@@ -61,7 +63,8 @@ router.get("/certificates", teacherController.getCertificates);
 
 router.get("/leaves", teacherController.getLeaveApplications);
 
-router.post("/circular",teacherController.uploadCircular);
+router.post("/circular", upload.single("file"), teacherController.uploadCircular);
+
 
 
 

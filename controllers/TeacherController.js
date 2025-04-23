@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement,leaveapplication,circular } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -17,6 +17,8 @@ const upload = multer({
     }
   },
 }).single('attachment');
+
+
 
 
 /* Helper Functions */
@@ -328,51 +330,72 @@ exports.uploadAssignment = async (req, res) => {
     if (err) return res.status(400).json({ message: err.message });
 
     try {
-      const { subjects, title, admission_no, Date: assignmentDate } = req.body;
+      const { subjects, title, Date: assignmentDate, class_name, section } = req.body;
       const { emp_id } = req.params;
+      
 
-      if (!subjects || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
+      if (!subjects || !title || !class_name || !section || !emp_id || !assignmentDate || !req.file) {
         return res.status(400).json({
-          message: "subject, title, Date, admission_no, emp_id, and attachment are required",
+          message: "subjects, title, Date, class_name, section, emp_id, and attachment are required",
         });
       }
 
+      // Find teacher
       const foundTeacher = await findTeacherById(emp_id, res);
       if (!foundTeacher) return;
 
-      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-      if (!foundStudent) return;
-
+      // Find subject validity
       const validSubject = await subject.findOne({ where: { subject_name: subjects } });
       if (!validSubject) {
-        return res.status(400).json({ message: `Invalid subject name: ${subjects}. Please provide a valid subject name.` });
+        return res.status(400).json({ message: `Invalid subject name: ${subjects}` });
       }
 
       // Upload PDF to Azure Blob Storage
-      const fileBuffer = req.file.buffer; // Assuming multer stores buffer
+      const fileBuffer = req.file.buffer;
       const fileName = `${Date.now()}_${req.file.originalname}`;
       const azureUrl = await uploadImageToAzure(fileBuffer, fileName);
 
-      const newAssignment = await assignment.create({
-        subjects,
-        title,
-        Date: assignmentDate,
-        attachment: azureUrl, // Store Azure URL
-        admission_no,
-        emp_id,
-        emp_name: foundTeacher.emp_name,
+      // Find all students in the class & section
+      const students = await student.findAll({
+        where: { "class": class_name, section }
       });
 
+      if (!students.length) {
+        return res.status(404).json({ message: "No students found in this class & section" });
+      }
+
+      // Store assignment for each student
+      const assignments = [];
+
+      for (const studentItem of students) {
+        const newAssignment = await assignment.create({
+          subjects,
+          title,
+          attachment: azureUrl,
+          admission_no: studentItem.admission_no,
+          emp_id,
+          Date: assignmentDate,
+          emp_name: foundTeacher.emp_name,
+          class_name,
+          section,
+        });
+        assignments.push(newAssignment);
+      }
+
       return res.status(201).json({
-        message: "Assignment uploaded successfully",
-        assignment: newAssignment,
+        message: "Assignment uploaded successfully to all students in class",
+        assignments,
       });
+
     } catch (error) {
-      console.error("Error uploading assignment:", error);
+      console.error("Error uploading assignment:", error.message, error.stack);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   });
+  console.log("Form body:", req.body);
+  console.log("Uploaded file:", req.file);
 };
+
 
 exports.updateAssignment = async (req, res) => {
   upload(req, res, async (err) => {
@@ -582,7 +605,7 @@ exports.uploadCircular = async (req, res) => {
     }
 
     const fileName = `${Date.now()}-${file.originalname}`;
-    const blobUrl = await uploadImageToAzure (file.buffer, fileName); // returns full URL
+    const blobUrl = await uploadImageToAzure(file.buffer, fileName); // returns full URL
 
     const circulars = await circular.create({
       title,

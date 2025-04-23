@@ -43,6 +43,14 @@ module.exports = function (sequelize, DataTypes) {
             key: 'emp_id', // Foreign key column in the Teacher model
         },
     }, 
+    class_name:{
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
+    section:{
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
   }, {
     sequelize,
     tableName: 'assignment',
