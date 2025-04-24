@@ -30,11 +30,6 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.DATEONLY,
         allowNull: false,
       },
-      status: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: "Pending",
-      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,

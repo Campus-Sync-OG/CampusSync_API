@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
+const teacherAssignments = {}; // Object to store assignments in-memory
 
 // Set up multer for PDF uploads
 const storage = multer.memoryStorage(); // Use memory storage to access buffer
@@ -492,36 +493,6 @@ exports.updateStudentRollNo = async (req, res) => {
   } catch (error) {
     console.error("Error updating roll number:", error);
     return res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
-
-const teacherAssignments = {}; // Object to store assignments in-memory
-
-exports.assignSubjectsToTeacher = async (req, res) => {
-  try {
-    const { teacher_id, assignments } = req.body;
-
-    if (!teacher_id || !assignments || !Array.isArray(assignments)) {
-      return res.status(400).json({ message: "Invalid input" });
-    }
-
-    const teacherRecord = await teacher.findOne({ where: { emp_id: teacher_id } });
-    if (!teacherRecord) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-
-    // Store assignments in an object (in-memory storage)
-    teacherAssignments[teacher_id] = assignments;
-
-    res.status(200).json({
-      message: "Subjects assigned successfully",
-      assignedSubjects: assignments,
-    });
-
-  } catch (error) {
-    console.error("Error assigning subjects:", error);
-    res.status(500).json({ message: "Internal server error" });
   }
 };
 

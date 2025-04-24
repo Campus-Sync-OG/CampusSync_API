@@ -52,11 +52,8 @@ router.put("/update-roll/:emp_id",  teacherController.updateStudentRollNo);
 // Route to upload assignments via CSV file (requires authentication)
 router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAssignmentsCSV);
 
-// Route to assign subjects to a teacher
-router.post('/assign-subjects', teacherController.assignSubjectsToTeacher);
-
 // Route to get subjects assigned to a teacher
-router.get("/assignedSubjects/:teacher_id", Auth.verifyToken,teacherController.getAssignedSubjects);
+router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjects);
 
 // Route to get certificates issued to teachers
 router.get("/certificates", teacherController.getCertificates);

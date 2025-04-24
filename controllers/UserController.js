@@ -1,8 +1,9 @@
-const { user, student, fee, schoolinfo, teacher,certificates,parent,subject,class_section,timetable } = require('../models');
+const { user, student, fee, schoolinfo, teacher, certificates, parent, subject, class_section, timetable, announcement } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const teacherAssignments = {}; // Object to store assignments in-memory
 
 const storage = multer.memoryStorage({
   destination: function (req, file, cb) {
@@ -432,7 +433,7 @@ exports.createSubjects = async (req, res) => {
     }
 
     // Validate user role if needed
-    const foundUser = await user.findOne({ where: {  unique_id } });
+    const foundUser = await user.findOne({ where: { unique_id } });
 
     if (!foundUser || !['admin', 'operator'].includes(foundUser.role)) {
       return res.status(403).json({ message: "You are not authorized to create subjects." });
@@ -517,26 +518,26 @@ exports.createClassSection = async (req, res) => {
 };
 
 
-exports. deleteClassSection = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const classSection = await class_section.findByPk(id);
+exports.deleteClassSection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const classSection = await class_section.findByPk(id);
 
-      if (!classSection) {
-        return res.status(404).json({ message: "Class Section not found" });
-      }
-
-      // Delete the class-section
-      await classSection.destroy();
-
-      res.status(200).json({ message: "Class Section deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting class-section:", error);
-      res.status(500).json({ message: "Internal Server Error", error: error.message });
+    if (!classSection) {
+      return res.status(404).json({ message: "Class Section not found" });
     }
-  };
 
-exports.uploadTimetable = async(req, res) => {
+    // Delete the class-section
+    await classSection.destroy();
+
+    res.status(200).json({ message: "Class Section deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting class-section:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+exports.uploadTimetable = async (req, res) => {
   try {
     const { className, section_name, schedule } = req.body;
 
@@ -581,6 +582,35 @@ exports.uploadTimetable = async(req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+
+
+exports.assignSubjectsToTeacher = async (req, res) => {
+  try {
+    const { teacher_id, assignments } = req.body;
+
+    if (!teacher_id || !assignments || !Array.isArray(assignments)) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
+
+    const teacherRecord = await teacher.findOne({ where: { emp_id: teacher_id } });
+    if (!teacherRecord) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    // Store assignments in an object (in-memory storage)
+    teacherAssignments[teacher_id] = assignments;
+
+    res.status(200).json({
+      message: "Subjects assigned successfully",
+      assignedSubjects: assignments,
+    });
+
+  } catch (error) {
+    console.error("Error assigning subjects:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 
 exports.upload = upload;

@@ -12,13 +12,13 @@ module.exports = (sequelize, DataTypes) => {
             className: {
                 type: DataTypes.STRING,
                 allowNull: false,
-              
+
             },
             section_name: {
                 type: DataTypes.STRING,
                 allowNull: false,
-              
-           },
+
+            },
         },
         {
             tableName: "class_section",

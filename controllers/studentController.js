@@ -99,7 +99,7 @@ exports.createStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await student.findAll({
-      attributes: ['admission_no', 'student_name', 'class', 'section', 'status'], // Includes class and section
+      attributes: ['admission_no', 'student_name', 'class', 'section', 'status','phone_no','roll_no','images'], // Includes class and section
     });
     res.status(200).json(students);
   } catch (error) {
@@ -130,11 +130,7 @@ exports.updateStudent = async (req, res) => {
     const { admission_no } = req.params;
     const updateFields = req.body;
 
-    console.log(" Request Params:", req.params);
-    console.log("Received update fields:", req.body);
-    console.log(" File Upload Debug:", req.file);
-
-    const studentRecord = await student.findOne({ where: { admission_no } });
+   const studentRecord = await student.findOne({ where: { admission_no } });
 
     if (!studentRecord) {
       console.log(" Student not found for admission_no:", admission_no);
