@@ -37,10 +37,6 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.TEXT, // Store multiple certificate URLs as a string
         allowNull: true,
       },
-      date: {
-        type: DataTypes.DATEONLY, // Only store the date
-        allowNull: false,
-      },
     },
     {
       sequelize,

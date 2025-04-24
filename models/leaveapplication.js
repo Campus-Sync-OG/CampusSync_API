@@ -1,9 +1,9 @@
-const { DataTypes } = require("sequelize");
+;
 const sequelize = require("../config/sequelize");
 
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
-    "leave_application",
+    "leaveapplication",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -30,11 +30,6 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.DATEONLY,
         allowNull: false,
       },
-      status: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: "Pending",
-      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -42,7 +37,7 @@ module.exports = function (sequelize, DataTypes) {
       },
     },
     {
-      tableName: "leave_application",
+      tableName: "leaveapplication",
       timestamps: false,
     }
   );

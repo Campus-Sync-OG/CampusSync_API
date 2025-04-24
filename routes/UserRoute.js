@@ -46,6 +46,15 @@ router.post('/subjects', Auth.verifyToken, userController.createSubjects);
 
 router.put("/update/subjects/:id", userController.updateSubject);
 
+router.post("/class-create", userController.createClassSection);
+
+// Delete a class-section by ID
+router.delete("/delete/:id", userController.deleteClassSection);
+
+router.post("/timetable-create", userController.uploadTimetable);
+
+// Route to assign subjects to a teacher
+router.post('/assign-subjects', userController.assignSubjectsToTeacher);
 
 
 router.get('/profile', (req, res) => {

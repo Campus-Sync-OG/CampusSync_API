@@ -1,8 +1,9 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
+const teacherAssignments = {}; // Object to store assignments in-memory
 
 // Set up multer for PDF uploads
 const storage = multer.memoryStorage(); // Use memory storage to access buffer
@@ -17,6 +18,8 @@ const upload = multer({
     }
   },
 }).single('attachment');
+
+
 
 
 /* Helper Functions */
@@ -328,51 +331,72 @@ exports.uploadAssignment = async (req, res) => {
     if (err) return res.status(400).json({ message: err.message });
 
     try {
-      const { subjects, title, admission_no, Date: assignmentDate } = req.body;
+      const { subjects, title, Date: assignmentDate, class_name, section } = req.body;
       const { emp_id } = req.params;
+      
 
-      if (!subjects || !title || !assignmentDate || !admission_no || !emp_id || !req.file) {
+      if (!subjects || !title || !class_name || !section || !emp_id || !assignmentDate || !req.file) {
         return res.status(400).json({
-          message: "subject, title, Date, admission_no, emp_id, and attachment are required",
+          message: "subjects, title, Date, class_name, section, emp_id, and attachment are required",
         });
       }
 
+      // Find teacher
       const foundTeacher = await findTeacherById(emp_id, res);
       if (!foundTeacher) return;
 
-      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-      if (!foundStudent) return;
-
+      // Find subject validity
       const validSubject = await subject.findOne({ where: { subject_name: subjects } });
       if (!validSubject) {
-        return res.status(400).json({ message: `Invalid subject name: ${subjects}. Please provide a valid subject name.` });
+        return res.status(400).json({ message: `Invalid subject name: ${subjects}` });
       }
 
       // Upload PDF to Azure Blob Storage
-      const fileBuffer = req.file.buffer; // Assuming multer stores buffer
+      const fileBuffer = req.file.buffer;
       const fileName = `${Date.now()}_${req.file.originalname}`;
       const azureUrl = await uploadImageToAzure(fileBuffer, fileName);
 
-      const newAssignment = await assignment.create({
-        subjects,
-        title,
-        Date: assignmentDate,
-        attachment: azureUrl, // Store Azure URL
-        admission_no,
-        emp_id,
-        emp_name: foundTeacher.emp_name,
+      // Find all students in the class & section
+      const students = await student.findAll({
+        where: { "class": class_name, section }
       });
 
+      if (!students.length) {
+        return res.status(404).json({ message: "No students found in this class & section" });
+      }
+
+      // Store assignment for each student
+      const assignments = [];
+
+      for (const studentItem of students) {
+        const newAssignment = await assignment.create({
+          subjects,
+          title,
+          attachment: azureUrl,
+          admission_no: studentItem.admission_no,
+          emp_id,
+          Date: assignmentDate,
+          emp_name: foundTeacher.emp_name,
+          class_name,
+          section,
+        });
+        assignments.push(newAssignment);
+      }
+
       return res.status(201).json({
-        message: "Assignment uploaded successfully",
-        assignment: newAssignment,
+        message: "Assignment uploaded successfully to all students in class",
+        assignments,
       });
+
     } catch (error) {
-      console.error("Error uploading assignment:", error);
+      console.error("Error uploading assignment:", error.message, error.stack);
       return res.status(500).json({ message: "Internal Server Error" });
     }
   });
+  console.log("Form body:", req.body);
+  console.log("Uploaded file:", req.file);
 };
+
 
 exports.updateAssignment = async (req, res) => {
   upload(req, res, async (err) => {
@@ -473,36 +497,6 @@ exports.updateStudentRollNo = async (req, res) => {
 };
 
 
-const teacherAssignments = {}; // Object to store assignments in-memory
-
-exports.assignSubjectsToTeacher = async (req, res) => {
-  try {
-    const { teacher_id, assignments } = req.body;
-
-    if (!teacher_id || !assignments || !Array.isArray(assignments)) {
-      return res.status(400).json({ message: "Invalid input" });
-    }
-
-    const teacherRecord = await teacher.findOne({ where: { emp_id: teacher_id } });
-    if (!teacherRecord) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-
-    // Store assignments in an object (in-memory storage)
-    teacherAssignments[teacher_id] = assignments;
-
-    res.status(200).json({
-      message: "Subjects assigned successfully",
-      assignedSubjects: assignments,
-    });
-
-  } catch (error) {
-    console.error("Error assigning subjects:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-
 exports.getAssignedSubjects = async (req, res) => {
   try {
     const { teacher_id } = req.params;
@@ -526,19 +520,79 @@ exports.getAssignedSubjects = async (req, res) => {
   }
 };
 
+
+
 exports.getCertificates = async (req, res) => {
   try {
-    const certificates = await achievement.findAll(); // Fetch all certificates
+    const certificates = await achievement.findAll({
+      include: {
+        model: student,
+        attributes: ['student_name'], // or 'student_name'
+        required: false
+      }
+    });
 
     if (!certificates || certificates.length === 0) {
       return res.status(404).json({ message: "No certificates found" });
     }
 
-    res.status(200).json({ message: "Certificates retrieved successfully", certificates });
+    // Optional: Flatten student_mname into root level
+    const formatted = certificates.map(cert => ({
+      ...cert.toJSON(),
+      student_name: cert.student?.student_name || null
+    }));
+
+    res.status(200).json({
+      message: "Certificates retrieved successfully",
+      certificates: formatted
+    });
   } catch (error) {
     console.error("Error fetching certificates:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+// Get all leave applications
+exports.getLeaveApplications = async (req, res) => {
+  try {
+    const leaves = await leaveapplication.findAll({
+      order: [['created_at', 'DESC']],
+    });
+
+    res.status(200).json({ leaves });
+  } catch (error) {
+    console.error("Error fetching leave applications:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+exports.uploadCircular = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const fileName = `${Date.now()}-${file.originalname}`;
+    const blobUrl = await uploadImageToAzure(file.buffer, fileName); // returns full URL
+
+    const circulars = await circular.create({
+      title,
+      description,
+      attachment: blobUrl,  // ⬅️ storing URL in 'attachment' column
+    });
+
+    return res.status(201).json({ message: "Circular uploaded successfully", circulars });
+
+  } catch (error) {
+    console.error("Upload Circular Error:", error);
+    return res.status(500).json({ error: "Failed to upload circular" });
+  }
+};
+
+
+
 
 

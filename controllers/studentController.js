@@ -1,4 +1,4 @@
-const { student, user, achievement,feedback,certificates } = require("../models");
+const { student, user, achievement,feedback,certificates,leaveapplication ,class_section} = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -16,25 +16,52 @@ const upload = multer({
   },
 });
 // Create a student with profile picture upload
+
+
 exports.createStudent = async (req, res) => {
   try {
-    const { admission_no, student_name, password, phone_no, alter_no, dob, gender, status, class: classname, section, roll_no } = req.body;
+    const {
+      admission_no,
+      student_name,
+      password,
+      phone_no,
+      alter_no,
+      dob,
+      gender,
+      status,
+      class: classname,
+      section,
+      roll_no
+    } = req.body;
+        console.log("Received student data:", req.body);
 
     // Validate required fields
-    if (!admission_no || !student_name || !password || !classname || !section || !roll_no) {
+    if (!admission_no || !student_name || !classname || !section || !roll_no) {
       return res.status(400).json({ message: "Missing required fields" });
     }
-    if (!admission_no) {
-      return res.status(400).json({ message: "Admission number is required" });
-    }
 
-    // Check if the user exists
-    const userRecord = await user.findOne({ where: { unique_id: admission_no, role: "student" } });
+
+    // Check if user exists
+    const userRecord = await user.findOne({
+      where: { unique_id: admission_no, role: "student" }
+    });
 
     if (!userRecord) {
       return res.status(400).json({ message: `No user found with unique_id '${admission_no}' and role 'student'` });
     }
 
+    // ✅ Check if class-section exists
+    const classSectionExists = await class_section.findOne({
+      where: {
+        className: classname,
+        section_name: section
+      }
+    });
+    if (!classSectionExists) {
+      return res.status(400).json({ message: `Class '${classname}' with section '${section}' does not exist` });
+    }
+
+    // Handle image if present
     let imageUrl = null;
     if (req.file) {
       const resizedImageBuffer = await sharp(req.file.buffer)
@@ -45,7 +72,7 @@ exports.createStudent = async (req, res) => {
       imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "student-profiles");
     }
 
-    // Create the student record
+    // Create the student
     const newStudent = await student.create({
       admission_no,
       student_name,
@@ -58,20 +85,21 @@ exports.createStudent = async (req, res) => {
       class: classname,
       section,
       roll_no,
-      images: imageUrl,
+      images: imageUrl
     });
+
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
 
   } catch (error) {
     console.error('Error creating student:', error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await student.findAll({
-      attributes: ['admission_no', 'student_name', 'class', 'section', 'status'], // Includes class and section
+      attributes: ['admission_no', 'student_name', 'class', 'section', 'status','phone_no','roll_no','images'], // Includes class and section
     });
     res.status(200).json(students);
   } catch (error) {
@@ -102,11 +130,7 @@ exports.updateStudent = async (req, res) => {
     const { admission_no } = req.params;
     const updateFields = req.body;
 
-    console.log(" Request Params:", req.params);
-    console.log("Received update fields:", req.body);
-    console.log(" File Upload Debug:", req.file);
-
-    const studentRecord = await student.findOne({ where: { admission_no } });
+   const studentRecord = await student.findOne({ where: { admission_no } });
 
     if (!studentRecord) {
       console.log(" Student not found for admission_no:", admission_no);
@@ -216,9 +240,9 @@ exports.softDeleteStudent = async (req, res) => {
 
 exports.uploadCertificate = async (req, res) => {
   try {
-    const { admission_no, title, description, className, section, date } = req.body;
+    const { admission_no, title, description, className, section} = req.body;
 
-    if (!admission_no || !title || !className || !section || !date) {
+    if (!admission_no || !title || !className || !section ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -237,7 +261,6 @@ exports.uploadCertificate = async (req, res) => {
       title,
       description,
       Certificateurl: certificateUrl,
-      date,
     });
 
     res.status(201).json({ message: "Certificate uploaded successfully", achievement: newAchievement });
@@ -330,6 +353,35 @@ exports.createFeedback = async (req, res) => {
     res.status(500).json({ message: "Error submitting feedback", error: error.message });
   }
 };
+
+// Submit leave application
+exports.submitLeaveApplication = async (req, res) => {
+  try {
+    const { admission_no, reason, from_date, to_date } = req.body;
+
+    if (!admission_no || !reason || !from_date || !to_date) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const leave = await leaveapplication.create({
+      admission_no,
+      reason,
+      from_date,
+      to_date,
+      status: "Pending",
+      created_at: new Date(),
+    });
+
+    res.status(201).json({
+      message: "Leave application submitted successfully",
+      leave,
+    });
+  } catch (error) {
+    console.error("Error submitting leave:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 
 exports.upload=upload;
 
