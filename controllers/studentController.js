@@ -244,9 +244,9 @@ exports.softDeleteStudent = async (req, res) => {
 
 exports.uploadCertificate = async (req, res) => {
   try {
-    const { admission_no, title, description, className, section, date } = req.body;
+    const { admission_no, title, description, className, section} = req.body;
 
-    if (!admission_no || !title || !className || !section || !date) {
+    if (!admission_no || !title || !className || !section ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -265,7 +265,6 @@ exports.uploadCertificate = async (req, res) => {
       title,
       description,
       Certificateurl: certificateUrl,
-      date,
     });
 
     res.status(201).json({ message: "Certificate uploaded successfully", achievement: newAchievement });
