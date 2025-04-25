@@ -1,4 +1,4 @@
-const { student, user, achievement,feedback,certificates,leaveapplication ,class_section} = require("../models");
+const { student, user, achievement,feedback,certificates,leaveapplication ,class_section,circular} = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -381,6 +381,21 @@ exports.submitLeaveApplication = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+exports.getAllCirculars = async (req, res) => {
+  try {
+    const circulars = await circular.findAll({
+      attributes: ['date', 'headline', 'note', 'attachment_url'], // Select only required fields
+      order: [['date', 'DESC']] // Optional: newest first
+    });
+
+    res.status(200).json(circulars);
+  } catch (error) {
+    console.error("Get Circulars Error:", error);
+    res.status(500).json({ error: "Failed to fetch circulars", details: error.message });
+  }
+};
+
 
 
 exports.upload=upload;

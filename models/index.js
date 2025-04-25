@@ -24,6 +24,7 @@ const _leaveapplication = require('./leaveapplication');
 const _class_section = require('./class_section');
 const _timetable = require('./timetable');
 const  _teacher_subject=require('./teacher_subject');
+const _circular=require('./circular');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -47,6 +48,7 @@ const leaveapplication = _leaveapplication(sequelize, DataTypes);
 const class_section = _class_section(sequelize, DataTypes);
 const timetable = _timetable(sequelize, DataTypes);
 const teacher_subject=_teacher_subject(sequelize,DataTypes);
+const circular=_circular(sequelize,DataTypes);
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
 teacher.belongsTo(user, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'user' });
@@ -137,5 +139,6 @@ module.exports = {
   leaveapplication,
   class_section,
   timetable,
-  teacher_subject
+  teacher_subject,
+  circular,
 };

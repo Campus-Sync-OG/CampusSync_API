@@ -29,6 +29,8 @@ router.post('/request', studentController.requestCertificate);
 
 router.post('/student-leave', Auth.verifyToken, studentController.submitLeaveApplication );
 
+router.get('/circulars', studentController.getAllCirculars);
+
 
 //add feedback 
 router.post("/add", Auth.verifyToken, studentController.createFeedback);

@@ -499,9 +499,9 @@ exports.updateStudentRollNo = async (req, res) => {
 
 exports.getAssignedSubjectByTeacher = async (req, res) => {
   try {
-    const { teacher_id } = req.params;
+    const { emp_id } = req.params;
     const assignments = await teacher_subject.findAll({
-      where: { emp_id: teacher_id } // assuming 'emp_id' is the correct column
+      where: { emp_id } // assuming 'emp_id' is the correct column
     });
     res.json(assignments);
   } catch (err) {
@@ -555,30 +555,44 @@ exports.getLeaveApplications = async (req, res) => {
 
 exports.uploadCircular = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, date } = req.body;
     const file = req.file;
+
+    if (!title || !description || !date) {
+      return res.status(400).json({ error: "Title, description, and date are required" });
+    }
 
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
     const fileName = `${Date.now()}-${file.originalname}`;
-    const blobUrl = await uploadImageToAzure(file.buffer, fileName); // returns full URL
 
-    const circulars = await circular.create({
-      title,
-      description,
-      attachment: blobUrl,  // ⬅️ storing URL in 'attachment' column
+    // Upload file to Azure Blob Storage
+    const blobUrl = await uploadImageToAzure(file.buffer, fileName);
+
+    if (!blobUrl) {
+      return res.status(500).json({ error: "File upload failed" });
+    }
+
+    // Save circular data to database
+    const newCircular = await circular.create({
+      date,
+      headline: title,            // ⬅️ match model field
+      note: description,          // ⬅️ match model field
+      attachment_url: blobUrl     // ⬅️ match model field
     });
 
-    return res.status(201).json({ message: "Circular uploaded successfully", circulars });
+    return res.status(201).json({
+      message: "Circular uploaded successfully",
+      circular: newCircular,
+    });
 
   } catch (error) {
     console.error("Upload Circular Error:", error);
-    return res.status(500).json({ error: "Failed to upload circular" });
+    return res.status(500).json({ error: "Failed to upload circular", details: error.message });
   }
 };
-
 
 
 
