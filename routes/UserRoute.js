@@ -54,7 +54,7 @@ router.delete("/delete/:id", userController.deleteClassSection);
 router.post("/timetable-create", userController.uploadTimetable);
 
 // Route to assign subjects to a teacher
-router.post('/assign-subjects', userController.assignSubjectsToTeacher);
+router.post('/assign-subjects', userController.assignSubjectToTeacher);
 
 
 router.get('/profile', (req, res) => {

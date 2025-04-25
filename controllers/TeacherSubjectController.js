@@ -3,16 +3,6 @@
 const { teacher_subject } = require('../models');
 
 module.exports = {
-  async create(req, res) {
-    try {
-      const { teacher_id, class_name, section, subject_name } = req.body;
-      const assignment = await teacher_subject.create({ teacher_id, class_name, section, subject_name });
-      res.status(201).json(assignment);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  },
-
   async getAll(req, res) {
     try {
       const assignments = await teacher_subject.findAll();

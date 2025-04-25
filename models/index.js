@@ -46,6 +46,7 @@ const certificates = _certificates(sequelize, DataTypes);
 const leaveapplication = _leaveapplication(sequelize, DataTypes);
 const class_section = _class_section(sequelize, DataTypes);
 const timetable = _timetable(sequelize, DataTypes);
+const teacher_subject=_teacher_subject(sequelize,DataTypes);
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
 teacher.belongsTo(user, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'user' });
@@ -135,5 +136,6 @@ module.exports = {
   certificates,
   leaveapplication,
   class_section,
-  timetable
+  timetable,
+  teacher_subject
 };

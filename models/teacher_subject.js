@@ -1,7 +1,7 @@
 // models/assignment.js
 module.exports = function(sequelize, DataTypes) {
     return sequelize.define("teacher_subject", {
-        emp_id: {
+       emp_id: {
         type: DataTypes.STRING,
         allowNull: false,
       },

@@ -1,9 +1,9 @@
-const { user, student, fee, schoolinfo, teacher, certificates, parent, subject, class_section, timetable, announcement } = require('../models');
+const { user, student, fee, schoolinfo, teacher, certificates, parent, subject, class_section, timetable, announcement, teacher_subject } = require('../models');
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const teacherAssignments = {}; // Object to store assignments in-memory
+
 
 const storage = multer.memoryStorage({
   destination: function (req, file, cb) {
@@ -583,34 +583,46 @@ exports.uploadTimetable = async (req, res) => {
   }
 }
 
-
-
-exports.assignSubjectsToTeacher = async (req, res) => {
+exports.assignSubjectToTeacher = async (req, res) => {
   try {
-    const { teacher_id, assignments } = req.body;
+    const { emp_id, assignments } = req.body;
 
-    if (!teacher_id || !assignments || !Array.isArray(assignments)) {
-      return res.status(400).json({ message: "Invalid input" });
+    // Validate assignments input
+    if (!Array.isArray(assignments) || assignments.length === 0) {
+      return res.status(400).json({ error: 'Assignments must be a non-empty array' });
     }
 
-    const teacherRecord = await teacher.findOne({ where: { emp_id: teacher_id } });
-    if (!teacherRecord) {
-      return res.status(404).json({ message: "Teacher not found" });
-    }
-
-    // Store assignments in an object (in-memory storage)
-    teacherAssignments[teacher_id] = assignments;
-
-    res.status(200).json({
-      message: "Subjects assigned successfully",
-      assignedSubjects: assignments,
+    // Fetch the teacher's emp_name based on emp_id
+    const teacherRecord = await teacher.findOne({
+      where: { emp_id },
+      attributes: ['emp_name'] // Assuming emp_name is a field in the Teacher model
     });
 
-  } catch (error) {
-    console.error("Error assigning subjects:", error);
-    res.status(500).json({ message: "Internal server error" });
+    if (!teacherRecord) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    const emp_name = teacherRecord.emp_name;
+
+    // Prepare the data to insert, including the emp_name
+    const dataToInsert = assignments.map(assign => ({
+      emp_id,
+      emp_name, // Store the emp_name in the teacher_subject table
+      class_name: assign.class_name,
+      section: assign.section,
+      subjects: assign.subjects
+    }));
+
+    // Perform bulk insert
+    const createdAssignments = await teacher_subject.bulkCreate(dataToInsert);
+
+    res.status(201).json(createdAssignments);
+  } catch (err) {
+    console.error('Error assigning subjects to teacher:', err); // Log the error for debugging
+    res.status(500).json({ error: err.message });
   }
 };
+
 
 
 exports.upload = upload;
