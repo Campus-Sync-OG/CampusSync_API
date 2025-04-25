@@ -53,7 +53,7 @@ router.put("/update-roll/:emp_id",  teacherController.updateStudentRollNo);
 router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAssignmentsCSV);
 
 // Route to get subjects assigned to a teacher
-router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjects);
+router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjectByTeacher );
 
 // Route to get certificates issued to teachers
 router.get("/certificates", teacherController.getCertificates);

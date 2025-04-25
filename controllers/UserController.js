@@ -623,6 +623,21 @@ exports.assignSubjectToTeacher = async (req, res) => {
   }
 };
 
+exports.deleteAssignedSubject= async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await teacher_subject.destroy({ where: { id } });
+    
+    if (deleted) {
+      res.status(204).send(); // No Content
+    } else {
+      res.status(404).json({ error: 'Assignment not found' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 
 exports.upload = upload;

@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular,teacher_subject } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -497,30 +497,17 @@ exports.updateStudentRollNo = async (req, res) => {
 };
 
 
-exports.getAssignedSubjects = async (req, res) => {
+exports.getAssignedSubjectByTeacher = async (req, res) => {
   try {
     const { teacher_id } = req.params;
-
-    if (!teacher_id) {
-      return res.status(400).json({ message: "Teacher ID is required" });
-    }
-
-    if (!teacherAssignments[teacher_id]) {
-      return res.status(404).json({ message: "No subjects assigned to this teacher" });
-    }
-
-    res.status(200).json({
-      message: "Assigned subjects retrieved successfully",
-      assignedSubjects: teacherAssignments[teacher_id],
+    const assignments = await teacher_subject.findAll({
+      where: { emp_id: teacher_id } // assuming 'emp_id' is the correct column
     });
-
-  } catch (error) {
-    console.error("Error retrieving assigned subjects:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.json(assignments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-};
-
-
+}; 
 
 exports.getCertificates = async (req, res) => {
   try {
