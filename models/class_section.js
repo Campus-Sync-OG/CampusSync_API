@@ -1,4 +1,5 @@
-const { on } = require("pdfkit");
+const { Sequelize } = require('sequelize');
+const sequelize = require('../config/sequelize');
 
 module.exports = (sequelize, DataTypes) => {
     return sequelize.define(

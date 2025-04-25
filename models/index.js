@@ -23,6 +23,7 @@ const _certificates = require('./certificates');
 const _leaveapplication = require('./leaveapplication');
 const _class_section = require('./class_section');
 const _timetable = require('./timetable');
+const  _teacher_subject=require('./teacher_subject');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);

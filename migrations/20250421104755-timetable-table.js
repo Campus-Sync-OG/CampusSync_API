@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await query_Interface.createTable('timetables', {
+    await queryInterface.createTable('timetables', {
       timetable_id: {
         allowNull: false,
         autoIncrement: true,
@@ -12,7 +12,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'class_sections',
+          model: 'class_section',
           key: 'id'
         },
         onDelete: 'CASCADE'

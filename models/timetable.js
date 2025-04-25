@@ -1,7 +1,8 @@
-const { on } = require("pdfkit");
+const { Sequelize } = require("sequelize");
+const sequelize = require('../config/sequelize');
 
-module.exports = (sequelize, DataTypes) => {
-    const Timetable = sequelize.define('timetable', {
+module.exports = function (sequelize, DataTypes)  {
+    return sequelize.define('timetable', {
       classSectionId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -26,12 +27,10 @@ module.exports = (sequelize, DataTypes) => {
       }
     }, {
       tableName: 'timetable'
-    });
+    },
   
-    Timetable.associate = (models) => {
-      Timetable.belongsTo(models.ClassSection, { foreignKey: 'classSectionId' });
-    };
+  );
   
-    return Timetable;
+  
   };
   
