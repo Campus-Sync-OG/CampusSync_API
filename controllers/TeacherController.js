@@ -393,8 +393,6 @@ exports.uploadAssignment = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   });
-  console.log("Form body:", req.body);
-  console.log("Uploaded file:", req.file);
 };
 
 
@@ -555,11 +553,11 @@ exports.getLeaveApplications = async (req, res) => {
 
 exports.uploadCircular = async (req, res) => {
   try {
-    const { title, description, date } = req.body;
+    const { title, description, date, class_name, section } = req.body;
     const file = req.file;
 
-    if (!title || !description || !date) {
-      return res.status(400).json({ error: "Title, description, and date are required" });
+    if (!title || !description || !date || !class_name || !section) {
+      return res.status(400).json({ error: "Title, description, date, class_name, and section are required" });
     }
 
     if (!file) {
@@ -575,17 +573,28 @@ exports.uploadCircular = async (req, res) => {
       return res.status(500).json({ error: "File upload failed" });
     }
 
-    // Save circular data to database
-    const newCircular = await circular.create({
-      date,
-      headline: title,            // ⬅️ match model field
-      note: description,          // ⬅️ match model field
-      attachment_url: blobUrl     // ⬅️ match model field
-    });
+    // Fetch students by class_name and section
+    const students = await student.findAll({ where: { class: class_name, section } });
+    const admissionNos = students.map((s) => s.admission_no);
+
+    // Loop through the admissionNos array and create a new circular record for each
+    const circulars = [];
+    for (const admission_no of admissionNos) {
+      const newCircular = await circular.create({
+        date,
+        headline: title,
+        note: description,
+        attachment_url: blobUrl,
+        class_name,
+        section,
+        admission_no, // Store each admission_no individually
+      });
+      circulars.push(newCircular);
+    }
 
     return res.status(201).json({
-      message: "Circular uploaded successfully",
-      circular: newCircular,
+      message: "Circulars uploaded successfully for each student",
+      circulars,
     });
 
   } catch (error) {

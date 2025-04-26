@@ -24,7 +24,23 @@ module.exports = {
       attachment_url: {
         type: Sequelize.STRING,
         allowNull: true
-      }
+      },
+      class_name: {
+        type: Sequelize.STRING,
+        allowNull: true // Set to false if class_name is mandatory
+      },
+      section: {
+        type: Sequelize.STRING,
+        allowNull: true // Set to false if section is mandatory
+      },
+      admission_no: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'student',
+          key: 'admission_no'
+        },
+      },
       // If you want timestamps later, add createdAt, updatedAt here
     });
   },
