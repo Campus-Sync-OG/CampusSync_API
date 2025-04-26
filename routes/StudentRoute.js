@@ -29,7 +29,7 @@ router.post('/request', studentController.requestCertificate);
 
 router.post('/student-leave', Auth.verifyToken, studentController.submitLeaveApplication );
 
-router.get('/circulars', studentController.getAllCirculars);
+router.get('/circulars/:admission_no', studentController.getCircularByAdmissionNo);
 
 
 //add feedback 

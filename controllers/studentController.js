@@ -382,19 +382,27 @@ exports.submitLeaveApplication = async (req, res) => {
   }
 };
 
-exports.getAllCirculars = async (req, res) => {
+exports.getCircularByAdmissionNo = async (req, res) => {
   try {
-    const circulars = await circular.findAll({
+    const { admission_no } = req.params; // Get admission_no from request URL
+
+    const circularData = await circular.findAll({
+      where: { admission_no },
       attributes: ['date', 'headline', 'note', 'attachment_url'], // Select only required fields
       order: [['date', 'DESC']] // Optional: newest first
     });
 
-    res.status(200).json(circulars);
+    if (circularData.length === 0) {
+      return res.status(404).json({ error: "No circulars found for this admission number" });
+    }
+
+    res.status(200).json(circularData);
   } catch (error) {
-    console.error("Get Circulars Error:", error);
+    console.error("Get Circular By Admission No Error:", error);
     res.status(500).json({ error: "Failed to fetch circulars", details: error.message });
   }
 };
+
 
 
 
