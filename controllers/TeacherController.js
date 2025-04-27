@@ -283,18 +283,44 @@ exports.updateAcademicRecord = async (req, res) => {
 
 exports.uploadAttendance = async (req, res) => {
   try {
-    const { admission_no, emp_id, date, status } = req.body;
-    if (!admission_no || !emp_id || !date || !status) {
-      return res.status(400).json({ message: "admission_no, emp_id, date, and status are required" });
+    const { records, emp_id, date } = req.body;
+
+    // Ensure that records, emp_id, and date are provided
+    if (!records || !emp_id || !date) {
+      return res.status(400).json({ message: "Missing required fields: records, emp_id, date" });
     }
 
-    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-    if (!foundStudent) return;
+    // Find the teacher
+    const foundTeacher = await findTeacherById(emp_id, res);
+    if (!foundTeacher) return;
 
-    const newAttendance = await attendance.create({ admission_no, emp_id, date, status });
-    return res.status(201).json({ message: "Attendance recorded successfully", newAttendance });
+    const updatedRecords = [];
+    const failedRecords = [];
+
+    for (const record of records) {
+      const { admission_no, status } = record;
+
+      // Find the student by admission number
+      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+      if (!foundStudent) {
+        failedRecords.push({ admission_no, status, message: "Student not found" });
+        continue;
+      }
+
+      // Create the attendance record for this student
+      const attendanceRecord = await attendance.create({ admission_no, emp_id, date, status });
+      updatedRecords.push({ admission_no, status, created: true });
+    }
+
+    // Respond with updated records and any failed attempts
+    return res.status(200).json({
+      message: "Bulk attendance update completed",
+      updatedRecords,
+      failedRecords,
+    });
+
   } catch (error) {
-    console.error("Error uploading attendance:", error);
+    console.error("Error uploading bulk attendance:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };

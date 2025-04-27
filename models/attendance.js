@@ -3,7 +3,7 @@ const sequelize = require("../config/sequelize");
 
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
-    "leave_application",
+    "attendance",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -14,35 +14,35 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: false,
         references: {
-          model: "student", // Make sure this matches your students table
+          model: "student", // Table name
           key: "admission_no",
         },
+      
       },
-      reason: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      from_date: {
+      date: {
         type: DataTypes.DATEONLY,
         allowNull: false,
-      },
-      to_date: {
-        type: DataTypes.DATEONLY,
-        allowNull: false,
+        defaultValue: DataTypes.NOW,
       },
       status: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: "Pending",
+        Enum: ["present", "absent"],
+        defaultValue: "present",
       },
-      created_at: {
-        type: DataTypes.DATE,
+
+      emp_id: {
+        type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        references: {
+          model: "teacher", // Table name
+          key: "emp_id",
+        },
+        
       },
     },
     {
-      tableName: "leave_application",
+      tableName: "attendance",
       timestamps: false,
     }
   );
