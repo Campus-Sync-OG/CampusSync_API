@@ -141,7 +141,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.addFee = async (req, res) => {
   try {
-    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date,feestype} = req.body;
+    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date,feestype,class_name,section_name} = req.body;
 
     // Check if student exists for the provided admission_no
     const Student = await student.findOne({ where: { admission_no } });
@@ -158,7 +158,9 @@ exports.addFee = async (req, res) => {
       receipt_no,
       status,
       due_date,
-      feestype
+      feestype,
+      class_name,
+      section_name  
     });
     res.status(201).json(newFee);
   } catch (error) {
