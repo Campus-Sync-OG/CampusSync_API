@@ -109,6 +109,7 @@ const findPrincipalById = async (p_id, res) => {
 };
 
 exports.getAllFeedback = async (req, res) => {
+  console.log("Fetching all feedbacks...");
   try {
     const feedbacks = await feedback.findAll({
       attributes: ["id","message"], // No sender info
