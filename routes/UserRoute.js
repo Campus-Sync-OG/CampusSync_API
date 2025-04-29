@@ -58,6 +58,8 @@ router.post('/assign-subjects', userController.assignSubjectToTeacher);
 
 router.delete('/teacher-subject/:id', userController.deleteAssignedSubject);
 
+router.get('/list/teacher-subjects', userController.getAssignedSubjects);
+
 
 router.get('/profile', (req, res) => {
   // Your existing logic for profile route

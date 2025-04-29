@@ -114,6 +114,9 @@ user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id" });
 notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
 announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
 user.hasMany(announcement, { foreignKey: 'user_id', sourceKey: 'unique_id', as: 'announcements' });
+
+teacher.hasMany(teacher_subject, { foreignKey: 'emp_id' ,targetKey: 'emp_id'});
+teacher_subject.belongsTo(teacher, { foreignKey: 'emp_id' ,targetKey: 'emp_id' });
 //user.hasMany(feedback, { foreignKey: "unique_id", as: "received_feedbacks" });
 //feedback.belongsTo(user, { foreignKey: "unique_id", as: "teacher" });
 module.exports = {

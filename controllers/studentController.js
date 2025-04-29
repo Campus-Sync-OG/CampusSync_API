@@ -99,13 +99,27 @@ exports.createStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await student.findAll({
-      attributes: ['admission_no', 'student_name', 'class', 'section', 'status','phone_no','roll_no','images'], // Includes class and section
+      attributes: [
+        'admission_no',
+        'student_name',
+        'class',
+        'section',
+        'status',
+        'phone_no',
+        'roll_no',
+        'images',
+        'dob',
+        'gender'
+      ],
+      order: [['class', 'ASC'], ['roll_no', 'ASC']]
+
     });
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Get a student by admission number, class, and section
 exports.getStudentByAdmissionNo = async (req, res) => {

@@ -85,16 +85,21 @@ exports.createTeacher = async (req, res) => {
 
 exports.getAllTeachers = async (req, res) => {
   try {
-    const teachers = await teacher.findAll();
+    const teachers = await teacher.findAll({
+      order: [['teacher_name', 'ASC']] // Sort by teacher_name in ascending order
+    });
+
     if (!teachers.length) {
       return res.status(404).json({ message: 'No teachers found' });
     }
+
     return res.status(200).json({ teachers });
   } catch (error) {
     console.error("Error fetching teachers:", error);
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.getTeacherById = async (req, res) => {
   try {

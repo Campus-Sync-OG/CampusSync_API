@@ -641,6 +641,47 @@ exports.deleteAssignedSubject= async (req, res) => {
   }
 };
 
+exports.getAssignedSubjects = async (req, res) => {
+  try {
+    const { class_name, section, role } = req.query;
+
+    // Build where conditions dynamically
+    const subjectWhere = {};
+    if (class_name) subjectWhere.class_name = class_name;
+    if (section) subjectWhere.section = section;
+
+    const teacherWhere = {};
+    if (role) teacherWhere.role = role;
+
+    const assignedSubjects = await teacher_subject.findAll({
+      where: subjectWhere,
+      include: [
+        {
+          model: teacher,
+          attributes: ['emp_id', 'emp_name', 'role'],
+          where: teacherWhere
+        }
+      ]
+    });
+
+    const result = assignedSubjects.map(item => ({
+      employeeID: item.teacher.emp_id,
+      teacherName: item.teacher.emp_name,
+      class: item.class_name,
+      section: item.section,
+      subject1: item.subjects[0] || '',
+      subject2: item.subjects[1] || '',
+      role: item.teacher.role
+    }));
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Error fetching assigned subjects:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 
 
 exports.upload = upload;
