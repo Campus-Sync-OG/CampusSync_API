@@ -86,7 +86,7 @@ exports.createTeacher = async (req, res) => {
 exports.getAllTeachers = async (req, res) => {
   try {
     const teachers = await teacher.findAll({
-      order: [['teacher_name', 'ASC']] // Sort by teacher_name in ascending order
+      order: [['emp_name', 'ASC']] // Sort by teacher_name in ascending order
     });
 
     if (!teachers.length) {
