@@ -46,10 +46,10 @@ const findStudentByAdmissionNo = async (admission_no, res) => {
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, subjects, password, phone_no, joining_date, is_active, role, status } = req.body;
+    const { emp_id, emp_name, email, blood_gp,religion, address,dob, phone_no, joining_date,  role, status,gender } = req.body;
 
-    if (!emp_id || !emp_name || !password) {
-      return res.status(400).json({ message: 'emp_id, emp_name, and password are required' });
+    if (!emp_id || !emp_name  ) {
+      return res.status(400).json({ message: 'emp_id, emp_name are required' });
     }
 
     // Validate emp_id against User model
@@ -61,19 +61,20 @@ exports.createTeacher = async (req, res) => {
       return res.status(400).json({ error: 'Employee ID does not match the unique ID in the User model' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newTeacher = await teacher.create({
       emp_id,
       emp_name,
       email,
-      subjects,
-      password: hashedPassword,
+      blood_gp,
+      dob,
+      religion,
       phone_no,
       joining_date,
-      is_active,
       role,
       status,
+      address,
+      gender
     });
 
     return res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });

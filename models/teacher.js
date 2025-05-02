@@ -24,11 +24,11 @@ module.exports = function (sequelize, DataTypes) {
           isEmail: true,
         },
       },
-      Blood_gp: {
+      blood_gp: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      Religion: {
+      religion: {
         type: DataTypes.STRING,
         allowNull: false,
       },
@@ -59,7 +59,7 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
       },
       gender: {
-        type: DataTypes .ENUM('MALE', 'FEMALE'),
+        type: DataTypes .ENUM('Male', 'Female'),
         allowNull: true,
 
       },
