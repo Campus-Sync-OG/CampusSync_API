@@ -23,7 +23,6 @@ exports.createStudent = async (req, res) => {
     const {
       admission_no,
       student_name,
-      password,
       phone_no,
       alter_no,
       dob,
@@ -76,7 +75,6 @@ exports.createStudent = async (req, res) => {
     const newStudent = await student.create({
       admission_no,
       student_name,
-      password,
       phone_no,
       alter_no,
       dob,
@@ -111,7 +109,7 @@ exports.getAllStudents = async (req, res) => {
         'dob',
         'gender'
       ],
-      order: [['class', 'ASC'], ['roll_no', 'ASC']]
+      order: [['class', 'ASC'], ['roll_no', 'ASC'] , ['section', 'ASC']],
 
     });
     res.status(200).json(students);
