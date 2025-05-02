@@ -63,6 +63,10 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
 
       },
+      dob:{
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       sequelize,
