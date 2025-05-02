@@ -77,8 +77,8 @@ assignment.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id', as: '
 student.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' });
 teacher.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' });
 
-examformat.hasOne(principal, { foreignKey: 'id', targetkey: 'id', as: 'examformat' });
-principal.belongsTo(examformat, { foreignKey: 'id', targetKey: 'id', as: 'examformat' });
+//examformat.hasOne(principal, { foreignKey: 'id', targetkey: 'id', as: 'examformat' });
+//principal.belongsTo(examformat, { foreignKey: 'id', targetKey: 'id', as: 'examformat' });
 
 examformat.hasOne(academics, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'academicDetails' });
 academics.belongsTo(examformat, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'examFormatDetails' });
@@ -103,7 +103,7 @@ teacher.hasMany(attendance, { foreignKey: "emp_id", sourceKey: "emp_id", as: "at
 student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
-forms.hasOne(teacher, { foreignKey: 'id', targetkey: 'id', as: 'forms' });
+//forms.hasOne(teacher, { foreignKey: 'id', targetkey: 'id', as: 'forms' });
 
 
 subject.hasOne(principal, { foreignKey: 'id', targetKey: 'id', as: 'subjects' });

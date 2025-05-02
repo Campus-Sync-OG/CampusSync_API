@@ -24,15 +24,11 @@ module.exports = function (sequelize, DataTypes) {
           isEmail: true,
         },
       },
-      subjects: {
+      Blood_gp: {
         type: DataTypes.STRING,
         allowNull: true,
-        references:{
-          model:'subject',
-          key:'subject_name',
-        },
       },
-      password: {
+      Religion: {
         type: DataTypes.STRING,
         allowNull: false,
       },
@@ -57,7 +53,16 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.ENUM('active', 'inactive'),
         allowNull: false,
         defaultValue: 'active', // Default value for status
-      }
+      },
+      address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      gender: {
+        type: DataTypes .ENUM('MALE', 'FEMALE'),
+        allowNull: true,
+
+      },
     },
     {
       sequelize,
