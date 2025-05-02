@@ -7,7 +7,7 @@ const upload = multer();
 
 
 // Create a new student
-router.post('/create', studentController.createStudent);
+router.post('/create', upload.single('images'), studentController.createStudent);
 
 // Get all students
 router.get('/list',  studentController.getAllStudents);

@@ -184,7 +184,6 @@ exports.updateStudent = async (req, res) => {
     //  List of allowed fields to update
     const allowedFields = [
       "student_name",
-      "password",
       "phone_no",
       "alter_no",
       "dob",
