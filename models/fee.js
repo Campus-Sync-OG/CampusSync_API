@@ -36,6 +36,19 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.ENUM("Paid", "Unpaid"),
       allowNull: false,
     },
+    feestype: {
+      type:DataTypes.STRING,
+      allowNull: false,
+    },
+    class_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },  
+    section_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
     due_date: {
       type: DataTypes.DATE,
       allowNull: false,

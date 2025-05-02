@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular,teacher_subject } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -85,16 +85,21 @@ exports.createTeacher = async (req, res) => {
 
 exports.getAllTeachers = async (req, res) => {
   try {
-    const teachers = await teacher.findAll();
+    const teachers = await teacher.findAll({
+      order: [['emp_name', 'ASC']] // Sort by teacher_name in ascending order
+    });
+
     if (!teachers.length) {
       return res.status(404).json({ message: 'No teachers found' });
     }
+
     return res.status(200).json({ teachers });
   } catch (error) {
     console.error("Error fetching teachers:", error);
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.getTeacherById = async (req, res) => {
   try {
@@ -283,18 +288,44 @@ exports.updateAcademicRecord = async (req, res) => {
 
 exports.uploadAttendance = async (req, res) => {
   try {
-    const { admission_no, emp_id, date, status } = req.body;
-    if (!admission_no || !emp_id || !date || !status) {
-      return res.status(400).json({ message: "admission_no, emp_id, date, and status are required" });
+    const { records, emp_id, date } = req.body;
+
+    // Ensure that records, emp_id, and date are provided
+    if (!records || !emp_id || !date) {
+      return res.status(400).json({ message: "Missing required fields: records, emp_id, date" });
     }
 
-    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-    if (!foundStudent) return;
+    // Find the teacher
+    const foundTeacher = await findTeacherById(emp_id, res);
+    if (!foundTeacher) return;
 
-    const newAttendance = await attendance.create({ admission_no, emp_id, date, status });
-    return res.status(201).json({ message: "Attendance recorded successfully", newAttendance });
+    const updatedRecords = [];
+    const failedRecords = [];
+
+    for (const record of records) {
+      const { admission_no, status } = record;
+
+      // Find the student by admission number
+      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
+      if (!foundStudent) {
+        failedRecords.push({ admission_no, status, message: "Student not found" });
+        continue;
+      }
+
+      // Create the attendance record for this student
+      const attendanceRecord = await attendance.create({ admission_no, emp_id, date, status });
+      updatedRecords.push({ admission_no, status, created: true });
+    }
+
+    // Respond with updated records and any failed attempts
+    return res.status(200).json({
+      message: "Bulk attendance update completed",
+      updatedRecords,
+      failedRecords,
+    });
+
   } catch (error) {
-    console.error("Error uploading attendance:", error);
+    console.error("Error uploading bulk attendance:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -393,8 +424,6 @@ exports.uploadAssignment = async (req, res) => {
       return res.status(500).json({ message: "Internal Server Error" });
     }
   });
-  console.log("Form body:", req.body);
-  console.log("Uploaded file:", req.file);
 };
 
 
@@ -497,30 +526,17 @@ exports.updateStudentRollNo = async (req, res) => {
 };
 
 
-exports.getAssignedSubjects = async (req, res) => {
+exports.getAssignedSubjectByTeacher = async (req, res) => {
   try {
-    const { teacher_id } = req.params;
-
-    if (!teacher_id) {
-      return res.status(400).json({ message: "Teacher ID is required" });
-    }
-
-    if (!teacherAssignments[teacher_id]) {
-      return res.status(404).json({ message: "No subjects assigned to this teacher" });
-    }
-
-    res.status(200).json({
-      message: "Assigned subjects retrieved successfully",
-      assignedSubjects: teacherAssignments[teacher_id],
+    const { emp_id } = req.params;
+    const assignments = await teacher_subject.findAll({
+      where: { emp_id } // assuming 'emp_id' is the correct column
     });
-
-  } catch (error) {
-    console.error("Error retrieving assigned subjects:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.json(assignments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-};
-
-
+}; 
 
 exports.getCertificates = async (req, res) => {
   try {
@@ -568,30 +584,55 @@ exports.getLeaveApplications = async (req, res) => {
 
 exports.uploadCircular = async (req, res) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, date, class_name, section } = req.body;
     const file = req.file;
+
+    if (!title || !description || !date || !class_name || !section) {
+      return res.status(400).json({ error: "Title, description, date, class_name, and section are required" });
+    }
 
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
     const fileName = `${Date.now()}-${file.originalname}`;
-    const blobUrl = await uploadImageToAzure(file.buffer, fileName); // returns full URL
 
-    const circulars = await circular.create({
-      title,
-      description,
-      attachment: blobUrl,  // ⬅️ storing URL in 'attachment' column
+    // Upload file to Azure Blob Storage
+    const blobUrl = await uploadImageToAzure(file.buffer, fileName);
+
+    if (!blobUrl) {
+      return res.status(500).json({ error: "File upload failed" });
+    }
+
+    // Fetch students by class_name and section
+    const students = await student.findAll({ where: { class: class_name, section } });
+    const admissionNos = students.map((s) => s.admission_no);
+
+    // Loop through the admissionNos array and create a new circular record for each
+    const circulars = [];
+    for (const admission_no of admissionNos) {
+      const newCircular = await circular.create({
+        date,
+        headline: title,
+        note: description,
+        attachment_url: blobUrl,
+        class_name,
+        section,
+        admission_no, // Store each admission_no individually
+      });
+      circulars.push(newCircular);
+    }
+
+    return res.status(201).json({
+      message: "Circulars uploaded successfully for each student",
+      circulars,
     });
-
-    return res.status(201).json({ message: "Circular uploaded successfully", circulars });
 
   } catch (error) {
     console.error("Upload Circular Error:", error);
-    return res.status(500).json({ error: "Failed to upload circular" });
+    return res.status(500).json({ error: "Failed to upload circular", details: error.message });
   }
 };
-
 
 
 

@@ -8,5 +8,6 @@ router.put('/update/:p_id', Auth.verifyToken, principalController.updatePrincipa
 router.delete('/delete/:p_id', Auth.verifyToken, principalController.softDeletePrincipal);
 router.get('/all/:p_id', Auth.verifyToken, principalController.getPrincipalDetails);
 router.get("/view",Auth.verifyToken, principalController.getAllFeedback);
+router.get("/teacher-subject/all",principalController.getAllAssignedSubjectToTeacher);
 
 module.exports = router;

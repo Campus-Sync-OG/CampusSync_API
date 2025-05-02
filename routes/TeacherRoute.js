@@ -14,7 +14,7 @@ router.post('/create', teacherController.createTeacher);
 router.get('/all', Auth.verifyToken, teacherController.getAllTeachers);
 
 // Route to get a teacher by their employee ID (requires authentication)
-router.get('/list/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
+router.get('/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
 
 // Route to update a teacher's details by employee ID (requires authentication)
 router.put('/update/:emp_id', Auth.verifyToken, teacherController.updateTeacher);
@@ -53,7 +53,7 @@ router.put("/update-roll/:emp_id",  teacherController.updateStudentRollNo);
 router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAssignmentsCSV);
 
 // Route to get subjects assigned to a teacher
-router.get("/assignedSubjects/:teacher_id", teacherController.getAssignedSubjects);
+router.get("/assignedSubjects/:emp_id", teacherController.getAssignedSubjectByTeacher );
 
 // Route to get certificates issued to teachers
 router.get("/certificates", teacherController.getCertificates);

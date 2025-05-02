@@ -6,7 +6,7 @@ class NotificationController {
   static async createNotification(req, res) {
     try {
       const { notification_type, title, message } = req.body;
-      const user_id = req.user.unique_id;
+      const user_id = req.user?.unique_id;
 
       const Notification = await notification.create({ notification_type, title, message, user_id });
 

@@ -1,4 +1,4 @@
-const { student, user, achievement,feedback,certificates,leaveapplication ,class_section} = require("../models");
+const { student, user, achievement,feedback,certificates,leaveapplication ,class_section,circular} = require("../models");
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -99,13 +99,27 @@ exports.createStudent = async (req, res) => {
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await student.findAll({
-      attributes: ['admission_no', 'student_name', 'class', 'section', 'status','phone_no','roll_no','images'], // Includes class and section
+      attributes: [
+        'admission_no',
+        'student_name',
+        'class',
+        'section',
+        'status',
+        'phone_no',
+        'roll_no',
+        'images',
+        'dob',
+        'gender'
+      ],
+      order: [['class', 'ASC'], ['roll_no', 'ASC']]
+
     });
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Get a student by admission number, class, and section
 exports.getStudentByAdmissionNo = async (req, res) => {
@@ -381,6 +395,29 @@ exports.submitLeaveApplication = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+exports.getCircularByAdmissionNo = async (req, res) => {
+  try {
+    const { admission_no } = req.params; // Get admission_no from request URL
+
+    const circularData = await circular.findAll({
+      where: { admission_no },
+      attributes: ['date', 'headline', 'note', 'attachment_url'], // Select only required fields
+      order: [['date', 'DESC']] // Optional: newest first
+    });
+
+    if (circularData.length === 0) {
+      return res.status(404).json({ error: "No circulars found for this admission number" });
+    }
+
+    res.status(200).json(circularData);
+  } catch (error) {
+    console.error("Get Circular By Admission No Error:", error);
+    res.status(500).json({ error: "Failed to fetch circulars", details: error.message });
+  }
+};
+
+
 
 
 exports.upload=upload;

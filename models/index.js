@@ -11,11 +11,11 @@ const _assignment = require('./assignment');
 const _examformat = require('./examformat');
 const _attendance = require('./attendance');
 const _fee = require('./fee');
-const _forms=require('./forms');
-const _subject=require('./subject');
-const _parent=require('./parent');
-const _schoolinfo=require('./schoolinfo');
-const _notification=require('./notification');
+const _forms = require('./forms');
+const _subject = require('./subject');
+const _parent = require('./parent');
+const _schoolinfo = require('./schoolinfo');
+const _notification = require('./notification');
 const _announcement = require('./announcement');
 const _achievement = require('./achievement');
 const _feedback = require('./feedback');
@@ -23,6 +23,8 @@ const _certificates = require('./certificates');
 const _leaveapplication = require('./leaveapplication');
 const _class_section = require('./class_section');
 const _timetable = require('./timetable');
+const _teacher_subject = require('./teacher_subject');
+const _circular = require('./circular');
 
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -45,6 +47,8 @@ const certificates = _certificates(sequelize, DataTypes);
 const leaveapplication = _leaveapplication(sequelize, DataTypes);
 const class_section = _class_section(sequelize, DataTypes);
 const timetable = _timetable(sequelize, DataTypes);
+const teacher_subject = _teacher_subject(sequelize, DataTypes);
+const circular = _circular(sequelize, DataTypes);
 // Define associations
 user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
 teacher.belongsTo(user, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'user' });
@@ -96,7 +100,7 @@ student.hasMany(attendance, { foreignKey: "admission_no", sourceKey: "admission_
 teacher.hasMany(attendance, { foreignKey: "emp_id", sourceKey: "emp_id", as: "attendances", });
 
 
-student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no"});
+student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
 forms.hasOne(teacher, { foreignKey: 'id', targetkey: 'id', as: 'forms' });
@@ -110,8 +114,11 @@ user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id" });
 notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
 announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
 user.hasMany(announcement, { foreignKey: 'user_id', sourceKey: 'unique_id', as: 'announcements' });
-user.hasMany(feedback, { foreignKey: "unique_id", as: "received_feedbacks" });
-feedback.belongsTo(user, { foreignKey: "unique_id", as: "teacher" });
+
+teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
+teacher_subject.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id' });
+//user.hasMany(feedback, { foreignKey: "unique_id", as: "received_feedbacks" });
+//feedback.belongsTo(user, { foreignKey: "unique_id", as: "teacher" });
 module.exports = {
   sequelize,
   user,
@@ -134,5 +141,7 @@ module.exports = {
   certificates,
   leaveapplication,
   class_section,
-  timetable
+  timetable,
+  teacher_subject,
+  circular,
 };

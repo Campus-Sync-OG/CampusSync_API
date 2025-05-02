@@ -23,6 +23,7 @@ const classsectionRoutes=require('./routes/ClassSectionRoutes');
 const timetableRoutes=require('./routes/TimetableRoute');
 
 
+
 const server = http.createServer(app);
 
 
@@ -54,6 +55,7 @@ app.use('/api/announcement', AnnouncementRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/classsection', classsectionRoutes);
 app.use('/api/timetable', timetableRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });

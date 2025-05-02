@@ -1,4 +1,4 @@
-const { principal, user ,feedback} = require('../models');
+const { principal, user ,feedback,teacher_subject} = require('../models');
 
 exports.createPrincipal = async (req, res) => {
   try {
@@ -119,5 +119,15 @@ exports.getAllFeedback = async (req, res) => {
   } catch (error) {
     console.error("Error retrieving feedback:", error);
     res.status(500).json({ message: "Error retrieving feedback", error: error.message });
+  }
+};
+
+
+exports.getAllAssignedSubjectToTeacher= async (req, res) => {
+  try {
+    const assignments = await teacher_subject.findAll();
+    res.json(assignments);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

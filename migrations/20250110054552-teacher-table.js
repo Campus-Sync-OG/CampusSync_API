@@ -1,14 +1,14 @@
 'use strict';
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('teacher', {
       emp_id: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        primaryKey: true,
         references: {
-          model: 'user', // Reference to the 'user' table
+          model: 'user',
           key: 'unique_id',
         },
       },
@@ -20,9 +20,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      subject: {
+      subjects: {
         type: Sequelize.STRING,
         allowNull: true,
+        references: {
+          model: 'subject',
+          key: 'subject_name',
+        },
       },
       password: {
         type: Sequelize.STRING,
@@ -38,19 +42,19 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
       role: {
-        type: Sequelize.ENUM('classteacher', 'subjectteacher'),
+        type: Sequelize.ENUM('classTeacher', 'subjectTeacher'),
         allowNull: false,
+        defaultValue: 'subjectTeacher',
       },
       status: {
-        type: DataTypes.ENUM('active','inactive'),
+        type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
-        defaultValue: 'active', // Default value for status
-      },
-      
+        defaultValue: 'active',
+      }
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('teacher');
-  },
+  }
 };
