@@ -26,6 +26,7 @@ const _timetable = require('./timetable');
 const _teacher_subject = require('./teacher_subject');
 const _circular = require('./circular');
 
+// Initialize models
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
 const student = _student(sequelize, DataTypes);
@@ -35,7 +36,7 @@ const assignment = _assignment(sequelize, DataTypes);
 const examformat = _examformat(sequelize, DataTypes);
 const attendance = _attendance(sequelize, DataTypes);
 const fee = _fee(sequelize, DataTypes);
-const forms = _forms(sequelize, DataTypes)
+const forms = _forms(sequelize, DataTypes);
 const subject = _subject(sequelize, DataTypes);
 const parent = _parent(sequelize, DataTypes);
 const schoolinfo = _schoolinfo(sequelize, DataTypes);
@@ -49,76 +50,66 @@ const class_section = _class_section(sequelize, DataTypes);
 const timetable = _timetable(sequelize, DataTypes);
 const teacher_subject = _teacher_subject(sequelize, DataTypes);
 const circular = _circular(sequelize, DataTypes);
-// Define associations
-user.hasOne(teacher, { foreignKey: 'emp_id', sourceKey: 'unique_id', as: 'teacher' });
+
+// Define associations between models
+
+// User to role mapping
+user.hasOne(teacher, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'teacher' });
 teacher.belongsTo(user, { foreignKey: 'emp_id', targetKey: 'unique_id', as: 'user' });
 
-user.hasOne(student, { foreignKey: 'admission_no', sourceKey: 'unique_id', as: 'student' });
+user.hasOne(student, { foreignKey: 'admission_no', targetKey: 'unique_id', as: 'student' });
 student.belongsTo(user, { foreignKey: 'admission_no', targetKey: 'unique_id', as: 'user' });
 
 user.hasOne(principal, { foreignKey: 'p_id', targetKey: 'unique_id', as: 'principal' });
 principal.belongsTo(user, { foreignKey: 'p_id', targetKey: 'unique_id', as: 'user' });
 
-//teacher.hasMany(student, { foreignKey: 'emp_id', as: 'students' });
-//student.belongsTo(teacher, { foreignKey: 'emp_id', as: 'teacher' });
+// Academics belongs to student (student performance)
+academics.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student' });
+student.hasMany(academics, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'academics' });
 
-// Academics belongs to Student
-academics.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student', });
-//academics.belongsTo(teacher, {foreignKey: 'emp_id',targetKey: 'emp_id',as: 'teacher',});
-
-// Student has many Academics
-student.hasMany(academics, { foreignKey: 'admission_no', sourceKey: 'admission_no', as: 'academics' });
-//teacher.hasMany(academics, { foreignKey: 'emp_id',sourceKey: 'emp_id',as: 'academics',});
-
-
-assignment.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student', });
-assignment.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id', as: 'teacher', });
+// Assignment relationships
+assignment.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'student' });
+assignment.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id', as: 'teacher' });
 
 student.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' });
-teacher.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' });
+teacher.hasMany(assignment, { foreignKey: 'admission_no', targetKey: 'admission_no', as: 'assignment' }); // possibly incorrect: teacher foreignKey should be 'emp_id'
 
-//examformat.hasOne(principal, { foreignKey: 'id', targetkey: 'id', as: 'examformat' });
-//principal.belongsTo(examformat, { foreignKey: 'id', targetKey: 'id', as: 'examformat' });
-
+// Exam format and academic connection
 examformat.hasOne(academics, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'academicDetails' });
 academics.belongsTo(examformat, { foreignKey: 'exam_format', targetKey: 'exam_name', as: 'examFormatDetails' });
 
-student.hasMany(achievement, {
-  foreignKey: 'admission_no',
-  sourceKey: 'admission_no'
-});
+// Student achievement
+student.hasMany(achievement, { foreignKey: 'admission_no', targetKey: 'admission_no' });
+achievement.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no' });
 
-achievement.belongsTo(student, {
-  foreignKey: 'admission_no',
-  targetKey: 'admission_no'
-});
+// Attendance tracking
+student.hasMany(attendance, { foreignKey: "admission_no", targetKey: "admission_no", as: "attendances" });
+teacher.hasMany(attendance, { foreignKey: "emp_id", targetKey: "emp_id", as: "attendances" });
 
-
-
-
-student.hasMany(attendance, { foreignKey: "admission_no", sourceKey: "admission_no", as: "attendances", });
-teacher.hasMany(attendance, { foreignKey: "emp_id", sourceKey: "emp_id", as: "attendances", });
-
-
-student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no" });
+// Fee tracking
+student.hasMany(fee, { foreignKey: "admission_no", targetKey: "admission_no" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
-//forms.hasOne(teacher, { foreignKey: 'id', targetkey: 'id', as: 'forms' });
+// Subject mapping with principal (unclear)
+// subject.hasOne(principal, { foreignKey: 'id', targetKey: 'id', as: 'subjects' });
 
-
-subject.hasOne(principal, { foreignKey: 'id', targetKey: 'id', as: 'subjects' });
-
-student.hasOne(parent, { foreignKey: "admission_no", sourceKey: "admission_no", as: "parentInfo" });
+// Parent-child relation
+student.hasOne(parent, { foreignKey: "admission_no", targetKey: "admission_no", as: "parentInfo" });
 parent.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no", as: "student" });
-user.hasMany(notification, { foreignKey: "user_id", sourceKey: "unique_id" });
-notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
-announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
-user.hasMany(announcement, { foreignKey: 'user_id', sourceKey: 'unique_id', as: 'announcements' });
 
+// Notification for users
+user.hasMany(notification, { foreignKey: "user_id", targetKey: "unique_id" });
+notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
+
+// Announcements by user
+announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
+user.hasMany(announcement, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'announcements' });
+
+// Subject assignment to teachers
 teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 teacher_subject.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id' });
-//user.hasMany(feedback, { foreignKey: "unique_id", as: "received_feedbacks" });
-//feedback.belongsTo(user, { foreignKey: "unique_id", as: "teacher" });
+
+// Export all models
 module.exports = {
   sequelize,
   user,
