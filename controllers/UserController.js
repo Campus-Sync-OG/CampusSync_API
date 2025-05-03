@@ -17,7 +17,7 @@ const storage = multer.memoryStorage({
 const upload = multer({ storage }).single('file');
 // Configure Multer for file uploads (in-memory storage)
 
-exports.createUser = async (req, res) => {
+/*exports.createUser = async (req, res) => {
   const { role, name, password, phone_number, status } = req.body;
 
   try {
@@ -137,7 +137,7 @@ exports.deleteUser = async (req, res) => {
       error: error.message,
     });
   }
-};
+};*/
 
 exports.addFee = async (req, res) => {
   try {
