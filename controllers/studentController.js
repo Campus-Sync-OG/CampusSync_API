@@ -331,8 +331,8 @@ exports.requestCertificate = async (req, res) => {
       certificate_type,
       reason,
       status: 'pending',
-      createdAt: new Date(date),
-      updatedAt: new Date(date),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     res.status(201).json({
