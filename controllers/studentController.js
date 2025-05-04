@@ -308,18 +308,17 @@ exports.deleteCertificate = async (req, res) => {
 
 exports.requestCertificate = async (req, res) => {
   try {
-    const { admission_no, certificate_type, reason, date } = req.body;
+    const { admission_no, certificate_type, reason } = req.body;
 
     const validTypes = [
-      'bonafide',
-      'transfer',
-      'character',
-      'study',
-      'migration',
-      'scholarship'
+      'Transfer Certificate',
+      'Character Certificate',
+      'Study Certificate',
+      'Migration Certificate',
+      'Scholarship Certificate',
     ];
 
-    if (!admission_no || !certificate_type || !date) {
+    if (!admission_no || !certificate_type ) {
       return res.status(400).json({ message: "admission_no, certificate_type, and date are required." });
     }
 

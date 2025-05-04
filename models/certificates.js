@@ -20,12 +20,12 @@ module.exports = function (sequelize, DataTypes) {
       },
       certificate_type: {
         type: DataTypes.ENUM(
-          'bonafide',
-          'transfer',
-          'character',
-          'study',
-          'migration',
-          'scholarship'
+          'Transfer certificate',
+          'Character Certificate',
+          'Bonafide Certificate',
+          'Study  Certificate',
+          'Migration  Certificate',
+          'Scholarship  Certificate',
         ),
         allowNull: false,
       },
