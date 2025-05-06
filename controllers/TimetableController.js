@@ -1,4 +1,4 @@
-const { timetable ,class_section} = require("../models");
+const { timetable ,class_section,student} = require("../models");
 
 exports.updateTimetable = async (req, res) => {
     try {
@@ -77,6 +77,54 @@ exports.updateTimetable = async (req, res) => {
   
     } catch (error) {
       console.error('Error fetching timetable:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
+  exports.getTimetableByAdmissionNo = async (req, res) => {
+    try {
+      const { admission_no } = req.params;
+  
+      // 1. Find any one record to get class/section info
+      const classSectionRecord = await timetable.findOne({
+        where: { admission_no }
+      });
+  
+      if (!classSectionRecord) {
+        return res.status(404).json({ error: 'Class and Section not found for this admission number' });
+      }
+  
+      const className = classSectionRecord.class;
+      const section_name = classSectionRecord.section;
+  
+      // 2. Fetch all timetable records for that class/section
+      const records = await timetable.findAll({
+        where: { class: className, section: section_name },
+        order: [['day', 'ASC'], ['time', 'ASC']],
+      });
+  
+      // 3. Group timetable by day
+      const schedule = {};
+      records.forEach(record => {
+        if (!schedule[record.day]) {
+          schedule[record.day] = [];
+        }
+        schedule[record.day].push({
+          time: record.time,
+          subject: record.subject,
+        });
+      });
+  
+      // 4. Send response
+      res.status(200).json({
+        admission_no,
+        class: className,
+        section: section_name,
+        schedule,
+      });
+  
+    } catch (error) {
+      console.error('Error fetching timetable by admission number:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   };

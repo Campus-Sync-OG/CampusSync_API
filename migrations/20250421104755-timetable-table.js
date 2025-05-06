@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('timetable', {
@@ -8,14 +9,13 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      classSectionId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'class_section',
-          key: 'id'
-        },
-        onDelete: 'CASCADE'
+      class: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      section: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
       day: {
         type: Sequelize.STRING,
@@ -29,10 +29,29 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      createdAt: Sequelize.DATE,
-      updatedAt: Sequelize.DATE
+      admission_no: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        references: {
+          model: 'student',
+          key: 'admission_no'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW')
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW')
+      }
     });
   },
+
   down: async (queryInterface) => {
     await queryInterface.dropTable('timetable');
   }

@@ -544,7 +544,7 @@ exports.uploadTimetable = async (req, res) => {
   try {
     const { className, section_name, schedule } = req.body;
 
-    // 1. Check if class-section exists
+    // 1. Check if class-section exists (optional)
     const classSection = await class_section.findOne({
       where: {
         className,
@@ -556,26 +556,41 @@ exports.uploadTimetable = async (req, res) => {
       return res.status(404).json({ error: 'Class and Section not found' });
     }
 
-    const classSectionId = classSection.id;
+    // 2. Get all students in this class and section
+    const students = await student.findAll({
+      where: {
+        class: className,
+        section: section_name
+      }
+    });
 
-    // 2. Delete old entries for that class-section
-    await timetable.destroy({ where: { classSectionId } });
+    // 3. Delete existing timetable records for this class and section
+    await timetable.destroy({
+      where: {
+        class: className,
+        section: section_name
+      }
+    });
 
-    // 3. Prepare new entries
+    // 4. Prepare new records
     const records = [];
 
     for (const day of Object.keys(schedule)) {
       for (const slot of schedule[day]) {
-        records.push({
-          classSectionId,
-          day,
-          time: slot.time,
-          subject: slot.subject
+        students.forEach(student => {
+          records.push({
+            class: className,
+            section: section_name,
+            day,
+            time: slot.time,
+            subject: slot.subject,
+            admission_no: student.admission_no
+          });
         });
       }
     }
 
-    // 4. Bulk insert
+    // 5. Insert records
     await timetable.bulkCreate(records);
 
     res.status(200).json({ message: 'Timetable uploaded successfully' });
@@ -584,7 +599,7 @@ exports.uploadTimetable = async (req, res) => {
     console.error('Error uploading timetable:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
+};
 
 exports.assignSubjectToTeacher = async (req, res) => {
   try {
