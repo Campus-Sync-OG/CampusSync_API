@@ -41,46 +41,6 @@ exports.updateTimetable = async (req, res) => {
     }
   };
   
-
-  exports.getTimetable = async (req, res) => {
-    try {
-      const { className, section_name } = req.params;
-  
-      // 1. Find the class-section
-      const classSection = await class_section.findOne({
-        where: { className, section_name }
-      });
-  
-      if (!classSection) {
-        return res.status(404).json({ error: 'Class and Section not found' });
-      }
-  
-      // 2. Get all timetable records for that class-section
-      const records = await timetable.findAll({
-        where: { classSectionId: classSection.id },
-        order: [['day', 'ASC'], ['time', 'ASC']]
-      });
-  
-      // 3. Format response as a schedule object grouped by day
-      const schedule = {};
-      records.forEach(record => {
-        if (!schedule[record.day]) {
-          schedule[record.day] = [];
-        }
-        schedule[record.day].push({
-          time: record.time,
-          subject: record.subject
-        });
-      });
-  
-      res.status(200).json({ className, section_name, schedule });
-  
-    } catch (error) {
-      console.error('Error fetching timetable:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  };
-  
   exports.getTimetableByAdmissionNo = async (req, res) => {
     try {
       const { admission_no } = req.params;
