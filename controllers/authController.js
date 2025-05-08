@@ -1,7 +1,6 @@
 const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
 const { user: User } = require("../models");
-
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const verifyServiceSid = process.env.TWILIO_SERVICE_SID;

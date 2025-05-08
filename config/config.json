@@ -1,23 +1,32 @@
 {
   "development": {
-    "username": "postgres",
-    "password": "0000",
-    "database": "schooldb",
-    "host": "127.0.0.1",
-    "dialect": "postgres"
+    "username": "zaroor",
+    "password": "Karthik@0306",
+    "database": "schooldb_prod",
+    "host": "zaroor.postgres.database.azure.com",
+    "port": 5432,
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   },
   "test": {
     "username": "postgres",
-    "password": "0000",
-    "database": "schooldb",
+    "password": "admin",
+    "database": "schooldb_prod",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "port": 5432,
+    "dialect": "mysql"
   },
   "production": {
     "username": "postgres",
-    "password": "0000",
-    "database": "schooldb",
+    "password": "admin",
+    "database": "schooldb_prod",
     "host": "127.0.0.1",
-    "dialect": "postgres"
+    "port": 5432,
+    "dialect": "mysql"
   }
 }
