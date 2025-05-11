@@ -49,7 +49,7 @@ router.post("/timetable-create", userController.uploadTimetable);
 // Subject assignment
 router.post('/assign-subjects', Auth.verifyToken, userController.assignSubjectToTeacher);
 router.delete('/teacher-subject/:id', userController.deleteAssignedSubject);
-router.get('/list/teacher-subjects', userController.getAssignedSubjects);
+router.get('/list/teacher-subject', userController.getAssignedSubjects);
 
 // Profile (test)
 router.get('/profile', (req, res) => {

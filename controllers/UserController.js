@@ -658,34 +658,23 @@ exports.deleteAssignedSubject= async (req, res) => {
 
 exports.getAssignedSubjects = async (req, res) => {
   try {
-    const { class_name, section, role } = req.query;
-
-    // Build where conditions dynamically
-    const subjectWhere = {};
-    if (class_name) subjectWhere.class_name = class_name;
-    if (section) subjectWhere.section = section;
-
-    const teacherWhere = {};
-    if (role) teacherWhere.role = role;
-
+    // Fetch all teacher_subject entries with associated teacher info
     const assignedSubjects = await teacher_subject.findAll({
-      where: subjectWhere,
       include: [
         {
           model: teacher,
-          attributes: ['emp_id', 'emp_name', 'role'],
-          where: teacherWhere
+          attributes: ['emp_id', 'emp_name', 'role']
         }
       ]
     });
 
+    // Return full subjects array without slicing or indexing
     const result = assignedSubjects.map(item => ({
       employeeID: item.teacher.emp_id,
       teacherName: item.teacher.emp_name,
       class: item.class_name,
       section: item.section,
-      subject1: item.subjects[0] || '',
-      subject2: item.subjects[1] || '',
+      subjects: item.subjects,  // full list of subject names
       role: item.teacher.role
     }));
 
@@ -695,6 +684,7 @@ exports.getAssignedSubjects = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 
