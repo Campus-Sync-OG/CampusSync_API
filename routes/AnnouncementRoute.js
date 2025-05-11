@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const announcementController = require("../controllers/AnnouncementController");
-const { authenticateUser, authorizeRole } = require("../middleware/authMiddleware");
+const {  authorizeRole } = require("../middleware/authMiddleware");
 
 // Define routes
 
@@ -10,6 +10,6 @@ router.get("/:title", announcementController.getAnnouncementByTitle); // Get ann
 router.put("/:id", announcementController.updateAnnouncement); // Update announcement
 
 
-router.delete("/:id", authenticateUser, authorizeRole(["admin","operator"]), announcementController.deleteAnnouncement);
+router.delete("/:id",  authorizeRole(["admin","operator","principal"]), announcementController.deleteAnnouncement);
 
 module.exports = router;

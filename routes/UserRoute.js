@@ -31,7 +31,7 @@ router.get('/certificates/all', userController.getAllRequests);
 router.put('/certificates/update/:id', userController.updateCertificateStatus);
 
 // Announcement
-router.post("/add", Auth.verifyToken, authorizeRole(["admin", "operator"]), userController.createAnnouncement);
+router.post("/add", Auth.verifyToken, authorizeRole(["admin", "operator","principal"]), userController.createAnnouncement);
 
 // Parent info
 router.post("/postinfo", userController.createParent);
