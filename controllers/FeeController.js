@@ -107,20 +107,23 @@ exports.deleteFee = async (req, res) => {
 
 exports.getAllFees = async (req, res) => {
     try {
-        console.log("Fetching all fee records (excluding deleted ones)..."); // Log action
-
-        // Fetch all fee records excluding soft-deleted ones
-        const fees = await fee.findAll({ where: { deletedAt: null } });
-
-        console.log("Fetched fees:", fees); // Log retrieved records
-
-        if (fees.length === 0) {
-            return res.status(404).json({ message: "No fee records found" });
-        }
-
-        res.status(200).json(fees);
+      console.log("Fetching all fee records with student info...");
+  
+      const fees = await fee.findAll({
+        where: { deletedAt: null },
+        include: {
+          model: student,
+          attributes: ["student_name", "class", "section", "admission_no"], // fields to return from student
+        },
+      });
+  
+      if (fees.length === 0) {
+        return res.status(404).json({ message: "No fee records found" });
+      }
+  
+      res.status(200).json(fees);
     } catch (error) {
-        console.error("Error fetching fee records:", error);
-        res.status(500).json({ message: "Failed to fetch fee records" });
+      console.error("Error fetching fee records:", error);
+      res.status(500).json({ message: "Failed to fetch fee records" });
     }
-};
+  };

@@ -109,7 +109,7 @@ exports.getAllStudents = async (req, res) => {
         'dob',
         'gender'
       ],
-      order: [['class', 'ASC'], ['roll_no', 'ASC'] , ['section', 'ASC']],
+      order: [['class', 'ASC'], ['roll_no', 'ASC'] , ['section', 'ASC'],['student_name', 'ASC']],
 
     });
     res.status(200).json(students);

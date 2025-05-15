@@ -1,12 +1,15 @@
 const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
 const { user: User } = require("../models");
+const { sequelize } = require("../models");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const verifyServiceSid = process.env.TWILIO_SERVICE_SID;
 const client = twilio(accountSid, authToken);
 const JWT_SECRET = process.env.JWT_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "YOUR_REFRESH_SECRET_HERE";
+const fromNumber = process.env.TWILIO_PHONE_NUMBER; // Your Twilio phone number
+const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID; // Your Twilio Messaging Service SID
 const refreshTokens = new Set();
 
 // Function to send OTP via Twilio
@@ -83,20 +86,64 @@ exports.verifyOTP = async (req, res) => {
 
 // Controller to create a new user
 exports.createUser = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
-    const { role, phone_number } = req.body;
-    if (!req.user || !["admin", "operator"].includes(req.user.role)) return res.status(403).json({ success: false, message: "Unauthorized access" });
-    if (["operator", "admin"].includes(role) && req.user.role !== "admin") return res.status(403).json({ success: false, message: "Operator cannot create this role" });
-    if (!phone_number) return res.status(400).json({ success: false, message: "Phone number is required" });
+    const { role, phone_number, name } = req.body;
+
+    if (!req.user || !["admin", "operator"].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: "Unauthorized access" });
+    }
+
+    if (["operator", "admin"].includes(role) && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Operator cannot create this role" });
+    }
+
+    if (!phone_number || !name) {
+      return res.status(400).json({ success: false, message: "Phone number and name are required" });
+    }
 
     const password = generateRandomPassword();
 
-    const newUser = await User.create({ phone_number, role, password, status: "active" });
-    res.status(201).json({ success: true, message: `${role} created successfully`, unique_id: newUser.unique_id, password });
+    const newUser = await User.create(
+      {
+        phone_number,
+        name,
+        role,
+        password,
+        status: "active",
+      },
+      { transaction: t }
+    );
+
+    const messageOptions = {
+      to: phone_number,
+      body: `Hello ${name}, your account has been created.\nUser ID: ${newUser.unique_id}\nPassword: ${password}`,
+    };
+
+    if (fromNumber) {
+      messageOptions.from = fromNumber;
+    } else if (messagingServiceSid) {
+      messageOptions.messagingServiceSid = messagingServiceSid;
+    } else {
+      throw new Error("Twilio 'from' phone number or MessagingServiceSid is not configured.");
+    }
+
+    await client.messages.create(messageOptions);
+    await t.commit();
+
+    res.status(201).json({
+      success: true,
+      message: `${role} created successfully. Credentials sent via SMS.`,
+      unique_id: newUser.unique_id,
+      password,
+    });
   } catch (error) {
+    await t.rollback();
+    console.error("User creation error:", error);
     res.status(500).json({ success: false, message: "User creation failed", error: error.message });
   }
 };
+
 
 // Controller to handle login
 exports.login = async (req, res) => {

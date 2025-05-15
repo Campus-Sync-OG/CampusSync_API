@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular,teacher_subject } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -46,9 +46,9 @@ const findStudentByAdmissionNo = async (admission_no, res) => {
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, blood_gp,religion, address,dob, phone_no, joining_date,  role, status,gender } = req.body;
+    const { emp_id, emp_name, email, blood_gp, religion, address, dob, phone_no, joining_date, role, status, gender } = req.body;
 
-    if (!emp_id || !emp_name  ) {
+    if (!emp_id || !emp_name) {
       return res.status(400).json({ message: 'emp_id, emp_name are required' });
     }
 
@@ -197,55 +197,104 @@ exports.getStudentsByClassAndSection = async (req, res) => {
   }
 };
 
+// controllers/academicsController.js
 exports.addStudentMarks = async (req, res) => {
   try {
     const { emp_id } = req.params;
     const {
-      admission_no,
-      subjects,
       class_grade,
+      section,
       exam_format,
       academic_year,
-      marks_obtained,
-      total_marks,
-      exam_date
-    } = req.query; // Consider using req.body if it's a POST
+      exam_date,
+      marks,
+    } = req.body;
 
-    if (!admission_no || !subjects || !class_grade || !exam_format || !academic_year || marks_obtained === undefined || !total_marks) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (
+      !class_grade ||
+      !section ||
+      !exam_format ||
+       !academic_year ||
+      !exam_date ||
+      !Array.isArray(marks)
+    ) {
+      return res.status(400).json({
+        message: "All fields are required including marks array",
+      });
     }
 
-    const foundTeacher = await findTeacherById(emp_id, res);
-    if (!foundTeacher) return;
-
-    const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-    if (!foundStudent) return;
-
-    const validExamFormat = await examformat.findOne({ where: { exam_name: exam_format } });
-    if (!validExamFormat) {
-      return res.status(400).json({ message: `Invalid exam format: ${exam_format}. Please provide a valid exam name.` });
+    // 1. Check teacher existence
+    const foundTeacher = await teacher.findOne({ where: { emp_id } });
+    if (!foundTeacher) {
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
-    const validSubject = await subject.findOne({ where: { subject_name: subjects } });
-    if (!validSubject) {
-      return res.status(400).json({ message: `Invalid subject name: ${subjects}. Please provide a valid subject name.` });
-    }
-
-    const studentMarks = await academics.create({
-      admission_no,
-      emp_id,
-      subjects,
-      class_grade,
-      exam_format,
-      academic_year,
-      marks_obtained,
-      total_marks,
-      exam_date
+    // 2. Check exam format validity
+    const validExamFormat = await examformat.findOne({
+      where: { exam_name: exam_format },
     });
+    if (!validExamFormat) {
+      return res
+        .status(400)
+        .json({ message: `Invalid exam format: ${exam_format}` });
+    }
 
-    return res.status(201).json({ message: "Marks added successfully", studentMarks });
+    // 3. Process each mark entry
+    const responses = [];
+
+    for (const entry of marks) {
+      const { admission_no, subjects, marks_obtained, total_marks } = entry;
+
+      // Basic validation
+      if (!admission_no || !subjects || !marks_obtained  || !total_marks) {
+        responses.push({
+          admission_no,
+          status: "failed",
+          message: "Missing fields",
+        });
+        continue;
+      }
+
+      // Check if student exists in given class and section
+      const studentExists = await student.findOne({
+        where: {
+          admission_no,
+          class: class_grade,
+          section,
+        },
+      });
+
+      if (!studentExists) {
+        responses.push({
+          admission_no,
+          status: "failed",
+          message: "Student not found in class/section",
+        });
+        continue;
+      }
+      // ✅ Directly save academic mark entry (no subject/teacher-subject checks)
+      const record = await academics.create({
+        admission_no,
+        emp_id,
+        subjects,
+        class_grade,
+        section,
+        exam_format,
+         academic_year,
+        marks_obtained,
+        total_marks,
+        exam_date,
+      });
+      console.log("Academic record created:", record);
+      responses.push({ admission_no, status: "success", record });
+    }
+    console.log("Bulk upload responses:", responses);
+    return res.status(207).json({
+      message: "Bulk upload processed",
+      results: responses,
+    });
   } catch (error) {
-    console.error("Error adding student marks:", error);
+    console.error("Bulk upload error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -365,7 +414,7 @@ exports.uploadAssignment = async (req, res) => {
     try {
       const { subjects, title, Date: assignmentDate, class_name, section } = req.body;
       const { emp_id } = req.params;
-      
+
 
       if (!subjects || !title || !class_name || !section || !emp_id || !assignmentDate || !req.file) {
         return res.status(400).json({
@@ -537,7 +586,7 @@ exports.getAssignedSubjectByTeacher = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}; 
+};
 
 exports.getCertificates = async (req, res) => {
   try {

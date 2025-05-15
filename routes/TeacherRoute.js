@@ -26,7 +26,7 @@ router.delete('/delete/:emp_id', Auth.verifyToken, teacherController.softDeleteT
 router.get('/:emp_id/students', Auth.verifyToken, teacherController.getStudentsByClassAndSection);
 
 // Route to add student marks by a teacher (requires authentication)
-router.post('/:emp_id/students/marks', Auth.verifyToken, teacherController.addStudentMarks);
+router.post('/:emp_id/students/marks',  teacherController.addStudentMarks);
 
 // Route to upload academic records via CSV file (requires authentication)
 router.post('/upload/academics', Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAcademicsCSV);

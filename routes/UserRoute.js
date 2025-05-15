@@ -31,7 +31,7 @@ router.get('/certificates/all', userController.getAllRequests);
 router.put('/certificates/update/:id', userController.updateCertificateStatus);
 
 // Announcement
-router.post("/add", Auth.verifyToken, authorizeRole(["admin", "operator"]), userController.createAnnouncement);
+router.post("/add", Auth.verifyToken, authorizeRole(["admin", "operator","principal"]), userController.createAnnouncement);
 
 // Parent info
 router.post("/postinfo", userController.createParent);
@@ -49,7 +49,7 @@ router.post("/timetable-create", userController.uploadTimetable);
 // Subject assignment
 router.post('/assign-subjects', Auth.verifyToken, userController.assignSubjectToTeacher);
 router.delete('/teacher-subject/:id', userController.deleteAssignedSubject);
-router.get('/list/teacher-subjects', userController.getAssignedSubjects);
+router.get('/list/teacher-subject', userController.getAssignedSubjects);
 
 // Profile (test)
 router.get('/profile', (req, res) => {
