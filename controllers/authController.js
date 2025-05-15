@@ -9,7 +9,7 @@ const client = twilio(accountSid, authToken);
 const JWT_SECRET = process.env.JWT_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_SECRET || "YOUR_REFRESH_SECRET_HERE";
 const fromNumber = process.env.TWILIO_PHONE_NUMBER; // Your Twilio phone number
-const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID; // Your Twilio Messaging Service SID
+const messagingServiceSid = process.env.TWILIO_MESSAGE_SERVICE_SID; // Your Twilio Messaging Service SID
 const refreshTokens = new Set();
 
 // Function to send OTP via Twilio
