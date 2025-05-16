@@ -336,7 +336,7 @@ exports.requestCertificate = async (req, res) => {
     });
 
     res.status(201).json({
-      message: 'Certificate request submitted successfully',
+      message: 'Certificate request submitted successfully!!',
       data: request,
     });
   } catch (error) {
