@@ -30,7 +30,20 @@ const server = http.createServer(app);
 
 app.use(express.json());
 //routes needs to be defined 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://green-river-045967c00.6.azurestaticapps.net",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+    origin: [
+      "https://green-river-045967c00.6.azurestaticapps.net",
+      "http://127.0.0.1:3000",
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+  })
+);
+
 PORT = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   res.send("Welcome to admin panel");
