@@ -33,7 +33,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://green-river-045967c00.6.azurestaticapps.net",
+      "https://green-river-045967c00.6.azurestaticapps.net/",
       "http://127.0.0.1:3000",
       "http://localhost:3000"
     ],
