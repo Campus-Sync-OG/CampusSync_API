@@ -111,6 +111,19 @@ user.hasMany(announcement, { foreignKey: 'user_id', targetKey: 'unique_id', as: 
 teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 teacher_subject.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 
+user.hasMany(teacher_leave_application, {
+  foreignKey: 'emp_id',
+  sourceKey: 'unique_id',
+  as: 'leaveApplications',
+});
+
+// leave application belongs to a user (teacher)
+teacher_leave_application.belongsTo(user, {
+  foreignKey: 'emp_id',
+  targetKey: 'unique_id',
+  as: 'teacher',
+});
+
 // Export all models
 module.exports = {
   sequelize,
