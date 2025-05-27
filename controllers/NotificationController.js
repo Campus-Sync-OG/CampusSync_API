@@ -1,80 +1,76 @@
-const { notification, user } = require("../models");
-const NotificationService = require("../services/notificationService");
+const { notification, user } = require('../models');
+const NotificationService = require('../services/notificationService');
 
-class NotificationController {
-  // Create a new notification
-  static async createNotification(req, res) {
-    try {
-      const { notification_type, title, message } = req.body;
-      const user_id = req.user?.unique_id;
+exports.createNotification = async (req, res) => {
+  try {
+    const {
+      title,
+      message,
+      user_id,
+      roles = [],
+      class_id,
+      section_id,
+      phone_numbers = [],
+    } = req.body;
 
-      const Notification = await notification.create({ notification_type, title, message, user_id });
-
-      // Send notifications
-      await NotificationService.sendSMS(notification_type, title, message);
-      //await NotificationService.sendPushNotification(notification_type, title, message);
-
-      return res.status(201).json({ success: true, message: "Notification created successfully", data: Notification });
-    } catch (error) {
-      console.error("Error creating notification:", error);
-      return res.status(500).json({ success: false, message: "Failed to create notification" });
+    // Validate required fields
+    if (!title || !message || !user_id) {
+      return res.status(400).json({ error: 'Missing required fields.' });
     }
-  }
 
-  // Get notifications based on user role
-  static async getNotifications(req, res) {
-    try {
-      const role = req.user.role; // Corrected destructuring
+    // Create the notification record in the database
+    await notification.create({
+      title,
+      message,
+      user_id,
+      class_id,
+      section_id,
+    });
 
-      let notifications;
-      if (role === "student") {
-        // Students see only SMS-based and push notifications
-        notifications = await notification.findAll({
+    let recipients = [];
 
-          where: {
-            notification_type: {
-              [Op.in]: ["Fee Update", "Academic Update", "Leave Update", "General Announcement"]
-            }
-          },
-          order: [["createdAt", "DESC"]]
-        });
-      } else {
-        // Teachers & Management see all notifications
-        notifications = await notification.findAll({
-          order: [["createdAt", "DESC"]]
-        });
-      }
-
-      return res.status(200).json({ success: true, data: notifications });
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      return res.status(500).json({ success: false, message: "Failed to retrieve notifications" });
+    // If 'general' role selected, send to all: principal, teacher, student
+    if (roles.includes('general')) {
+      recipients = await user.findAll({
+        where: {
+          role: ['student', 'teacher', 'principal'],
+        },
+        attributes: ['phone_number'],
+      });
+    } else {
+      // Otherwise, send to specific roles
+      recipients = await user.findAll({
+        where: {
+          role: roles, // ['student'], ['teacher'], etc.
+        },
+        attributes: ['phone_number'],
+      });
     }
-  }
 
-  // Delete a notification by ID
-  static async deleteNotification(req, res) {
-    try {
-      const { id } = req.params;
+    // Include additional custom numbers (optional)
+    phone_numbers.forEach(num => {
+      recipients.push({ phone_number: num });
+    });
 
-      // Check if user has the correct role
-      if (req.user.role !== "teacher" && req.user.role !== "admin") {
-        return res.status(403).json({ success: false, message: "Forbidden: Insufficient permissions" });
-      }
+    // Filter valid numbers and format
+    const uniqueNumbers = [
+      ...new Set(
+        recipients
+          .map(u => u.phone_number?.toString())
+          .filter(Boolean)
+          .map(num => (num.startsWith('+') ? num : `+91${num}`))
+      ),
+    ];
 
-      const Notification = await notification.findByPk(id);
-      if (!notification) {
-        return res.status(404).json({ success: false, message: "Notification not found" });
-      }
-
-      await Notification.destroy();
-      return res.status(200).json({ success: true, message: "Notification deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-      return res.status(500).json({ success: false, message: "Failed to delete notification" });
+    // Send notifications via WhatsApp and SMS
+    for (const number of uniqueNumbers) {
+      await NotificationService.sendWhatsApp(number, `${title}: ${message}`);
+      await NotificationService.sendSMS(number, `${title}: ${message}`);
     }
+
+    return res.status(200).json({ message: 'Notification sent successfully.' });
+  } catch (error) {
+    console.error('Error in createNotification:', error);
+    return res.status(500).json({ error: 'Failed to send notification.' });
   }
-
-}
-
-module.exports = NotificationController;
+};

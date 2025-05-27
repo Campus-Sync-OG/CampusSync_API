@@ -25,6 +25,7 @@ const _class_section = require('./class_section');
 const _timetable = require('./timetable');
 const _teacher_subject = require('./teacher_subject');
 const _circular = require('./circular');
+const _teacher_leave_application = require('./teacher_leave_application');
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -50,6 +51,7 @@ const class_section = _class_section(sequelize, DataTypes);
 const timetable = _timetable(sequelize, DataTypes);
 const teacher_subject = _teacher_subject(sequelize, DataTypes);
 const circular = _circular(sequelize, DataTypes);
+const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
 
 // Define associations between models
 
@@ -135,4 +137,5 @@ module.exports = {
   timetable,
   teacher_subject,
   circular,
+  teacher_leave_application
 };

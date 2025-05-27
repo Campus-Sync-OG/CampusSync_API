@@ -21,6 +21,7 @@ const AnnouncementRoutes = require("./routes/AnnouncementRoute");
 const subjectRoutes = require('./routes/SubjectRoute');
 const classsectionRoutes=require('./routes/ClassSectionRoutes');
 const timetableRoutes=require('./routes/TimetableRoute');
+const leavesRoutes = require('./routes/LeavesRoutes');
 
 
 
@@ -55,7 +56,7 @@ app.use('/api/announcement', AnnouncementRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/classsection', classsectionRoutes);
 app.use('/api/timetable', timetableRoutes);
-
+app.use('/api/leaves', leavesRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });
