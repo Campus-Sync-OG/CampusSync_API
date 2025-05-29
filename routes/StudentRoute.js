@@ -34,4 +34,7 @@ router.get('/circulars/:admission_no', studentController.getCircularByAdmissionN
 
 //add feedback 
 router.post("/add", Auth.verifyToken, studentController.createFeedback);
+
+router.post("/assignment-upload/:admission_no", upload.single("file"), studentController.studentUploadAssignment);
+
  module.exports = router;

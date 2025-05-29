@@ -1,4 +1,5 @@
-const { student, user, achievement,feedback,certificates,leaveapplication ,class_section,circular} = require("../models");
+const { student, user, achievement, feedback, certificates, leaveapplication, class_section, circular, teacher_subject, teacher,assignment,student_assignment } = require("../models");
+
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
 const sharp = require("sharp"); // For image resizing and validation
@@ -32,7 +33,7 @@ exports.createStudent = async (req, res) => {
       section,
       roll_no
     } = req.body;
-        console.log("Received student data:", req.body);
+    console.log("Received student data:", req.body);
 
     // Validate required fields
     if (!admission_no || !student_name || !classname || !section || !roll_no) {
@@ -109,7 +110,7 @@ exports.getAllStudents = async (req, res) => {
         'dob',
         'gender'
       ],
-      order: [['class', 'ASC'], ['roll_no', 'ASC'] , ['section', 'ASC'],['student_name', 'ASC']],
+      order: [['class', 'ASC'], ['roll_no', 'ASC'], ['section', 'ASC'], ['student_name', 'ASC']],
 
     });
     res.status(200).json(students);
@@ -142,7 +143,7 @@ exports.updateStudent = async (req, res) => {
     const { admission_no } = req.params;
     const updateFields = req.body;
 
-   const studentRecord = await student.findOne({ where: { admission_no } });
+    const studentRecord = await student.findOne({ where: { admission_no } });
 
     if (!studentRecord) {
       console.log(" Student not found for admission_no:", admission_no);
@@ -251,9 +252,9 @@ exports.softDeleteStudent = async (req, res) => {
 
 exports.uploadCertificate = async (req, res) => {
   try {
-    const { admission_no, title, description, className, section} = req.body;
+    const { admission_no, title, description, className, section } = req.body;
 
-    if (!admission_no || !title || !className || !section ) {
+    if (!admission_no || !title || !className || !section) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
@@ -318,7 +319,7 @@ exports.requestCertificate = async (req, res) => {
       'Scholarship Certificate',
     ];
 
-    if (!admission_no || !certificate_type ) {
+    if (!admission_no || !certificate_type) {
       return res.status(400).json({ message: "admission_no, certificate_type, and date are required." });
     }
 
@@ -413,9 +414,88 @@ exports.getCircularByAdmissionNo = async (req, res) => {
   }
 };
 
+exports.studentUploadAssignment = async (req, res) => {
+  try {
+    const { subject_name, title } = req.body;
+    const { admission_no } = req.params;
+
+    if (!subject_name || !title || !req.file || !admission_no) {
+      return res.status(400).json({
+        message: "subject_name, title, admission_no, and file are required",
+      });
+    }
+
+    // ✅ Fetch student
+    const foundStudent = await student.findOne({ where: { admission_no } });
+    if (!foundStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const { class: class_name, section } = foundStudent;
+
+    let emp_id, emp_name;
+
+    // ✅ Check if assignment already exists for same student and subject
+    const existingAssignment = await assignment.findOne({
+      where: { admission_no, subjects: subject_name },
+    });
+
+    if (existingAssignment) {
+      // 🔁 Reuse existing teacher details
+      emp_id = existingAssignment.emp_id;
+      emp_name = existingAssignment.emp_name;
+    } else {
+      // 🔍 Lookup assigned teacher if no existing assignment
+      const teacherSubject = await teacher_subject.findOne({
+        where: { subjects: subject_name, class_name, section },
+        include: [{ model: teacher, attributes: ['emp_id', 'emp_name'] }],
+      });
+
+      if (!teacherSubject || !teacherSubject.Teacher) {
+        return res.status(404).json({
+          message: "No teacher assigned for this subject/class/section",
+        });
+      }
+
+      emp_id = teacherSubject.Teacher.emp_id;
+      emp_name = teacherSubject.Teacher.emp_name;
+    }
+
+    // ✅ Upload to Azure
+    const fileBuffer = req.file.buffer;
+    const fileName = `${Date.now()}_${req.file.originalname}`;
+    const azureUrl = await uploadImageToAzure(fileBuffer, fileName);
+
+    // ✅ Save assignment
+    const newAssignment = await student_assignment.create({
+      title,
+      subject_name,
+      class_name,
+      section,
+      admission_no,
+      attachment: azureUrl,
+      emp_id,
+      emp_name,
+      Date: new Date(),
+    });
+
+    return res.status(201).json({
+      message: "Assignment uploaded successfully",
+      assignment: newAssignment,
+    });
+
+  } catch (error) {
+    console.error("Error during student assignment upload:", error.message, error.stack);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 
 
-exports.upload=upload;
+
+
+
+
+exports.upload = upload;
 
 
