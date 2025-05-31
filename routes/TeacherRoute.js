@@ -22,8 +22,7 @@ router.put('/update/:emp_id', Auth.verifyToken, teacherController.updateTeacher)
 // Route to soft delete a teacher (mark as inactive) by employee ID (requires authentication)
 router.delete('/delete/:emp_id', Auth.verifyToken, teacherController.softDeleteTeacher);
 
-// Route to get students assigned to a teacher based on class and section (requires authentication)
-router.get('/:emp_id/students', Auth.verifyToken, teacherController.getStudentsByClassAndSection);
+
 
 // Route to add student marks by a teacher (requires authentication)
 router.post('/:emp_id/students/marks',  teacherController.addStudentMarks);

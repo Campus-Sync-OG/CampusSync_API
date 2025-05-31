@@ -491,10 +491,52 @@ exports.studentUploadAssignment = async (req, res) => {
 };
 
 
+exports.getStudentsByClassAndSection = async (req, res) => {
+  try {
+    const { className, section } = req.query;
+    console.log("Fetching students for class:", className, "section:", section);
 
+    if (!className) {
+      return res.status(400).json({ message: 'Class is required' });
+    }
 
+    // Build query condition based on className and section
+    const queryCondition = { class: className };
+    if (section) {
+      queryCondition.section = section;
+    }
 
+    // Fetch students
+    const students = await student.findAll({
+      where: queryCondition,
+      attributes: [
+        'admission_no',
+        'student_name',
+        'roll_no',
+        'phone_no',
+        'dob',
+        'gender',
+        'status',
+        'class',
+        'section',
+      ],
+      order: [['roll_no', 'ASC']],
+    });
 
+    if (!students.length) {
+      return res.status(404).json({
+        message: section
+          ? `No students found in Class ${className} Section ${section}`
+          : `No students found in Class ${className}`,
+      });
+    }
+
+    return res.status(200).json({ students });
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 
 exports.upload = upload;
 

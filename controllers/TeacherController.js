@@ -162,40 +162,6 @@ exports.softDeleteTeacher = async (req, res) => {
   }
 };
 
-exports.getStudentsByClassAndSection = async (req, res) => {
-  try {
-    const { emp_id } = req.params; // Teacher's employee ID
-    const { className, section } = req.query; // Class & Section
-
-    if (!className) {
-      return res.status(400).json({ message: 'Class is required' });
-    }
-
-    const foundTeacher = await findTeacherById(emp_id, res);
-    if (!foundTeacher) return;
-
-    const queryCondition = { class: className };
-    if (section) queryCondition.section = section;
-
-    const students = await student.findAll({
-      where: queryCondition,
-      attributes: ['admission_no', 'student_name', 'roll_no', 'phone_no', 'dob', 'gender', 'status']
-    });
-
-    if (!students.length) {
-      return res.status(404).json({
-        message: section
-          ? `No students found in Class ${className} Section ${section}`
-          : `No students found in Class ${className}`
-      });
-    }
-
-    return res.status(200).json({ students });
-  } catch (error) {
-    console.error("Error fetching students:", error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-};
 
 // controllers/academicsController.js
 exports.addStudentMarks = async (req, res) => {
@@ -338,47 +304,54 @@ exports.updateAcademicRecord = async (req, res) => {
 
 exports.uploadAttendance = async (req, res) => {
   try {
-    const { records, emp_id, date } = req.body;
+    const { date, attendance_type, records } = req.body;
 
-    // Ensure that records, emp_id, and date are provided
-    if (!records || !emp_id || !date) {
-      return res.status(400).json({ message: "Missing required fields: records, emp_id, date" });
+    // Validate attendance_type
+    if (!["day-wise", "period-wise"].includes(attendance_type)) {
+      return res.status(400).json({ message: "Invalid attendance type" });
     }
 
-    // Find the teacher
-    const foundTeacher = await findTeacherById(emp_id, res);
-    if (!foundTeacher) return;
-
-    const updatedRecords = [];
-    const failedRecords = [];
-
-    for (const record of records) {
-      const { admission_no, status } = record;
-
-      // Find the student by admission number
-      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-      if (!foundStudent) {
-        failedRecords.push({ admission_no, status, message: "Student not found" });
-        continue;
-      }
-
-      // Create the attendance record for this student
-      const attendanceRecord = await attendance.create({ admission_no, emp_id, date, status });
-      updatedRecords.push({ admission_no, status, created: true });
+    // Validate records
+    if (!records || !Array.isArray(records)) {
+      return res.status(400).json({ message: "Invalid records data" });
     }
 
-    // Respond with updated records and any failed attempts
-    return res.status(200).json({
-      message: "Bulk attendance update completed",
-      updatedRecords,
-      failedRecords,
-    });
+    // Prepare attendance data
+    const attendanceData = records.map(record => ({
+      admission_no: record.admission_no,
+      date: date || new Date().toISOString().split('T')[0],
+      status: record.status,
+      period: attendance_type === "period-wise" ? (record.period || "Full Day") : "Full Day",
+      attendance_type,
+      class: record.class,
+      section: record.section
+    }));
+
+    // Remove existing records to avoid duplicates
+    for (const data of attendanceData) {
+      await attendance.destroy({
+        where: {
+          admission_no: data.admission_no,
+          date: data.date,
+          period: data.period,
+          attendance_type: data.attendance_type
+        }
+      });
+    }
+
+    // Bulk insert new attendance
+    await attendance.bulkCreate(attendanceData);
+
+    return res.status(201).json({ message: "Attendance uploaded successfully" });
 
   } catch (error) {
-    console.error("Error uploading bulk attendance:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error uploading attendance:", error.message || error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
 
 exports.updateAttendance = async (req, res) => {
   try {

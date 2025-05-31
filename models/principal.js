@@ -43,7 +43,7 @@ module.exports = function (sequelize, DataTypes) {
     }, {
     sequelize,
     tableName: 'principal',
-    timestamps: false, // Disable createdAt/updatedAt timestamps
+    timestamps: false, // Disable createdAt/updatedAt timestamp
   }
   );
 };

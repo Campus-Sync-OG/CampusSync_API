@@ -1,7 +1,7 @@
-const { attendance } = require('../models');
+const { attendance,student } = require('../models');
 
 // Get all attendance records
-const getAllAttendance = async (req, res) => {
+exports.getAllAttendance = async (req, res) => {
   try {
     const attendanceRecords = await attendance.findAll();
     res.status(200).json(attendanceRecords);
@@ -12,7 +12,7 @@ const getAllAttendance = async (req, res) => {
 };
 
 // Get attendance record by ID
-const  getAttendanceByAdmissionNo
+exports.getAttendanceByAdmissionNo
   = async (req, res) => {
   try {
     const { admission_no } = req.params;
@@ -37,7 +37,7 @@ const  getAttendanceByAdmissionNo
 };
 
 // Delete attendance record by ID
-const deleteAttendanceById = async (req, res) => {
+exports.deleteAttendanceById = async (req, res) => {
   try {
     const { admission_no } = req.params;
     const deleted = await attendance.destroy({ where: { admission_no } });
@@ -51,5 +51,76 @@ const deleteAttendanceById = async (req, res) => {
     res.status(500).json({ error: "Failed to delete attendance record" });
   }
 };
+exports.getClassAttendanceByDate = async (req, res) => {
+  try {
+    const { class: className, section, date } = req.body;
 
-module.exports = { getAllAttendance, getAttendanceByAdmissionNo , deleteAttendanceById };
+    if (!className || !section || !date) {
+      return res.status(400).json({ error: "Missing class, section, or date in query" });
+    }
+
+   // Fetch students for class + section
+    const students = await student.findAll({
+      where: {
+        class: Number(className), // Ensure type match
+        section: section,
+      },
+      attributes: ["admission_no", "student_name"],
+    });
+
+    if (!students || students.length === 0) {
+      console.log("⚠️ No students found for class and section.");
+      return res.status(404).json({ error: "No students found for the given class and section" });
+    }
+
+    const admissionNos = students.map((s) => s.admission_no);
+    console.log("✅ Found students with admission_nos:", admissionNos);
+
+    // Fetch attendance for those students on the given date
+    const attendanceEntries = await attendance.findAll({
+      where: {
+        admission_no: admissionNos,
+        date: date, // Make sure it's in YYYY-MM-DD format
+      },
+      attributes: ["admission_no", "status", "period"],
+      order: [["admission_no", "ASC"]],
+    });
+
+    if (!attendanceEntries || attendanceEntries.length === 0) {
+      console.log(" No attendance records found for the given admission numbers and date.");
+      return res.status(404).json({ error: "No attendance records found" });
+    }
+
+    console.log(`📋 Attendance records found: ${attendanceEntries.length}`);
+
+    // Create a map of admission_no -> student_name
+    const studentMap = {};
+    students.forEach((s) => {
+      studentMap[s.admission_no] = s.student_name;
+    });
+
+    // Prepare result
+    const result = attendanceEntries.map((entry) => ({
+      student_id: entry.admission_no,
+      student_name: studentMap[entry.admission_no] || "Unknown",
+      status: entry.status,
+      period: entry.period ?? "N/A",
+    }));
+
+    return res.status(200).json({
+      metadata: {
+        class: className,
+        section,
+        date,
+        total_students: students.length,
+        total_records: result.length,
+        report_generated_at: new Date().toLocaleString("en-IN"),
+      },
+      attendance: result,
+    });
+
+  } catch (error) {
+    console.error("❗ Error in getClassAttendanceByDate:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
