@@ -31,6 +31,10 @@ module.exports = {
         type: Sequelize.ENUM('Pending', 'Approved', 'Rejected'),
         defaultValue: 'Pending',
       },
+      leave_type:{
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       reviewed_by: {
         type: Sequelize.STRING,
         allowNull: true,
