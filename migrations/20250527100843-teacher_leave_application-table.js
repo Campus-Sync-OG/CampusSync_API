@@ -7,7 +7,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      teacher_id: {
+      emp_id: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
