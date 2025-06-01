@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const leaveController = require('../controllers/leaveController');
+const leaveController = require('../controllers/LeaveController');
 const Auth = require("../middleware/authMiddleware");// attach req.user with unique_id, role
 
 router.post('/apply', Auth.verifyToken, leaveController.applyLeave);

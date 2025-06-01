@@ -3,7 +3,7 @@ const { teacher_leave_application, user,teacher } = require('../models');
 // Teacher applies for leave
 exports.applyLeave = async (req, res) => {
   try {
-    const { from_date, to_date, reason } = req.body;
+    const { from_date, to_date, reason,leave_type } = req.body;
     const emp_id = req.user.unique_id; // fixed variable name
 
     const leave = await teacher_leave_application.create({
@@ -11,6 +11,7 @@ exports.applyLeave = async (req, res) => {
       from_date,
       to_date,
       reason,
+      leave_type,
     });
 
     res.status(201).json({ success: true, message: 'Leave applied', data: leave });

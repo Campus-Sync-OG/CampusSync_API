@@ -38,7 +38,8 @@ module.exports = function (sequelize, DataTypes) {
           model: "teacher", // Table name
           key: "emp_id",
         },
-        
+        onDelete: "CASCADE", // if teacher is deleted, their attendance records are also deleted  
+        onUpdate: "CASCADE", // if emp_id is updated, it reflects in attendance records
       },
     },
     {
