@@ -26,6 +26,7 @@ const _timetable = require('./timetable');
 const _teacher_subject = require('./teacher_subject');
 const _circular = require('./circular');
 const _student_assignment = require('./student_assignment'); // Assuming this is needed
+const _studymodules = require('./studymodules'); // Assuming this is needed
 
 
 // Initialize models
@@ -53,6 +54,7 @@ const timetable = _timetable(sequelize, DataTypes);
 const teacher_subject = _teacher_subject(sequelize, DataTypes);
 const circular = _circular(sequelize, DataTypes);
 const student_assignment = _student_assignment(sequelize, DataTypes);
+const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
 
 // Define associations between models
 
@@ -139,4 +141,5 @@ module.exports = {
   teacher_subject,
   circular,
   student_assignment,
+  studymodules,
 };
