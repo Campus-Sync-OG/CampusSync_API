@@ -10,4 +10,7 @@ router.get('/all/:p_id', Auth.verifyToken, principalController.getPrincipalDetai
 router.get("/view",Auth.verifyToken, principalController.getAllFeedback);
 router.get("/teacher-subject/all",principalController.getAllAssignedSubjectToTeacher);
 
+router.get("/princi/class-attendance",Auth.verifyToken, principalController.getAttendanceByClassSectionDate);
+
+
 module.exports = router;

@@ -1,4 +1,4 @@
-const { principal, user ,feedback,teacher_subject} = require('../models');
+const { principal, user ,feedback,teacher_subject,student,attendance} = require('../models');
 
 exports.createPrincipal = async (req, res) => {
   try {
@@ -129,5 +129,54 @@ exports.getAllAssignedSubjectToTeacher= async (req, res) => {
     res.json(assignments);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.getAttendanceByClassSectionDate = async (req, res) => {
+  try {
+    const { class: className, section, date } = req.body;
+
+    if (!className || !date) {
+      return res.status(400).json({
+        message: 'Please provide at least className and date in the request body.'
+      });
+    }
+
+    // Build dynamic query
+    const query = {
+      where: {
+        class: className,
+        date: date
+      },
+      attributes: ['admission_no', 'status'],
+      include: {
+        model: student,
+        attributes: ['student_name', 'section']
+      }
+    };
+
+    // If section is provided, add it to query
+    if (section) {
+      query.where.section = section;
+    }
+
+    const attendanceData = await attendance.findAll(query);
+
+    if (attendanceData.length === 0) {
+      return res.status(404).json({ message: 'No attendance records found for the given inputs.' });
+    }
+
+    const formatted = attendanceData.map(record => ({
+      admission_no: record.admission_no,
+      status: record.status,
+      student_name: record.student?.student_name || 'Not found',
+      section: record.student?.section || 'Unknown'
+    }));
+
+    return res.status(200).json(formatted);
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

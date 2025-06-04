@@ -54,28 +54,3 @@ exports.deleteAttendanceById = async (req, res) => {
 // controllers/attendanceController.js
 
 
-exports.getAttendanceByClassSectionDate = async (req, res) => {
-  try {
-    const { className, section, date } = req.query;
-
-    // Validate input
-    if (!className || !section || !date) {
-      return res.status(400).json({
-        message: 'Please provide className, section, and date in the query parameters.'
-      });
-    }
-
-    const attendanceData = await attendance.findAll({
-      where: { className, section, date },
-      include: {
-        model: student,
-        attributes: ['name', 'admissionNumber']
-      }
-    });
-
-    return res.status(200).json(attendanceData);
-  } catch (error) {
-    console.error('Error fetching attendance:', error);
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};

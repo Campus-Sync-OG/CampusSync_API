@@ -89,6 +89,8 @@ achievement.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admissi
 
 // Attendance tracking
 student.hasMany(attendance, { foreignKey: "admission_no", targetKey: "admission_no", as: "attendances" });
+attendance.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no' });
+
 
 
 // Fee tracking
