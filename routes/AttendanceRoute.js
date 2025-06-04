@@ -14,6 +14,6 @@ router.get("/:admission_no", Auth.verifyToken, attendanceController. getAttendan
 router.delete("/delete/:admission_no", Auth.verifyToken, attendanceController.deleteAttendanceById);
 
 
-router.get("/class-attendance",Auth.verifyToken, attendanceController.getClassAttendanceByDate);
+router.get("/class-attendance",Auth.verifyToken, attendanceController.getAttendanceByClassSectionDate);
 
 module.exports = router;

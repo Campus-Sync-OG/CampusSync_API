@@ -19,6 +19,6 @@ router.get('/modules/topics/:examName/:subjectName', studyModuleController.getTo
 router.get('/modules/view/:id', studyModuleController.viewPDF); // corrected path and name
 
 // Download PDF (redirect)
-router.get('/modules/download/:id', studyModuleController.downloadPDF); // corrected name
+router.get('/modules/download/:topicName', studyModuleController.downloadPDF); // corrected name
 
 module.exports = router;

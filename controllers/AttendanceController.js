@@ -51,76 +51,31 @@ exports.deleteAttendanceById = async (req, res) => {
     res.status(500).json({ error: "Failed to delete attendance record" });
   }
 };
-exports.getClassAttendanceByDate = async (req, res) => {
+// controllers/attendanceController.js
+
+
+exports.getAttendanceByClassSectionDate = async (req, res) => {
   try {
-    const { class: className, section, date } = req.body;
+    const { className, section, date } = req.query;
 
+    // Validate input
     if (!className || !section || !date) {
-      return res.status(400).json({ error: "Missing class, section, or date in query" });
+      return res.status(400).json({
+        message: 'Please provide className, section, and date in the query parameters.'
+      });
     }
 
-   // Fetch students for class + section
-    const students = await student.findAll({
-      where: {
-        class: Number(className), // Ensure type match
-        section: section,
-      },
-      attributes: ["admission_no", "student_name"],
+    const attendanceData = await attendance.findAll({
+      where: { className, section, date },
+      include: {
+        model: student,
+        attributes: ['name', 'admissionNumber']
+      }
     });
 
-    if (!students || students.length === 0) {
-      console.log("⚠️ No students found for class and section.");
-      return res.status(404).json({ error: "No students found for the given class and section" });
-    }
-
-    const admissionNos = students.map((s) => s.admission_no);
-    console.log("✅ Found students with admission_nos:", admissionNos);
-
-    // Fetch attendance for those students on the given date
-    const attendanceEntries = await attendance.findAll({
-      where: {
-        admission_no: admissionNos,
-        date: date, // Make sure it's in YYYY-MM-DD format
-      },
-      attributes: ["admission_no", "status", "period"],
-      order: [["admission_no", "ASC"]],
-    });
-
-    if (!attendanceEntries || attendanceEntries.length === 0) {
-      console.log(" No attendance records found for the given admission numbers and date.");
-      return res.status(404).json({ error: "No attendance records found" });
-    }
-
-    console.log(`📋 Attendance records found: ${attendanceEntries.length}`);
-
-    // Create a map of admission_no -> student_name
-    const studentMap = {};
-    students.forEach((s) => {
-      studentMap[s.admission_no] = s.student_name;
-    });
-
-    // Prepare result
-    const result = attendanceEntries.map((entry) => ({
-      student_id: entry.admission_no,
-      student_name: studentMap[entry.admission_no] || "Unknown",
-      status: entry.status,
-      period: entry.period ?? "N/A",
-    }));
-
-    return res.status(200).json({
-      metadata: {
-        class: className,
-        section,
-        date,
-        total_students: students.length,
-        total_records: result.length,
-        report_generated_at: new Date().toLocaleString("en-IN"),
-      },
-      attendance: result,
-    });
-
+    return res.status(200).json(attendanceData);
   } catch (error) {
-    console.error("❗ Error in getClassAttendanceByDate:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error('Error fetching attendance:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -62,10 +62,21 @@ exports.getTopics = async (req, res) => {
 
 // Download PDF (redirect to Azure URL)
 exports.downloadPDF = async (req, res) => {
-  const topic = await studymodules.findByPk(req.params.id);
-  if (!topic) return res.status(404).json({ message: 'Topic not found' });
+  const topicName = req.params.topicName;
 
-  res.redirect(topic.pdfUrl); // Azure hosted file
+  try {
+    const topic = await studymodules.findOne({ where: { topicName } });
+
+    if (!topic) {
+      return res.status(404).json({ message: 'Topic not found' });
+    }
+
+    // Redirect to the actual PDF URL (hosted on Azure)
+    res.redirect(topic.pdfUrl);
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    res.status(500).json({ message: 'Server error while downloading PDF' });
+  }
 };
 
 exports.viewPDF = async (req, res) => {
