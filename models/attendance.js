@@ -38,6 +38,12 @@ module.exports = function (sequelize, DataTypes) {
         defaultValue: 'day-wise',
       },
 
+      percentage:{
+        type: DataTypes.FLOAT,
+        allowNull: true, // Assuming percentage can be optional
+        
+      },
+
       status: {
         type: DataTypes.STRING,
         allowNull: false,

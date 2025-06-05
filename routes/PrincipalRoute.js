@@ -15,4 +15,6 @@ router.post("/attendance",Auth.verifyToken, principalController.getAttendanceByC
 
 router.get('/percentage', principalController.getAttendancePercentage);
 
+router.put('/update-percentage', principalController.updateAttendancePercentage);
+
 module.exports = router;

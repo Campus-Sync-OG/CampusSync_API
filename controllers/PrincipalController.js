@@ -305,3 +305,31 @@ exports.getAttendancePercentage = async (req, res) => {
   }
 };
 
+
+exports.updateAttendancePercentage = async (req, res) => {
+  try {
+    const { admission_no, percentage } = req.body;
+
+    if (!admission_no || percentage === undefined) {
+      return res.status(400).json({ message: 'Admission number and percentage are required.' });
+    }
+
+    if (percentage < 0 || percentage > 100) {
+      return res.status(400).json({ message: 'Percentage must be between 0 and 100.' });
+    }
+
+    const record = await attendance.findOne({ where: { admission_no } });
+
+    if (!record) {
+      return res.status(404).json({ message: 'Student attendance record not found.' });
+    }
+
+    record.percentage = percentage;
+    await record.save();
+
+    res.status(200).json({ message: 'Percentage updated successfully.' });
+  } catch (error) {
+    console.error('Update percentage error:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
