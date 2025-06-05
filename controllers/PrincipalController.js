@@ -1,4 +1,4 @@
-const { principal, user, feedback, teacher_subject, student, attendance } = require('../models');
+const { principal, user, feedback, teacher_subject, student, attendance,sequelize } = require('../models');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
@@ -232,3 +232,76 @@ exports.getAttendanceByClassSectionDate = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+exports.getAttendancePercentage = async (req, res) => {
+  try {
+    const { class: className, section } = req.query;
+
+    if (!className || !section) {
+      return res.status(400).json({ message: "Class and Section are required." });
+    }
+
+    // Step 1: Get all unique attendance dates
+    const totalDaysResult = await attendance.findAll({
+      attributes: ["date"],
+      where: { class: className, section },
+      group: ["date"],
+      raw: true
+    });
+
+    const totalDays = totalDaysResult.length;
+
+    if (totalDays === 0) {
+      return res.status(404).json({ message: "No attendance records found." });
+    }
+
+    // Step 2: Get present count per student
+    const attendanceCounts = await attendance.findAll({
+      attributes: [
+        "admission_no",
+        [sequelize.fn("COUNT", sequelize.col("status")), "present_count"]
+      ],
+      where: {
+        class: className,
+        section,
+        status: "Present"
+      },
+      group: ["admission_no"],
+      raw: true
+    });
+
+    // Step 3: Get all students in the class/section
+    const allStudents = await student.findAll({
+      where: { class: className, section },
+      attributes: ["admission_no", "student_name"],
+      raw: true
+    });
+
+    // Step 4: Merge data and calculate percentages
+    const data = allStudents.map(student => {
+      const record = attendanceCounts.find(item => item.admission_no === student.admission_no);
+      const presentCount = record ? parseInt(record.present_count) : 0;
+      const percentage = ((presentCount / totalDays) * 100).toFixed(2);
+
+      return {
+        admission_no: student.admission_no,
+        student_name: student.student_name,
+        status: "Overall",
+        percentage
+      };
+    });
+
+    res.status(200).json({
+      summary: {
+        total_days: totalDays,
+        students: data.length
+      },
+      data
+    });
+  } catch (error) {
+    console.error("Error calculating attendance percentage:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+

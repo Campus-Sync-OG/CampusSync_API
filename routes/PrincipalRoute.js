@@ -13,5 +13,6 @@ router.get("/teacher-subject/all",principalController.getAllAssignedSubjectToTea
 router.get("/class-attendance",Auth.verifyToken, principalController.getAttendanceByClassSectionDate);
 router.post("/attendance",Auth.verifyToken, principalController.getAttendanceByClassSectionDate);
 
+router.get('/percentage', principalController.getAttendancePercentage);
 
 module.exports = router;
