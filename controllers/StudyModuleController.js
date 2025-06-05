@@ -6,7 +6,7 @@ const { uploadImageToAzure, getBlobsFromContainer } = require('../services/Azure
 // Upload topic with PDF to Azure
 exports.createModule = async (req, res) => {
   try {
-    const { examName, subjectName, topicName } = req.body;
+    const { examName, subjectName, topicName,subtitles } = req.body;
 
     if (!req.file) return res.status(400).json({ message: 'PDF file is required' });
 
@@ -19,6 +19,7 @@ exports.createModule = async (req, res) => {
       subjectName,
       topicName,
       pdfUrl,
+      subtitles,
     });
 
     res.status(201).json(module);

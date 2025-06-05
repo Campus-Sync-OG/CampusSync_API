@@ -1,4 +1,4 @@
-const { principal, user ,feedback,teacher_subject,student,attendance} = require('../models');
+const { principal, user, feedback, teacher_subject, student, attendance } = require('../models');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
@@ -115,7 +115,7 @@ exports.getAllFeedback = async (req, res) => {
   console.log("Fetching all feedbacks...");
   try {
     const feedbacks = await feedback.findAll({
-      attributes: ["id","message"], // No sender info
+      attributes: ["id", "message"], // No sender info
     });
 
     res.status(200).json(feedbacks);
@@ -126,7 +126,7 @@ exports.getAllFeedback = async (req, res) => {
 };
 
 
-exports.getAllAssignedSubjectToTeacher= async (req, res) => {
+exports.getAllAssignedSubjectToTeacher = async (req, res) => {
   try {
     const assignments = await teacher_subject.findAll();
     res.json(assignments);
@@ -135,20 +135,18 @@ exports.getAllAssignedSubjectToTeacher= async (req, res) => {
   }
 };
 
-
 exports.getAttendanceByClassSectionDate = async (req, res) => {
   try {
-    const { class: className, section, date } = req.body;
+    const { class: className, section, date } = req.query;
     const download = req.query.download === 'true';
 
-    if (!className || !date) {
+    if (!date) {
       return res.status(400).json({
         message: 'Please provide at least className and date in the request body.'
       });
     }
 
-    // Fetch all students in class/section
-    const studentWhere = { class:className };
+    const studentWhere = { class: className };
     if (section) studentWhere.section = section;
 
     const students = await student.findAll({
@@ -158,7 +156,6 @@ exports.getAttendanceByClassSectionDate = async (req, res) => {
 
     const admissionNos = students.map(s => s.admission_no);
 
-    // Get attendance for those students on that date
     const attendanceData = await attendance.findAll({
       where: {
         admission_no: admissionNos,
@@ -172,7 +169,6 @@ exports.getAttendanceByClassSectionDate = async (req, res) => {
       attendanceMap[record.admission_no] = record.status;
     });
 
-    // Merge student data with attendance
     const result = students.map(student => {
       const status = attendanceMap[student.admission_no] || 'Not Marked';
       return {
@@ -183,13 +179,17 @@ exports.getAttendanceByClassSectionDate = async (req, res) => {
       };
     });
 
-    // Count stats
     const total = result.length;
     const present = result.filter(s => s.status === 'Present').length;
     const absent = result.filter(s => s.status === 'Absent').length;
 
-    // Excel Download (optional)
     if (download) {
+      // ✅ Ensure exports folder exists
+      const exportDir = path.join(__dirname, '../exports');
+      if (!fs.existsSync(exportDir)) {
+        fs.mkdirSync(exportDir, { recursive: true });
+      }
+
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Attendance');
 
@@ -206,16 +206,18 @@ exports.getAttendanceByClassSectionDate = async (req, res) => {
       worksheet.addRow(['Present', present]);
       worksheet.addRow(['Absent', absent]);
 
-      const filePath = path.join(__dirname, '../exports/attendance_report.xlsx');
+      const filePath = path.join(exportDir, 'attendance_report.xlsx');
       await workbook.xlsx.writeFile(filePath);
 
       return res.download(filePath, 'attendance_report.xlsx', err => {
-        if (err) console.error('Download error:', err);
-        fs.unlinkSync(filePath); // Clean up file after download
+        if (err) {
+          console.error('Download error:', err);
+          return res.status(500).json({ message: 'Failed to download file' });
+        }
+        fs.unlinkSync(filePath); // Clean up file
       });
     }
 
-    // Regular JSON response
     return res.status(200).json({
       summary: {
         total_students: total,

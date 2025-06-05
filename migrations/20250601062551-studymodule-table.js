@@ -20,6 +20,10 @@ module.exports = {
        { type: Sequelize.STRING, 
         allowNull: false
        },
+       subtitle:
+       { type: Sequelize.STRING, 
+         allowNull: true // Assuming subtitles can be optional
+        },
       pdfUrl:
        { type: Sequelize.STRING,
          allowNull: false 
