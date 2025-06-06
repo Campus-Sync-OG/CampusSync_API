@@ -19,11 +19,11 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
       },
        class_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
     section_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: true,
     },
       user_id: {
