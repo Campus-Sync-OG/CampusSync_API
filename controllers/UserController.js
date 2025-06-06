@@ -33,7 +33,7 @@ const upload = multer({ storage }).single('file');
       error: error.message,
     })
   }
-};
+};*/
 
 exports.getAllUsers = async (req, res) => {
   const { role } = req.query;
@@ -78,7 +78,7 @@ exports.getUserByUniqueId = async (req, res) => {
   }
 };
 
-exports.updateUser = async (req, res) => {
+/*exports.updateUser = async (req, res) => {
   const { unique_id } = req.params;
   const { role, name, password } = req.body;
 
