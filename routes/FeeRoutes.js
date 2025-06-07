@@ -11,4 +11,10 @@ router.get('/download-fee/:receipt_no', feeController.downloadFeePDF);
 router.get('/getfee', feeController.getAllFees);
 router.delete('/:admission_no', feeController.deleteFee);
 
+// Route to create Razorpay order
+router.post('/create-order', feeController.createPayment);
+
+// Route to verify payment
+router.post('/verify-payment', feeController.verifyPayment);
+
 module.exports = router;
