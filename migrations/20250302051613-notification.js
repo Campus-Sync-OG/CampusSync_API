@@ -9,11 +9,6 @@ module.exports = {
         primaryKey: true,
         allowNull: false,
       },
-      notification_type: {
-        type: Sequelize.ENUM('General Announcement', 'fee update', 'Event Announcement', 'Academic Results'),
-        allowNull: false,
-        defaultValue: 'General Announcement',
-      },
       title: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -22,6 +17,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+       class_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    section_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
       user_id: {
         type: Sequelize.STRING,
         allowNull: false,

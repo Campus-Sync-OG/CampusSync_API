@@ -28,6 +28,7 @@ const _circular = require('./circular');
 const _student_assignment = require('./student_assignment'); // Assuming this is needed
 const _studymodules = require('./studymodules'); // Assuming this is needed
 
+const _teacher_leave_application = require('./teacher_leave_application');
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -55,6 +56,7 @@ const teacher_subject = _teacher_subject(sequelize, DataTypes);
 const circular = _circular(sequelize, DataTypes);
 const student_assignment = _student_assignment(sequelize, DataTypes);
 const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
+const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
 
 // Define associations between models
 
@@ -116,6 +118,19 @@ user.hasMany(announcement, { foreignKey: 'user_id', targetKey: 'unique_id', as: 
 teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 teacher_subject.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 
+user.hasMany(teacher_leave_application, {
+  foreignKey: 'emp_id',
+  sourceKey: 'unique_id',
+  as: 'leaveApplications',
+});
+
+// leave application belongs to a user (teacher)
+teacher_leave_application.belongsTo(user, {
+  foreignKey: 'emp_id',
+  targetKey: 'unique_id',
+  as: 'teacher',
+});
+
 // Export all models
 module.exports = {
   sequelize,
@@ -144,4 +159,5 @@ module.exports = {
   circular,
   student_assignment,
   studymodules,
+  teacher_leave_application
 };

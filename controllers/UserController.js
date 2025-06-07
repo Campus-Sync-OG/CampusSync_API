@@ -111,7 +111,7 @@ exports.getUserByUniqueId = async (req, res) => {
 };
 
 
-exports.deleteUser = async (req, res) => {
+/*exports.deleteUser = async (req, res) => {
   const { unique_id } = req.params;
 
   try {

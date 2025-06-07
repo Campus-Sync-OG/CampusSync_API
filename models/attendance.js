@@ -51,6 +51,8 @@ module.exports = function (sequelize, DataTypes) {
           isIn: [["present", "absent"]],
         },
         defaultValue: "present",
+        onDelete: "CASCADE", // if teacher is deleted, their attendance records are also deleted  
+        onUpdate: "CASCADE", // if emp_id is updated, it reflects in attendance records
       },
     },
     {
