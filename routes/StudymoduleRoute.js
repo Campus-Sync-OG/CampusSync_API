@@ -14,11 +14,12 @@ router.post('/modules', upload.single('pdf'), studyModuleController.createModule
 router.get('/modules/exams', studyModuleController.getExams);
 router.get('/modules/subjects/:examName', studyModuleController.getSubjects);
 router.get('/modules/topics/:examName/:subjectName', studyModuleController.getTopics);
+router.get('/modules/topics/:examName/:subjectName/:topicName', studyModuleController.getSubTopics);
 
 // View PDF URL
-router.get('/modules/view/:id', studyModuleController.viewPDF); // corrected path and name
+router.get('/modules/view/:subtitles', studyModuleController.viewPDF); // corrected path and name
 
 // Download PDF (redirect)
-router.get('/modules/download/:topicName', studyModuleController.downloadPDF); // corrected name
+router.get('/modules/download/:subtitles', studyModuleController.downloadPDF); // corrected name
 
 module.exports = router;
