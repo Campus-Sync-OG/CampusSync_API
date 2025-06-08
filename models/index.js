@@ -27,7 +27,9 @@ const _teacher_subject = require('./teacher_subject');
 const _circular = require('./circular');
 const _student_assignment = require('./student_assignment'); // Assuming this is needed
 const _studymodules = require('./studymodules'); // Assuming this is needed
-
+const _bus=require('./bus');
+const _driver=require('./driver');
+const _location=require('./location');
 const _teacher_leave_application = require('./teacher_leave_application');
 
 // Initialize models
@@ -57,7 +59,9 @@ const circular = _circular(sequelize, DataTypes);
 const student_assignment = _student_assignment(sequelize, DataTypes);
 const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
 const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
-
+const bus = _bus(sequelize, DataTypes);
+const driver = _driver(sequelize, DataTypes);
+const location = _location(sequelize, DataTypes);
 // Define associations between models
 
 // User to role mapping
@@ -130,6 +134,25 @@ teacher_leave_application.belongsTo(user, {
   targetKey: 'unique_id',
   as: 'teacher',
 });
+ bus.hasOne(driver, {
+  foreignKey: 'bus_id',
+  sourceKey: 'id',
+});
+
+bus.hasOne(location, {
+  foreignKey: 'bus_id',
+  sourceKey: 'id',
+});
+
+driver.belongsTo(bus, {
+  foreignKey: 'bus_id',
+  targetKey: 'id',
+});
+
+location.belongsTo(bus, {
+  foreignKey: 'bus_id',
+  targetKey: 'id',
+});
 
 // Export all models
 module.exports = {
@@ -159,5 +182,8 @@ module.exports = {
   circular,
   student_assignment,
   studymodules,
-  teacher_leave_application
+  teacher_leave_application,
+  bus,
+  driver,
+  location
 };
