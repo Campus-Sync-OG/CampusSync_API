@@ -56,17 +56,27 @@ exports.getTopics = async (req, res) => {
   const { examName, subjectName } = req.params;
   const topics = await studymodules.findAll({
     where: { examName, subjectName },
-    attributes: ['id', 'topicName', 'pdfUrl'],
+    attributes: [[
+     studymodules.sequelize.fn('DISTINCT', studymodules.sequelize.col('topicName')), 'topicName'
+  ]]
+});
+  res.json(topics.map(s => s.topicName));
+};
+
+exports.getSubTopics = async (req, res) => {
+  const { examName, subjectName,topicName } = req.params;
+  const topics = await studymodules.findAll({
+    where: { examName, subjectName, topicName },
+    attributes: ['id', 'subtitles', 'pdfUrl'],
   });
   res.json(topics);
 };
-
 // Download PDF (redirect to Azure URL)
 exports.downloadPDF = async (req, res) => {
-  const topicName = req.params.topicName;
+  const subtitles = req.params.subtitles;
 
   try {
-    const topic = await studymodules.findOne({ where: { topicName } });
+    const topic = await studymodules.findOne({ where: { subtitles } });
 
     if (!topic) {
       return res.status(404).json({ message: 'Topic not found' });
@@ -81,9 +91,23 @@ exports.downloadPDF = async (req, res) => {
 };
 
 exports.viewPDF = async (req, res) => {
-  const topic = await studymodules.findByPk(req.params.id);
-  if (!topic) return res.status(404).json({ message: 'Topic not found' });
+  try {
+    const { subtitles } = req.params;
 
-  res.json({ url: topic.pdfUrl }); // Frontend can embed this or open in new tab
+    const topic = await studymodules.findOne({
+      where: { subtitles: subtitles }, // Make sure 'subtitles' is a string column
+      attributes: ['pdfUrl'] // Limit to only necessary field
+    });
+
+    if (!topic || !topic.pdfUrl) {
+      return res.status(404).json({ message: 'PDF not found for this topic' });
+    }
+
+    return res.json({ url: topic.pdfUrl }); // Respond with a clean JSON
+  } catch (error) {
+    console.error('Error in viewPDF:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
 };
+
 
