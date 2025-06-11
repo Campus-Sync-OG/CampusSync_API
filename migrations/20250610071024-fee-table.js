@@ -98,24 +98,13 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true,
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn("NOW"),
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn("NOW"),
-      },
+  
     });
   },
 
   down: async (queryInterface, Sequelize) => {
     // Drop ENUMs first if your dialect requires it
     await queryInterface.dropTable('fee');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_fee_status";');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_fee_feestype";');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_fee_receipt_status";');
+    
   }
 };

@@ -61,12 +61,9 @@ async function generateReceiptPdf(paymentRecord) {
 exports.createPayment = async (req, res) => {
     try {
         const {
-            admission_no,
             pay_method,
             paid_amount,
             feestype,
-            class_name,
-            section_name,
             due_date,
             uniform_details,
             transport_amount,
@@ -75,6 +72,17 @@ exports.createPayment = async (req, res) => {
             paid_for_items,
             payment_notes,
         } = req.body;
+        const admission_no = req.params.admission_no;
+
+        const studentdata = await student.findOne({ where: { admission_no } });
+        if (!studentdata) {
+            return res
+                .status(404)
+                .json({ error: "Student not found with this admission_no." });
+        }
+
+        const class_name = studentdata.class;
+        const section_name = studentdata.section;
 
         // Basic validations
         if (!admission_no) {
@@ -94,9 +102,9 @@ exports.createPayment = async (req, res) => {
                 Uniform: uniform_details ? Object.values(uniform_details).reduce((a, b) => a + b, 0) : 0,
             };
 
-            if (paid_amount !== amounts[feestype]) {
-                return res.status(400).json({ error: `paid_amount must match ${feestype} amount.` });
-            }
+           // if (paid_amount !== amounts[feestype]) {
+              //  return res.status(400).json({ error: `paid_amount must match ${feestype} amount.` });
+          //  }
         } else {
             const uniformTotal = uniform_details ? Object.values(uniform_details).reduce((a, b) => a + b, 0) : 0;
             const sumAmounts = (tuition_amount || 0) + (book_amount || 0) + (transport_amount || 0) + uniformTotal;
@@ -214,32 +222,46 @@ exports.verifyPayment = async (req, res) => {
 // Get Fees by Admission No (Student)
 exports.getFeesByAdmissionNo = async (req, res) => {
     try {
-        const { admission_no } = req.params;  // Get admission_no from request params
+        const { admission_no } = req.params;
 
-        console.log(`Fetching fees for admission_no: ${admission_no}`);  // Log for debugging
+        console.log(`Fetching fees for admission_no: ${admission_no}`);
 
-        // Fetch fees directly without needing to query Student first
+        // Fetch all non-deleted fees for the admission number
         const fees = await fee.findAll({
             where: {
                 admission_no,
-                deletedAt: null // Ensure soft-deleted fees are not included
-            }
+                deletedAt: null,
+            },
         });
 
-        // Log fetched fees
-        console.log("Fetched fees:", fees);
-
+        // If no fees at all, just return a message
         if (fees.length === 0) {
-            return res.status(404).json({ success: false, message: "No fees found for this student" });
+            return res.status(200).json({
+                success: true,
+                message: "No payments present",
+                data: [],
+            });
         }
 
-        return res.status(200).json({ success: true, data: fees });
+        // Add paid/unpaid status to each fee entry
+        const enhancedFees = fees.map(f => ({
+            ...f.toJSON(),
+            status: f.payment_status === 'paid' ? 'Paid' : 'Unpaid',
+        }));
 
+        return res.status(200).json({
+            success: true,
+            data: enhancedFees,
+        });
     } catch (error) {
         console.error("Error fetching fees:", error);
-        return res.status(500).json({ success: false, message: "Error fetching fees for the student" });
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching fees for the student",
+        });
     }
 };
+
 
 // Generate and Download Fee PDF
 
