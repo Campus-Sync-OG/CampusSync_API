@@ -17,4 +17,7 @@ router.post('/create-order/:admission_no', feeController.createPayment);
 // Route to verify payment
 router.post('/verify-payment', feeController.verifyPayment);
 
+
+router.post('/generate-receipt', feeController.generateReceipt);
+
 module.exports = router;

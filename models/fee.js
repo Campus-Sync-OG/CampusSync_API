@@ -22,6 +22,7 @@ module.exports = function (sequelize, DataTypes) {
     pay_method: {
       type: DataTypes.STRING,
       allowNull: false,
+      defaultValue: "Online", // Default to Cash
     },
     paid_amount: {
       type: DataTypes.FLOAT,

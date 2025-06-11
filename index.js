@@ -3,6 +3,10 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const http = require("http");
+const path = require("path");
+
+
+
 const userRoutes = require("./routes/UserRoute");
 const studentRoutes = require('./routes/StudentRoute');
 const teacherRoutes = require('./routes/TeacherRoute');
@@ -29,7 +33,7 @@ const studymodulesRoutes = require('./routes/StudymoduleRoute');
 const server = http.createServer(app);
 
 
-
+app.use("/receipts", express.static(path.join(__dirname, "receipts")));
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
