@@ -1,7 +1,7 @@
 require("dotenv").config();
 const twilio = require("twilio");
 const { User } = require("../models");
-
+const { student } = require("../models");
 // Initialize Twilio client
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
@@ -65,6 +65,32 @@ class NotificationService {
       console.error("❌ Error sending notifications:", error);
     }
   }
-}
+
+static async sendAbsenceNotification({ admission_no, date, attendance_type, subject }) {
+    try {
+      const studentData = await student.findOne({ where: { admission_no } });
+
+      if (!studentData || !studentData.phone_number) {
+        console.warn(`⚠️ No phone number found for admission_no ${admission_no}`);
+        return;
+      }
+
+      const { student_name, phone_number } = studentData;
+      const formattedPhone = phone_number.startsWith("+") ? phone_number : `+91${phone_number}`;
+
+      const message =
+        attendance_type === "day-wise"
+          ? `Dear Parent, your child ${student_name} is absent today (${date}).`
+          : `Dear Parent, your child ${student_name} was absent for the ${subject} period on ${date}.`;
+
+      // Send via SMS and WhatsApp
+      await this.sendSMS(formattedPhone, message);
+      await this.sendWhatsApp(formattedPhone, message);
+    } catch (error) {
+      console.error(`❌ Error sending absence notification for ${admission_no}:`, error.message || error);
+    }
+  }
+ }
+
 
 module.exports = NotificationService;
