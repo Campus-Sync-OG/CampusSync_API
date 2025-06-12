@@ -5,6 +5,7 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
+const puppeteer = require("puppeteer");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
@@ -13,58 +14,35 @@ const razorpay = new Razorpay({
 
 // Helper to generate receipt PDF
 async function generateReceiptPdf(feeRecord) {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument();
+  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
+  const templatePath = path.join(
+    __dirname,
+    "../templates/receiptTemplate.html"
+  );
+  const fileName = `Receipt_${receiptNo}.pdf`;
+  const receiptPath = path.join(__dirname, "../receipts", fileName);
 
-      // Auto-generate receipt number if not present
-      let receiptNo = feeRecord.receipt_no;
-      if (!receiptNo) {
-        const today = new Date();
-        const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
-        const randomPart = Math.floor(1000 + Math.random() * 9000);
-        receiptNo = `REC-${dateStr}-${randomPart}`;
-        feeRecord.receipt_no = receiptNo;
-      }
+  const html = fs.readFileSync(templatePath, "utf8");
+  const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
+    (feeRecord[key.trim()] || "").toString()
+  );
 
-      const fileName = `Receipt_${receiptNo}.pdf`;
-      const receiptPath = path.join(__dirname, "../receipts", fileName);
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(filledHtml, { waitUntil: "load" });
 
-      if (!fs.existsSync(path.dirname(receiptPath))) {
-        fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
-      }
+  if (!fs.existsSync(path.dirname(receiptPath))) {
+    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  }
 
-      const stream = fs.createWriteStream(receiptPath);
-      doc.pipe(stream);
-
-      doc.fontSize(20).text("Fee Payment Receipt", { align: "center" });
-      doc.moveDown();
-      doc.fontSize(12);
-
-      doc.text(`Receipt No: ${receiptNo}`);
-      doc.text(`Admission No: ${feeRecord.admission_no}`);
-      doc.text(`Name: ${feeRecord.student_name || "N/A"}`);
-      doc.text(`Class: ${feeRecord.class_name}`);
-      doc.text(`Section: ${feeRecord.section_name}`);
-      doc.text(`Payment Date: ${new Date(feeRecord.updatedAt).toISOString().split("T")[0]}`);
-      doc.text(`Fee Type: ${feeRecord.feestype}`);
-      doc.text(`Amount Paid: ₹${feeRecord.paid_amount}`);
-      doc.text(`Total Fee: ₹${feeRecord.total_amount}`);
-      doc.text(`Due Date: ${feeRecord.due_date}`);
-      doc.text(`Status: ${feeRecord.status || "Success"}`);
-
-      if (feeRecord.payment_notes) {
-        doc.moveDown();
-        doc.text(`Notes: ${feeRecord.payment_notes}`);
-      }
-
-      doc.end();
-
-      stream.on("finish", () => resolve(fileName));
-    } catch (err) {
-      reject(err);
-    }
+  await page.pdf({
+    path: receiptPath,
+    format: "A4",
+    printBackground: true,
   });
+
+  await browser.close();
+  return fileName;
 }
 
 // ✅ Receipt Controller
@@ -73,7 +51,9 @@ exports.generateReceipt = async (req, res) => {
     const { admission_no, feestype } = req.body;
 
     if (!admission_no || !feestype) {
-      return res.status(400).json({ message: "admission_no and feestype are required" });
+      return res
+        .status(400)
+        .json({ message: "admission_no and feestype are required" });
     }
 
     // ✅ Fetch the latest paid fee record
@@ -87,11 +67,15 @@ exports.generateReceipt = async (req, res) => {
     });
 
     if (!feeRecord) {
-      return res.status(404).json({ message: "No payment found for receipt generation" });
+      return res
+        .status(404)
+        .json({ message: "No payment found for receipt generation" });
     }
 
     const fileName = await generateReceiptPdf(feeRecord);
-    const filePath = `${req.protocol}://${req.get("host")}/receipts/${fileName}`;
+    const filePath = `${req.protocol}://${req.get(
+      "host"
+    )}/receipts/${fileName}`;
 
     res.status(200).json({ success: true, receiptUrl: filePath });
   } catch (err) {
