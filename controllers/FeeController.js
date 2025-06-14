@@ -63,7 +63,7 @@ exports.generateReceipt = async (req, res) => {
         feestype,
         paid_amount: { [Op.gt]: 0 }, // ✅ Fix: use Sequelize.Op
       },
-      order: [["updatedAt", "DESC"]],
+      order: [["pay_date", "DESC"]],
     });
 
     if (!feeRecord) {

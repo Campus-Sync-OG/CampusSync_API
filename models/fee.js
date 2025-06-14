@@ -112,6 +112,6 @@ module.exports = function (sequelize, DataTypes) {
     sequelize,
     paranoid: true,
     tableName: "fee",
-    timestamps: true,
+    timestamps: false,
   });
 };
