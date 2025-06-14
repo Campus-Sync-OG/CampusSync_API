@@ -8,6 +8,7 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
+         primaryKey: true,
         references: {
           model: 'user',
           key: 'unique_id',
@@ -34,6 +35,14 @@ module.exports = function (sequelize, DataTypes) {
         validate: {
           isEmail: true,
         },
+      },
+       address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+       school_name: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       joining_date: {
         type: DataTypes.DATE,

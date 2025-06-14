@@ -20,15 +20,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      subjects: {
+      blood_gp: {
         type: Sequelize.STRING,
         allowNull: true,
-        references: {
-          model: 'subject',
-          key: 'subject_name',
-        },
       },
-      password: {
+      religion: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -50,6 +46,18 @@ module.exports = {
         type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
         defaultValue: 'active',
+      },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dob: {
+        type: Sequelize.DATE,
+        allowNull: true,
       }
     });
   },
