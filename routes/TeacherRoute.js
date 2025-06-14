@@ -11,7 +11,7 @@ const router = express.Router();
 router.post('/create', teacherController.createTeacher);
 
 // Route to get all teachers (requires authentication)
-router.get('/all', Auth.verifyToken, teacherController.getAllTeachers);
+router.get('/all',  teacherController.getAllTeachers);
 
 // Route to get a teacher by their employee ID (requires authentication)
 router.get('/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
@@ -32,7 +32,7 @@ router.post('/:emp_id/students/marks',  teacherController.addStudentMarks);
 router.post('/upload/academics', Auth.verifyToken, csvController.upload.single("file"), csvController.uploadAcademicsCSV);
 
 // Route to upload student attendance by a teacher (requires authentication)
-router.post('/:emp_id/upload-attendance', Auth.verifyToken, teacherController.uploadAttendance);
+router.post('/:emp_id/upload-attendance',  teacherController.uploadAttendance);
 
 // Route to update an academic record for a teacher (requires authentication)
 router.put('/:emp_id', Auth.verifyToken, teacherController.updateAcademicRecord);
