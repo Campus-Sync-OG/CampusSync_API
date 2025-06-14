@@ -70,18 +70,18 @@ static async sendAbsenceNotification({ admission_no, date, attendance_type, subj
     try {
       const studentData = await student.findOne({ where: { admission_no } });
 
-      if (!studentData || !studentData.phone_number) {
+      if (!studentData || !studentData.phone_no) {
         console.warn(`⚠️ No phone number found for admission_no ${admission_no}`);
         return;
       }
 
-      const { student_name, phone_number } = studentData;
-      const formattedPhone = phone_number.startsWith("+") ? phone_number : `+91${phone_number}`;
+      const { student_name, phone_no } = studentData;
+      const formattedPhone = phone_no.startsWith("+") ? phone_no : `+91${phone_no}`;
 
       const message =
         attendance_type === "day-wise"
-          ? `Dear Parent, your child ${student_name} is absent today (${date}).`
-          : `Dear Parent, your child ${student_name} was absent for the ${subject} period on ${date}.`;
+          ? `Dear Parent, your ward ${student_name} is absent today (${date}).`
+          : `Dear Parent, your ward ${student_name} was absent for the ${subject} period on ${date}.`;
 
       // Send via SMS and WhatsApp
       await this.sendSMS(formattedPhone, message);
