@@ -27,8 +27,8 @@ const _teacher_subject = require('./teacher_subject');
 const _circular = require('./circular');
 const _student_assignment = require('./student_assignment'); // Assuming this is needed
 const _studymodules = require('./studymodules'); // Assuming this is needed
-
 const _teacher_leave_application = require('./teacher_leave_application');
+const _teacher_class_sections = require('./teacher_class_sections'); // Assuming this is needed
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -57,6 +57,7 @@ const circular = _circular(sequelize, DataTypes);
 const student_assignment = _student_assignment(sequelize, DataTypes);
 const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
 const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
+const teacher_class_sections = _teacher_class_sections(sequelize, DataTypes); // Assuming this is needed
 
 // Define associations between models
 
@@ -159,5 +160,6 @@ module.exports = {
   circular,
   student_assignment,
   studymodules,
-  teacher_leave_application
+  teacher_leave_application,
+  teacher_class_sections,
 };
