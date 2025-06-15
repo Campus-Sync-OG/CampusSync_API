@@ -27,7 +27,7 @@ const classsectionRoutes=require('./routes/ClassSectionRoutes');
 const timetableRoutes=require('./routes/TimetableRoute');
 const leavesRoutes = require('./routes/LeavesRoutes');
 const studymodulesRoutes = require('./routes/StudymoduleRoute');
-
+const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
 
 
 const server = http.createServer(app);
@@ -63,6 +63,8 @@ app.use('/api/classsection', classsectionRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/studymodules', studymodulesRoutes);
 app.use('/api/leaves', leavesRoutes);
+app.use('/api/studentdocuments', studentDocumentRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });
