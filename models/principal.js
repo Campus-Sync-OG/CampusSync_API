@@ -28,6 +28,14 @@ module.exports = function (sequelize, DataTypes) {
           isNumeric: true,
         },
       },
+       address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      school_name: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: true,
