@@ -1,4 +1,4 @@
-const { assignment, student, teacher } = require('../models');
+const { assignment, student, teacher,student_assignment } = require('../models');
 const { deleteImageFromAzure } = require('../services/AzureBlobService');
 
 // Get all assignments
@@ -104,9 +104,44 @@ const deleteAssignment = async (req, res) => {
   }
 };
 
+const getStudentAssignmentsByTeacher = async (req, res) => {
+  const { emp_id, class_name, section, subject } = req.query;
+
+  if (!emp_id || !class_name || !section || !subject) {
+    return res.status(400).json({ message: 'emp_id, class_name, section, and subject are required.' });
+  }
+
+  try {
+    const assignments = await student_assignment.findAll({
+      where: {
+        emp_id,
+        class_name,
+        section,
+        subject_name: subject,
+      },
+      order: [['Date', 'DESC']],
+    });
+
+    // Optionally enrich with student names
+    const enriched = await Promise.all(assignments.map(async (a) => {
+      const stu = await student.findOne({ where: { admission_no: a.admission_no } });
+      return {
+        ...a.dataValues,
+        student_name: stu?.student_name || "N/A",
+      };
+    }));
+
+    res.json(enriched);
+  } catch (err) {
+    console.error("Error fetching assignments:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
 module.exports = {
   getAllAssignments,
   getAssignmentsByAdmissionNo,
   deleteAssignment,
+  getStudentAssignmentsByTeacher ,
 };
