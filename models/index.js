@@ -132,6 +132,16 @@ teacher_leave_application.belongsTo(user, {
   as: 'teacher',
 });
 
+teacher.hasMany(teacher_class_sections, {
+  foreignKey: 'emp_id',targetKey: 'emp_id'
+
+});
+
+teacher_class_sections.belongsTo(teacher, {
+  foreignKey: 'emp_id', targetKey: 'emp_id'
+ 
+});
+
 // Export all models
 module.exports = {
   sequelize,

@@ -3,6 +3,12 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const http = require("http");
+
+//const { connectRedis } = require('./config/redisClient'); // adjust path
+//(async () => {
+ //await connectRedis(); // 🧠 important: make sure to call before using the client
+//})();
+
 const userRoutes = require("./routes/UserRoute");
 const studentRoutes = require('./routes/StudentRoute');
 const teacherRoutes = require('./routes/TeacherRoute');
