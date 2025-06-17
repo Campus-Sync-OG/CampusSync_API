@@ -29,6 +29,8 @@ const _student_assignment = require('./student_assignment'); // Assuming this is
 const _studymodules = require('./studymodules'); // Assuming this is needed
 const _student_documents= require('./studentdocument');
 const _teacher_leave_application = require('./teacher_leave_application');
+const _teacher_class_sections = require('./teacher_class_sections'); // Assuming this is needed
+const _student_promotion = require('./student-promotion'); // Assuming this is needed
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -57,7 +59,9 @@ const circular = _circular(sequelize, DataTypes);
 const student_assignment = _student_assignment(sequelize, DataTypes);
 const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
 const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
-const student_documents=_student_documents(sequelize, DataTypes);
+const student_documents=_student_documents(sequelize, DataTypes);const teacher_class_sections = _teacher_class_sections(sequelize, DataTypes); // Assuming this is needed
+const student_promotion = _student_promotion(sequelize, DataTypes); // Assuming this is needed
+
 // Define associations between models
 
 // User to role mapping
@@ -135,6 +139,16 @@ teacher_leave_application.belongsTo(user, {
       targetKey: 'admission_no'
     });
 
+teacher.hasMany(teacher_class_sections, {
+  foreignKey: 'emp_id',targetKey: 'emp_id'
+
+});
+
+teacher_class_sections.belongsTo(teacher, {
+  foreignKey: 'emp_id', targetKey: 'emp_id'
+ 
+});
+
 // Export all models
 module.exports = {
   sequelize,
@@ -164,5 +178,7 @@ module.exports = {
   student_assignment,
   studymodules,
   teacher_leave_application,
-  student_documents
+  student_documents,
+  teacher_class_sections,
+  student_promotion,
 };
