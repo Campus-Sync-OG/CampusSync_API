@@ -29,6 +29,7 @@ const _student_assignment = require('./student_assignment'); // Assuming this is
 const _studymodules = require('./studymodules'); // Assuming this is needed
 const _teacher_leave_application = require('./teacher_leave_application');
 const _teacher_class_sections = require('./teacher_class_sections'); // Assuming this is needed
+const _student_promotion = require('./student-promotion'); // Assuming this is needed
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -58,6 +59,7 @@ const student_assignment = _student_assignment(sequelize, DataTypes);
 const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
 const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
 const teacher_class_sections = _teacher_class_sections(sequelize, DataTypes); // Assuming this is needed
+const student_promotion = _student_promotion(sequelize, DataTypes); // Assuming this is needed
 
 // Define associations between models
 
@@ -172,4 +174,5 @@ module.exports = {
   studymodules,
   teacher_leave_application,
   teacher_class_sections,
+  student_promotion,
 };
