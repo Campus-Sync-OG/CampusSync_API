@@ -9,6 +9,8 @@ router.get('/all',  AssignmentController.getAllAssignments);
 router.get('/all/:admission_no', Auth.verifyToken, AssignmentController.getAssignmentsByAdmissionNo);
 router.delete('/delete/:admission_no', Auth.verifyToken, AssignmentController.deleteAssignment);
 
+router.get('/view', AssignmentController.getStudentAssignmentsByTeacher);
+
 
 
 

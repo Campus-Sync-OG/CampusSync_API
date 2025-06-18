@@ -3,6 +3,12 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const http = require("http");
+
+//const { connectRedis } = require('./config/redisClient'); // adjust path
+//(async () => {
+ //await connectRedis(); // 🧠 important: make sure to call before using the client
+//})();
+
 const path = require("path");
 
 
@@ -27,6 +33,8 @@ const classsectionRoutes=require('./routes/ClassSectionRoutes');
 const timetableRoutes=require('./routes/TimetableRoute');
 const leavesRoutes = require('./routes/LeavesRoutes');
 const studymodulesRoutes = require('./routes/StudymoduleRoute');
+const chatRoutes = require('./routes/ChatRoute');
+const promotionRoutes = require('./routes/PromotionRoute');
 const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
 
 
@@ -63,6 +71,8 @@ app.use('/api/classsection', classsectionRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/studymodules', studymodulesRoutes);
 app.use('/api/leaves', leavesRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/promotion', promotionRoutes);
 app.use('/api/studentdocuments', studentDocumentRoutes);
 
 app.listen(PORT, () => {
