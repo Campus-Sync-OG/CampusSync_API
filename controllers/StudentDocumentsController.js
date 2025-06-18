@@ -1,4 +1,4 @@
-const { student_documents } = require('../models');
+const { student_documents,student } = require('../models');
 
 // Create new document record
 exports.createStudentDocument = async (req, res) => {
@@ -50,7 +50,13 @@ exports.getStudentDocumentById = async (req, res) => {
 // Get all documents
 exports.getAllStudentDocuments = async (req, res) => {
   try {
-    const documents = await student_documents.findAll();
+    const documents = await student_documents.findAll({
+  include: {
+    model: student,
+    attributes: ['student_name', 'class', 'section'],
+  },
+   order: [['admission_no', 'ASC']] 
+});
     res.status(200).json(documents);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching documents', error });
