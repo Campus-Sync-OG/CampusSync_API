@@ -1,4 +1,4 @@
-const { fee, student } = require("../models");
+const { fee, student, fee_plan } = require("../models");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
@@ -403,5 +403,259 @@ exports.getAllFees = async (req, res) => {
   } catch (error) {
     console.error("Error fetching fee records:", error);
     res.status(500).json({ message: "Failed to fetch fee records" });
+  }
+};
+
+
+exports.createFeePlanForClassSection = async (req, res) => {
+  try {
+    const {
+      class_name,
+      section_name,
+      feestype,
+      total_fee,
+      due_date,
+      notes,
+      items // dynamic items array
+    } = req.body;
+
+    if (!class_name || !section_name || !feestype || !total_fee || !due_date) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    if (
+      (feestype.toLowerCase() === 'uniform' || feestype.toLowerCase() === 'books') &&
+      (!items || !Array.isArray(items) || items.length === 0)
+    ) {
+      return res.status(400).json({ error: "Items are required for uniform/books fee type." });
+    }
+
+    // Fetch all students for this class + section
+    const students = await student.findAll({
+      where: {
+        class: class_name.trim(),
+        section: section_name.trim()
+      }
+    });
+
+    if (students.length === 0) {
+      return res.status(404).json({ error: "No students found for this class and section." });
+    }
+
+    // Delete existing fee plans for this class + section + feestype
+    await fee_plan.destroy({
+      where: {
+        class_name: class_name.trim(),
+        section_name: section_name.trim(),
+        feestype
+      }
+    });
+
+    // Create fee plan for each student
+    const plans = await Promise.all(
+      students.map(stu => {
+        const feeData = {
+          class_name: class_name.trim(),
+          section_name: section_name.trim(),
+          admission_no: stu.admission_no,
+          feestype,
+          total_fee,
+          due_date,
+          notes: notes || null,
+          item_details: items ? JSON.stringify(items) : null
+        };
+
+        return fee_plan.create(feeData);
+      })
+    );
+
+    res.status(201).json({
+      success: true,
+      message: `${plans.length} fee plans created successfully (replaced any existing plans).`,
+      data: plans
+    });
+
+  } catch (err) {
+    console.error("Error creating fee plans:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+exports.getFeeStatusByClassSection = async (req, res) => {
+  try {
+    const { class_name, section_name, feestype } = req.query;
+
+    if (!class_name || !section_name || !feestype) {
+      return res.status(400).json({ error: "class_name, section_name, and feestype are required in query." });
+    }
+
+    // ✅ Get students in class + section
+    const students = await student.findAll({
+      where: {
+        class: class_name,
+        section: section_name
+      }
+    });
+
+    if (students.length === 0) {
+      return res.status(404).json({ error: "No students found for this class and section." });
+    }
+
+    const admissionNos = students.map(s => s.admission_no);
+
+    // ✅ Get fee plans for these students
+    const plans = await fee_plan.findAll({
+      where: {
+        admission_no: { [Op.in]: admissionNos },
+        feestype,
+
+      }
+    });
+
+    if (plans.length === 0) {
+      return res.status(404).json({ error: "No fee plans found for this class/section and feestype." });
+    }
+
+    // ✅ Get all fee payments for these students
+    const payments = await fee.findAll({
+      where: {
+        admission_no: { [Op.in]: admissionNos },
+        feestype,
+        status: "Paid",
+      }
+    });
+
+    // ✅ Process: build report
+    const report = plans.map(plan => {
+      const paid = payments
+        .filter(p => p.admission_no === plan.admission_no)
+        .reduce((sum, p) => sum + p.paid_amount, 0);
+
+      return {
+        admission_no: plan.admission_no,
+        total_fee: plan.total_fee,
+        paid_amount: paid,
+        due_amount: plan.total_fee - paid,
+        due_date: plan.due_date
+      };
+    });
+
+    // ✅ Count paid / due
+    const paidCount = report.filter(r => r.paid_amount >= r.total_fee).length;
+    const dueCount = report.length - paidCount;
+
+    res.status(200).json({
+      success: true,
+      class_name,
+      section_name,
+      feestype,
+      total_students: report.length,
+      paid_count: paidCount,
+      due_count: dueCount,
+      details: report
+    });
+
+  } catch (err) {
+    console.error("Error getting fee status summary:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+exports.recordCashPayment = async (req, res) => {
+  try {
+    const {
+      admission_no,
+      feestype,
+      paid_amount,
+      payment_date,  // could default to NOW if not provided
+      notes
+    } = req.body;
+
+    if (!admission_no || !feestype || !paid_amount) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // You can generate receipt number like: CASH-20250618-001
+    const receipt_no = `CASH-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const feePayment = await fee.create({
+      admission_no,
+      feestype,
+      paid_amount,
+      payment_mode: "cash",
+      receipt_no,
+      payment_date: payment_date || new Date(),
+      notes: notes || null
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Cash payment recorded successfully.",
+      data: feePayment
+    });
+
+  } catch (err) {
+    console.error("Error recording cash payment:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getStudentFeeStatus = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+
+    if (!admission_no) {
+      return res.status(400).json({ error: "admission_no is required" });
+    }
+
+    const feePlans = await fee_plan.findAll({
+      where: { admission_no }
+    });
+
+    if (feePlans.length === 0) {
+      return res.status(404).json({ error: "No fee plans found for this student." });
+    }
+
+    const feePayments = await fee.findAll({
+      where: { admission_no, deletedAt: null }
+    });
+
+    // 👉 Here’s your updated mapping with parsed item_details
+    const statusList = feePlans.map(plan => {
+      const paidForType = feePayments
+        .filter(p => p.feestype === plan.feestype)
+        .reduce((sum, p) => sum + p.paid_amount, 0);
+
+      let itemDetails = null;
+      if (plan.item_details) {
+        try {
+          itemDetails = JSON.parse(plan.item_details);
+        } catch (e) {
+          console.error("Invalid item_details JSON", e);
+          itemDetails = [];
+        }
+      }
+
+      return {
+        feestype: plan.feestype,
+        total_fee: plan.total_fee,
+        due_amount: plan.total_fee - paidForType,
+        paid_amount: paidForType,
+        due_date: plan.due_date,
+        notes: plan.notes,
+        item_details: itemDetails
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: statusList
+    });
+
+  } catch (err) {
+    console.error("Error fetching student fee status:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
