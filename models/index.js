@@ -102,7 +102,7 @@ attendance.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admissio
 
 
 // Fee tracking
-student.hasMany(fee, { foreignKey: "admission_no", targetKey: "admission_no" });
+student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no" , as: "fee" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
 // Subject mapping with principal (unclear)
@@ -149,6 +149,16 @@ teacher.hasMany(teacher_class_sections, {
 teacher_class_sections.belongsTo(teacher, {
   foreignKey: 'emp_id', targetKey: 'emp_id'
  
+});
+
+student.hasMany(fee_plan, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no',
+  as: 'fee_plan',
+});
+fee_plan.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
 });
 
 // Export all models

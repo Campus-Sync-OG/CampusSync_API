@@ -56,12 +56,12 @@ exports.generateReceipt = async (req, res) => {
         .json({ message: "admission_no and feestype are required" });
     }
 
-    // ✅ Fetch the latest paid fee record
+    // Fetch the latest paid fee record
     const feeRecord = await fee.findOne({
       where: {
         admission_no,
         feestype,
-        paid_amount: { [Op.gt]: 0 }, // ✅ Fix: use Sequelize.Op
+        paid_amount: { [Op.gt]: 0 },
       },
       order: [["pay_date", "DESC"]],
     });
@@ -72,10 +72,25 @@ exports.generateReceipt = async (req, res) => {
         .json({ message: "No payment found for receipt generation" });
     }
 
-    const fileName = await generateReceiptPdf(feeRecord);
-    const filePath = `${req.protocol}://${req.get(
-      "host"
-    )}/receipts/${fileName}`;
+    // Fetch student record for name
+    const studentData = await student.findOne({
+      where: { admission_no }
+    });
+
+    if (!studentData) {
+      return res
+        .status(404)
+        .json({ message: "Student not found for this admission_no" });
+    }
+
+    // Attach student name to feeRecord (for template fill)
+    const feeRecordWithName = {
+      ...feeRecord.toJSON(),
+      student_name: studentData.student_name
+    };
+
+    const fileName = await generateReceiptPdf(feeRecordWithName);
+    const filePath = `${req.protocol}://${req.get("host")}/receipts/${fileName}`;
 
     res.status(200).json({ success: true, receiptUrl: filePath });
   } catch (err) {
@@ -83,6 +98,7 @@ exports.generateReceipt = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 exports.createPayment = async (req, res) => {
   try {
     const {
@@ -101,9 +117,7 @@ exports.createPayment = async (req, res) => {
 
     const studentdata = await student.findOne({ where: { admission_no } });
     if (!studentdata) {
-      return res
-        .status(404)
-        .json({ error: "Student not found with this admission_no." });
+      return res.status(404).json({ error: "Student not found with this admission_no." });
     }
 
     const class_name = studentdata.class;
@@ -114,30 +128,13 @@ exports.createPayment = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields." });
     }
 
-    const validFeeTypes = [
-      "Tuition",
-      "Books",
-      "Transport",
-      "Uniform",
-      "Multiple",
-    ];
+    const validFeeTypes = ["Tuition", "Books", "Transport", "Uniform", "Multiple"];
     if (!validFeeTypes.includes(feestype)) {
       return res.status(400).json({ error: "Invalid feestype." });
     }
 
     if (feestype !== "Multiple") {
-      const amounts = {
-        Tuition: tuition_amount,
-        Books: book_amount,
-        Transport: transport_amount,
-        Uniform: uniform_details
-          ? Object.values(uniform_details).reduce((a, b) => a + b, 0)
-          : 0,
-      };
-
-      // if (paid_amount !== amounts[feestype]) {
-      //  return res.status(400).json({ error: `paid_amount must match ${feestype} amount.` });
-      //  }
+      // Optional: Validate amounts for single fee type
     } else {
       const uniformTotal = uniform_details
         ? Object.values(uniform_details).reduce((a, b) => a + b, 0)
@@ -149,13 +146,57 @@ exports.createPayment = async (req, res) => {
         uniformTotal;
 
       if (paid_amount !== sumAmounts) {
-        return res
-          .status(400)
-          .json({ error: "paid_amount must equal sum of all fee components." });
+        return res.status(400).json({
+          error: "paid_amount must equal sum of all fee components.",
+        });
       }
     }
 
-    // Create Razorpay order
+    // Generate receipt number
+    const today = new Date();
+    const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    const generatedReceiptNo = `REC-${dateStr}-${randomPart}`;
+
+    if (pay_method === "Cash") {
+      // Directly create fee record and generate receipt
+      const newFee = await fee.create({
+        admission_no,
+        pay_date: new Date(),
+        pay_method,
+        paid_amount,
+        receipt_no: generatedReceiptNo,
+        status: "Paid",
+        feestype,
+        class_name,
+        section_name,
+        due_date,
+        uniform_details: uniform_details || null,
+        transport_amount: transport_amount || null,
+        book_amount: book_amount || null,
+        tuition_amount: tuition_amount || null,
+        paid_for_items: paid_for_items || null,
+        payment_notes: payment_notes || null,
+      });
+
+      return res.status(201).json({
+        message: "Cash payment recorded successfully",
+        receipt: {
+          receipt_no: newFee.receipt_no,
+          admission_no: newFee.admission_no,
+          student_name: studentdata.student_name,
+          class_name: newFee.class_name,
+          section_name: newFee.section_name,
+          feestype: newFee.feestype,
+          paid_amount: newFee.paid_amount,
+          pay_method: newFee.pay_method,
+          pay_date: new Date(newFee.pay_date),
+
+        }
+      });
+    }
+
+    // If not cash → Razorpay order flow
     const amountInPaise = paid_amount * 100;
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
@@ -169,13 +210,6 @@ exports.createPayment = async (req, res) => {
       },
     });
 
-    // Generate receipt number
-    const today = new Date();
-    const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
-    const randomPart = Math.floor(1000 + Math.random() * 9000);
-    const generatedReceiptNo = `REC-${dateStr}-${randomPart}`;
-
-    // Save payment record with razorpay_order_id
     const newFee = await fee.create({
       admission_no,
       pay_date: new Date(),
@@ -197,15 +231,17 @@ exports.createPayment = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Order created successfully",
+      message: "Online order created successfully",
       order: razorpayOrder,
       paymentRecord: newFee,
     });
+
   } catch (error) {
     console.error("Error creating payment:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 exports.verifyPayment = async (req, res) => {
   try {
@@ -657,5 +693,77 @@ exports.getStudentFeeStatus = async (req, res) => {
   } catch (err) {
     console.error("Error fetching student fee status:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getStudentFeeDetails = async (req, res) => {
+  const { admission_no } = req.params;
+
+  try {
+    const studentData = await student.findOne({
+      where: { admission_no },
+      include: [
+        {
+          model: fee,
+          as: 'fee',
+          attributes: ['feestype', 'paid_amount', 'pay_method', 'receipt_no', 'pay_date']
+        },
+        {
+          model: fee_plan,
+          as: 'fee_plan',
+          attributes: ['feestype', 'total_fee', 'due_date'],
+        }
+      ]
+    });
+
+    if (!studentData) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Group payments by fee type and sum paid
+    const feePaidMap = {};
+    studentData.fee.forEach(f => {
+      const type = f.feestype;
+      if (!feePaidMap[type]) feePaidMap[type] = 0;
+      feePaidMap[type] += f.paid_amount;
+    });
+
+    // Compose fees section
+    const fees = studentData.fee_plan.map(fp => {
+      const paid = feePaidMap[fp.feestype] || 0;
+      const due = fp.total_fee - paid;
+      return {
+        type: fp.feestype,
+        total: fp.total_fee,
+        paid,
+        due,
+        due_date: fp.due_date 
+      
+      };
+    });
+
+
+    // Compose history section
+    const history = studentData.fee.map(f => ({
+      date: f.pay_date ? f.pay_date : null,
+      fee_type: f.type,
+      pay_method: f.pay_method || 'N/A',
+      paid_amount: f.paid_amount,
+      receipt_no: f.receipt_no || null
+    }));
+
+    const response = {
+      name: studentData.student_name,
+      admission_no: studentData.admission_no,
+      class: studentData.class,
+      section: studentData.section,
+      fees,
+      history
+    };
+
+    return res.json(response);
+  } catch (error) {
+    console.error('Error in getStudentFeeDetails:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
