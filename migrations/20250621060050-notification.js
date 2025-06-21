@@ -18,11 +18,11 @@ module.exports = {
         allowNull: false,
       },
        class_id: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.INTEGER,
       allowNull: true,
     },
     section_id: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.INTEGER,
       allowNull: true,
     },
       user_id: {

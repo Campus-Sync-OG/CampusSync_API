@@ -107,3 +107,33 @@ exports.createNotification = async (req, res) => {
     return res.status(500).json({ error: 'Failed to send notification.' });
   }
 };
+
+exports.getNotifications = async (req, res) => {
+  try {
+    const { user_id, class_id, section_id } = req.query;
+
+    let whereClause = {};
+
+    if (user_id) {
+      whereClause.user_id = user_id;
+    }
+
+    if (class_id) {
+      whereClause.class_id = class_id;
+    }
+
+    if (section_id) {
+      whereClause.section_id = section_id;
+    }
+
+    const notifications = await notification.findAll({
+      where: whereClause,
+      order: [['createdAt', 'DESC']],  // sort latest first
+    });
+
+    return res.status(200).json({ data: notifications });
+  } catch (error) {
+    console.error('Error in getNotifications:', error);
+    return res.status(500).json({ error: 'Failed to fetch notifications.' });
+  }
+};
