@@ -16,7 +16,7 @@ module.exports = function (sequelize, DataTypes) {
       },
     },
     pay_date: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     pay_method: {
@@ -54,8 +54,8 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false,
     },
     due_date: {
-      type: DataTypes.DATE,
-      allowNull: false,
+      type: DataTypes.DATEONLY,
+      allowNull: true,
     },
 
     // Razorpay fields
@@ -110,6 +110,7 @@ module.exports = function (sequelize, DataTypes) {
     },
   }, {
     sequelize,
+    freezeTableName: true,
     paranoid: true,
     tableName: "fee",
     timestamps:false,
