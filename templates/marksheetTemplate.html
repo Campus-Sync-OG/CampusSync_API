@@ -1,0 +1,43 @@
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+    th { background-color: #DDEEFF; }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center;">ABC PUBLIC SCHOOL</h1>
+  <p style="text-align:center;">Affiliated to XYZ Board | Affiliation No: 123456</p>
+  <p style="text-align:center;">123, Main Road, City, State - ZIPCODE</p>
+  <p style="text-align:center;">Contact: +91-XXXXXXXXXX | www.abcschool.edu.in</p>
+
+  <h3>STUDENT INFORMATION</h3>
+  <table>
+    <tr><td>Student Name:</td><td>{{student_name}}</td><td>Roll Number:</td><td>{{roll_number}}</td></tr>
+    <tr><td>Admission No:</td><td>{{admission_no}}</td><td>Class / Section:</td><td>{{class_grade}}</td></tr>
+    <tr><td>Academic Year:</td><td>{{academic_year}}</td><td>Date of Birth:</td><td>{{dob}}</td></tr>
+    <tr><td>Exam Type:</td><td>{{exam_format}}</td><td>Issue Date:</td><td>{{issue_date}}</td></tr>
+  </table>
+
+  <h3>ACADEMIC PERFORMANCE</h3>
+  <table>
+    <tr>
+      <th>Subject</th><th>Max Marks</th><th>Marks Obtained</th><th>Grade</th>
+    </tr>
+    {{subjects_table}}
+  </table>
+
+  <h3>SUMMARY</h3>
+  <table>
+    <tr><td>Total Marks:</td><td>{{total_marks}}</td></tr>
+    <tr><td>Percentage:</td><td>{{percentage}}%</td></tr>
+    <tr><td>Result:</td><td>{{result}}</td></tr>
+    <tr><td>Overall Grade:</td><td>{{overall_grade}}</td></tr>
+    <tr><td>Remarks:</td><td>{{remarks}}</td></tr>
+  </table>
+
+  <p style="margin-top: 50px; text-align: right;">Principal: ____________________</p>
+</body>
+</html>

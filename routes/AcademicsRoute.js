@@ -7,5 +7,8 @@ router.get("/list", Auth.verifyToken, academicController.getAllAcademics);
 router.get("/:admission_no", Auth.verifyToken, academicController.getAcademicById);
 router.delete("/delete/:admission_no", Auth.verifyToken, academicController.deleteAcademicById);
 
+router.get("/marksheet/:admission_no/:exam_format", academicController.generateMarksheet);
+
+
 
 module.exports = router;

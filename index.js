@@ -43,6 +43,8 @@ const server = http.createServer(app);
 
 
 app.use("/receipts", express.static(path.join(__dirname, "receipts")));
+app.use("/marksheets", express.static(path.join(__dirname, "marksheets")));
+
 app.use(express.json());
 //routes needs to be defined 
 app.use(cors());
