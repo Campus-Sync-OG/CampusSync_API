@@ -593,15 +593,37 @@ exports.getCertificates = async (req, res) => {
 
 // Get all leave applications
 exports.getLeaveApplications = async (req, res) => {
-  try {
+   try {
+    const { emp_id } = req.params;  // Get emp_id from params
+
+    if (!emp_id) {
+      return res.status(400).json({ message: "Missing emp_id" });
+    }
+
+    // 1️⃣ Fetch leave applications where emp_id matches
     const leaves = await leaveapplication.findAll({
-      order: [['created_at', 'DESC']],
+      where: {
+        emp_id
+      }
     });
 
-    res.status(200).json({ leaves });
+    if (leaves.length === 0) {
+      return res.status(404).json({
+        message: "No leave applications found for this teacher"
+      });
+    }
+
+    res.status(200).json({
+      message: "Leave applications fetched successfully",
+      leaves
+    });
+
   } catch (error) {
-    console.error("Error fetching leave applications:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error("Error fetching teacher leaves:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message
+    });
   }
 };
 

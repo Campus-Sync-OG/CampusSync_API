@@ -57,7 +57,7 @@ router.get("/assignedSubjects/:emp_id", teacherController.getAssignedSubjectByTe
 // Route to get certificates issued to teachers
 router.get("/certificates", teacherController.getCertificates);
 
-router.get("/leaves", teacherController.getLeaveApplications);
+router.get("/leaves/:emp_id", teacherController.getLeaveApplications);
 
 router.post("/circular", upload.single("file"), teacherController.uploadCircular);
 

@@ -1,4 +1,4 @@
-const { student, user, achievement, feedback, certificates, leaveapplication, class_section, circular, teacher_subject, teacher,assignment,student_assignment } = require("../models");
+const { student, user, achievement, feedback, certificates, leaveapplication, class_section, circular, teacher_subject, teacher, assignment, student_assignment, teacher_class_sections } = require("../models");
 
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
@@ -374,24 +374,63 @@ exports.submitLeaveApplication = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // 1️⃣ Fetch student record
+    const studentRecord = await student.findOne({
+      where: { admission_no }
+    });
+
+    if (!studentRecord) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const { class: class_name, section: section_name } = studentRecord;
+
+    if (!class_name || !section_name) {
+      return res.status(400).json({ message: "Student class or section not set" });
+    }
+
+    // 2️⃣ Find the class teacher (assume 1 teacher per class/section or pick first if multiple)
+    const teacher = await teacher_class_sections.findOne({
+      where: {
+        class_name,
+        section_name
+      }
+    });
+
+    if (!teacher) {
+      return res.status(404).json({
+        message: "No teacher found for this class and section"
+      });
+    }
+
+    const { emp_id } = teacher; // assuming teacher_class_sections has emp_id
+
+    // 3️⃣ Create leave application and store emp_id
     const leave = await leaveapplication.create({
       admission_no,
       reason,
       from_date,
       to_date,
-      status: "Pending",
+      status: "pending",
       created_at: new Date(),
+      emp_id // store emp_id of the teacher
     });
 
     res.status(201).json({
       message: "Leave application submitted successfully",
-      leave,
+      leave
     });
+
   } catch (error) {
     console.error("Error submitting leave:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message
+    });
   }
 };
+
+
 
 exports.getCircularByAdmissionNo = async (req, res) => {
   try {
