@@ -32,6 +32,7 @@ const _teacher_leave_application = require('./teacher_leave_application');
 const _teacher_class_sections = require('./teacher_class_sections'); // Assuming this is needed
 const _student_promotion = require('./student-promotion'); // Assuming this is needed
 const _fee_plan = require('./fee_plan'); // Assuming this is needed
+const _calendar = require('./calendar'); // Assuming this is needed 
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -63,6 +64,7 @@ const teacher_leave_application = _teacher_leave_application(sequelize, DataType
 const student_documents=_student_documents(sequelize, DataTypes);const teacher_class_sections = _teacher_class_sections(sequelize, DataTypes); // Assuming this is needed
 const student_promotion = _student_promotion(sequelize, DataTypes); // Assuming this is needed
 const fee_plan = _fee_plan(sequelize, DataTypes); // Assuming this is needed
+const calendar = _calendar(sequelize, DataTypes); // Assuming this is needed
 
 // Define associations between models
 
@@ -194,4 +196,5 @@ module.exports = {
   teacher_class_sections,
   student_promotion,
   fee_plan,
+  calendar,
 };
