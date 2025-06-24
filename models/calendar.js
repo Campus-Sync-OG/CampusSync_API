@@ -26,10 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true, 
       // Example: ["Teacher", "Student", "Parent"]
     },
-    color: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
     description: {
       type: DataTypes.TEXT,
       allowNull: true,

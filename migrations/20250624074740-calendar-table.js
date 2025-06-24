@@ -29,10 +29,7 @@ module.exports = {
         type: Sequelize.JSON,
         allowNull: true
       },
-      color: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
+      
       description: {
         type: Sequelize.TEXT,
         allowNull: true
