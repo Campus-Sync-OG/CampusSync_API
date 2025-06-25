@@ -2,15 +2,19 @@ const { forms } = require("../models");
 
 const createForm = async (req, res) => {
   try {
-    const { title, date, link } = req.body;
+    const { title, startDate, endDate, link, status } = req.body;
 
-    if (!title || !link) {
-      return res.status(400).json({ message: "Title and link are required" });
+    if (!title || !link || !startDate || !endDate || !status) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const formattedDate = date || new Date().toISOString().split("T")[0];
-
-    const newForm = await forms.create({ title, date: formattedDate, link });
+    const newForm = await forms.create({
+      title,
+      link,
+      start_date: startDate,
+      end_date: endDate,
+      status,
+    });
 
     return res.status(201).json({
       message: "Form created successfully",
@@ -21,6 +25,7 @@ const createForm = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error: error.message || error });
   }
 };
+
 
 const updateForm = async (req, res) => {
   try {
@@ -66,4 +71,27 @@ const getAllForms = async (req, res) => {
   }
 };
 
-module.exports = { createForm, updateForm, getFormByTitle, getAllForms };
+const deleteForm = async (req, res) => {
+  try {
+    const formId = req.params.id;
+
+    const form = await forms.findByPk(formId);
+
+    if (!form) {
+      return res.status(404).json({ message: "Form not found" });
+    }
+
+    await form.destroy(); // permanently delete
+
+    return res.status(200).json({ message: "Form deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting form:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message || error,
+    });
+  }
+};
+
+
+module.exports = { createForm, updateForm, getFormByTitle, getAllForms,deleteForm };
