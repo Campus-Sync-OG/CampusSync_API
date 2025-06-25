@@ -15,4 +15,7 @@ router.get("/getbytitle/:title", Auth.verifyToken, FormController.getFormByTitle
 // Route to fetch all forms
 router.get("/getall", Auth.verifyToken, FormController.getAllForms);
 
+router.delete("/delete/:id", Auth.verifyToken, FormController.deleteForm);
+
+
 module.exports = router;
