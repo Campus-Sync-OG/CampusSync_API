@@ -89,3 +89,44 @@ exports.updateTimetable = async (req, res) => {
     }
   };
   
+
+  exports.getTimetableByClassSection = async (req, res) => {
+  try {
+    const { class_name, section_name } = req.query;
+
+    if (!class_name || !section_name) {
+      return res.status(400).json({ error: 'class_name and section_name are required in query params' });
+    }
+
+    const records = await timetable.findAll({
+      where: { class: class_name, section: section_name },
+      order: [['day', 'ASC'], ['time', 'ASC']],
+    });
+
+    if (!records.length) {
+      return res.status(404).json({ message: "No timetable found for the given class and section" });
+    }
+
+    // Group timetable by day
+    const schedule = {};
+    records.forEach(record => {
+      if (!schedule[record.day]) {
+        schedule[record.day] = [];
+      }
+      schedule[record.day].push({
+        time: record.time,
+        subject: record.subject,
+      });
+    });
+
+    res.status(200).json({
+      class: class_name,
+      section: section_name,
+      schedule,
+    });
+
+  } catch (error) {
+    console.error('Error fetching timetable by class and section:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
