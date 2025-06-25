@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const { Op } = require("sequelize");
 const { uploadImageToAzure } = require('../services/AzureBlobService');
+const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
 // Set up multer for PDF uploads
@@ -78,7 +79,7 @@ exports.createTeacher = async (req, res) => {
         .toFormat("jpeg")
         .toBuffer();
 
-      imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "student-profiles");
+      imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "teacher-profiles");
     }
 
     const newTeacher = await teacher.create({
