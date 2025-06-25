@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject ,teacher_class_sections} = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject, teacher_class_sections } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -7,18 +7,27 @@ const { uploadImageToAzure } = require('../services/AzureBlobService');
 const teacherAssignments = {}; // Object to store assignments in-memory
 
 // Set up multer for PDF uploads
-const storage = multer.memoryStorage(); // Use memory storage to access buffer
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max size
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF files are allowed'));
+      cb(new Error("Only PDF and image files (jpeg, png, webp) are allowed"));
     }
   },
-}).single('attachment');
+}).single("attachment");
 
 
 
@@ -62,6 +71,15 @@ exports.createTeacher = async (req, res) => {
       return res.status(400).json({ error: 'Employee ID does not match the unique ID in the User model' });
     }
 
+    let imageUrl = null;
+    if (req.file) {
+      const resizedImageBuffer = await sharp(req.file.buffer)
+        .resize(200, 200)
+        .toFormat("jpeg")
+        .toBuffer();
+
+      imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "student-profiles");
+    }
 
     const newTeacher = await teacher.create({
       emp_id,
@@ -75,7 +93,8 @@ exports.createTeacher = async (req, res) => {
       role,
       status,
       address,
-      gender
+      gender,
+      images: imageUrl
     });
 
     return res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
@@ -181,7 +200,7 @@ exports.addStudentMarks = async (req, res) => {
       !class_grade ||
       !section ||
       !exam_format ||
-       !academic_year ||
+      !academic_year ||
       !exam_date ||
       !Array.isArray(marks)
     ) {
@@ -213,7 +232,7 @@ exports.addStudentMarks = async (req, res) => {
       const { admission_no, subjects, marks_obtained, total_marks } = entry;
 
       // Basic validation
-      if (!admission_no || !subjects || !marks_obtained  || !total_marks) {
+      if (!admission_no || !subjects || !marks_obtained || !total_marks) {
         responses.push({
           admission_no,
           status: "failed",
@@ -247,7 +266,7 @@ exports.addStudentMarks = async (req, res) => {
         class_grade,
         section,
         exam_format,
-         academic_year,
+        academic_year,
         marks_obtained,
         total_marks,
         exam_date,
@@ -638,7 +657,7 @@ exports.getCertificates = async (req, res) => {
 
 // Get all leave applications
 exports.getLeaveApplications = async (req, res) => {
-   try {
+  try {
     const { emp_id } = req.params;  // Get emp_id from params
 
     if (!emp_id) {

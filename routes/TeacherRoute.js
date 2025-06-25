@@ -8,7 +8,7 @@ const upload = multer();
 const router = express.Router();
 
 // Route to create a new teacher
-router.post('/create', teacherController.createTeacher);
+router.post('/create', upload.single('photo'), teacherController.createTeacher);
 
 // Route to get all teachers (requires authentication)
 router.get('/all', Auth.verifyToken, teacherController.getAllTeachers);
