@@ -2,23 +2,31 @@ const { student, user, achievement, feedback, certificates, leaveapplication, cl
 
 const { uploadImageToAzure, deleteImageFromAzure } = require("../services/AzureBlobService");
 const multer = require("multer");
-const sharp = require("sharp"); // For image resizing and validation
+const sharp = require("sharp"); // Optional, for image processing
 
 const storage = multer.memoryStorage();
+
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/pdf") {
+    const allowedMimeTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only PDF is allowed."), false);
+      cb(new Error("Invalid file type. Only PDF and image files are allowed."), false);
     }
   },
 });
+
 // Create a student with profile picture upload
-
-
 exports.createStudent = async (req, res) => {
   try {
     const {
@@ -576,6 +584,9 @@ exports.getStudentsByClassAndSection = async (req, res) => {
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
+
+
+
 
 exports.upload = upload;
 

@@ -55,7 +55,7 @@ router.post("/upload/assignments", Auth.verifyToken, csvController.upload.single
 router.get("/assignedSubjects/:emp_id", teacherController.getAssignedSubjectByTeacher );
 
 // Route to get certificates issued to teachers
-router.get("/certificates", teacherController.getCertificates);
+router.get("/certificates/:emp_id", teacherController.getCertificates);
 
 router.get("/leaves/:emp_id", teacherController.getLeaveApplications);
 

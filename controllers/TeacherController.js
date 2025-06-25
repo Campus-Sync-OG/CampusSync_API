@@ -1,7 +1,8 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject ,teacher_class_sections} = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
+const { Op } = require("sequelize");
 const { uploadImageToAzure } = require('../services/AzureBlobService');
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -563,33 +564,77 @@ exports.getAssignedSubjectByTeacher = async (req, res) => {
 
 exports.getCertificates = async (req, res) => {
   try {
+    const emp_id = req.params.emp_id;
+
+    if (!emp_id) {
+      return res.status(403).json({ message: "Unauthorized: Teacher ID missing" });
+    }
+
+    // Step 1: Get teacher's assigned class-section pairs
+    const assignedSections = await teacher_class_sections.findAll({
+      where: { emp_id },
+      attributes: ['class_name', 'section_name']
+    });
+
+    if (!assignedSections.length) {
+      return res.status(404).json({ message: "No assigned class-sections found for this teacher" });
+    }
+
+    // Step 2: Match with student table columns
+    const assignedPairs = assignedSections.map(s => ({
+      class: s.class_name,
+      section: s.section_name
+    }));
+
+    // Step 3: Get students in those class-sections
+    const students = await student.findAll({
+      where: {
+        [Op.or]: assignedPairs
+      },
+      attributes: ['admission_no', 'student_name', 'class', 'section']
+    });
+
+    if (!students.length) {
+      return res.status(404).json({ message: "No students found for assigned classes" });
+    }
+
+    const studentMap = {};
+    const admissionNos = students.map(std => {
+      studentMap[std.admission_no] = std;
+      return std.admission_no;
+    });
+
+    // Step 4: Fetch certificates for those students
     const certificates = await achievement.findAll({
-      include: {
-        model: student,
-        attributes: ['student_name'], // or 'student_name'
-        required: false
+      where: {
+        admission_no: admissionNos
       }
     });
 
-    if (!certificates || certificates.length === 0) {
-      return res.status(404).json({ message: "No certificates found" });
+    if (!certificates.length) {
+      return res.status(404).json({ message: "No certificates found for assigned students" });
     }
 
-    // Optional: Flatten student_mname into root level
+    // Step 5: Format response with student name
     const formatted = certificates.map(cert => ({
       ...cert.toJSON(),
-      student_name: cert.student?.student_name || null
+      student_name: studentMap[cert.admission_no]?.student_name || null,
+      class: studentMap[cert.admission_no]?.class || null,
+      section: studentMap[cert.admission_no]?.section || null
     }));
 
     res.status(200).json({
       message: "Certificates retrieved successfully",
       certificates: formatted
     });
+
   } catch (error) {
     console.error("Error fetching certificates:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+
 
 // Get all leave applications
 exports.getLeaveApplications = async (req, res) => {
