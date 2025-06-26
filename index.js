@@ -48,7 +48,7 @@ app.use("/marksheets", express.static(path.join(__dirname, "marksheets")));
 
 app.use(express.json());
 //routes needs to be defined 
-app.use(cors());
+app.use(cors({}));
 PORT = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   res.send("Welcome to admin panel");
