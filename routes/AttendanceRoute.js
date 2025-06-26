@@ -13,4 +13,9 @@ router.get("/:admission_no", Auth.verifyToken, attendanceController. getAttendan
 // Route to delete an attendance record by ID
 router.delete("/delete/:admission_no", Auth.verifyToken, attendanceController.deleteAttendanceById);
 
+// In routes/attendance.js
+
+
+
+
 module.exports = router;

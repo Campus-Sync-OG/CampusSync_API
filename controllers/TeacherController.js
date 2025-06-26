@@ -1,23 +1,34 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject, teacher_class_sections } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
+const { Op } = require("sequelize");
 const { uploadImageToAzure } = require('../services/AzureBlobService');
+const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
 // Set up multer for PDF uploads
-const storage = multer.memoryStorage(); // Use memory storage to access buffer
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max size
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF files are allowed'));
+      cb(new Error("Only PDF and image files (jpeg, png, webp) are allowed"));
     }
   },
-}).single('attachment');
+}).single("attachment");
 
 
 
@@ -61,6 +72,15 @@ exports.createTeacher = async (req, res) => {
       return res.status(400).json({ error: 'Employee ID does not match the unique ID in the User model' });
     }
 
+    let imageUrl = null;
+    if (req.file) {
+      const resizedImageBuffer = await sharp(req.file.buffer)
+        .resize(200, 200)
+        .toFormat("jpeg")
+        .toBuffer();
+
+      imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "teacher-profiles");
+    }
 
     const newTeacher = await teacher.create({
       emp_id,
@@ -74,7 +94,8 @@ exports.createTeacher = async (req, res) => {
       role,
       status,
       address,
-      gender
+      gender,
+      images: imageUrl
     });
 
     return res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
@@ -162,40 +183,6 @@ exports.softDeleteTeacher = async (req, res) => {
   }
 };
 
-exports.getStudentsByClassAndSection = async (req, res) => {
-  try {
-    const { emp_id } = req.params; // Teacher's employee ID
-    const { className, section } = req.query; // Class & Section
-
-    if (!className) {
-      return res.status(400).json({ message: 'Class is required' });
-    }
-
-    const foundTeacher = await findTeacherById(emp_id, res);
-    if (!foundTeacher) return;
-
-    const queryCondition = { class: className };
-    if (section) queryCondition.section = section;
-
-    const students = await student.findAll({
-      where: queryCondition,
-      attributes: ['admission_no', 'student_name', 'roll_no', 'phone_no', 'dob', 'gender', 'status']
-    });
-
-    if (!students.length) {
-      return res.status(404).json({
-        message: section
-          ? `No students found in Class ${className} Section ${section}`
-          : `No students found in Class ${className}`
-      });
-    }
-
-    return res.status(200).json({ students });
-  } catch (error) {
-    console.error("Error fetching students:", error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
-};
 
 // controllers/academicsController.js
 exports.addStudentMarks = async (req, res) => {
@@ -214,7 +201,7 @@ exports.addStudentMarks = async (req, res) => {
       !class_grade ||
       !section ||
       !exam_format ||
-       !academic_year ||
+      !academic_year ||
       !exam_date ||
       !Array.isArray(marks)
     ) {
@@ -246,7 +233,7 @@ exports.addStudentMarks = async (req, res) => {
       const { admission_no, subjects, marks_obtained, total_marks } = entry;
 
       // Basic validation
-      if (!admission_no || !subjects || !marks_obtained  || !total_marks) {
+      if (!admission_no || !subjects || !marks_obtained || !total_marks) {
         responses.push({
           admission_no,
           status: "failed",
@@ -280,7 +267,7 @@ exports.addStudentMarks = async (req, res) => {
         class_grade,
         section,
         exam_format,
-         academic_year,
+        academic_year,
         marks_obtained,
         total_marks,
         exam_date,
@@ -338,47 +325,54 @@ exports.updateAcademicRecord = async (req, res) => {
 
 exports.uploadAttendance = async (req, res) => {
   try {
-    const { records, emp_id, date } = req.body;
+    const { date, attendance_type, records } = req.body;
 
-    // Ensure that records, emp_id, and date are provided
-    if (!records || !emp_id || !date) {
-      return res.status(400).json({ message: "Missing required fields: records, emp_id, date" });
+    // Validate attendance_type
+    if (!["day-wise", "period-wise"].includes(attendance_type)) {
+      return res.status(400).json({ message: "Invalid attendance type" });
     }
 
-    // Find the teacher
-    const foundTeacher = await findTeacherById(emp_id, res);
-    if (!foundTeacher) return;
-
-    const updatedRecords = [];
-    const failedRecords = [];
-
-    for (const record of records) {
-      const { admission_no, status } = record;
-
-      // Find the student by admission number
-      const foundStudent = await findStudentByAdmissionNo(admission_no, res);
-      if (!foundStudent) {
-        failedRecords.push({ admission_no, status, message: "Student not found" });
-        continue;
-      }
-
-      // Create the attendance record for this student
-      const attendanceRecord = await attendance.create({ admission_no, emp_id, date, status });
-      updatedRecords.push({ admission_no, status, created: true });
+    // Validate records
+    if (!records || !Array.isArray(records)) {
+      return res.status(400).json({ message: "Invalid records data" });
     }
 
-    // Respond with updated records and any failed attempts
-    return res.status(200).json({
-      message: "Bulk attendance update completed",
-      updatedRecords,
-      failedRecords,
-    });
+    // Prepare attendance data
+    const attendanceData = records.map(record => ({
+      admission_no: record.admission_no,
+      date: date || new Date().toISOString().split('T')[0],
+      status: record.status,
+      period: attendance_type === "period-wise" ? (record.period || "Full Day") : "Full Day",
+      attendance_type,
+      class: record.class,
+      section: record.section
+    }));
+
+    // Remove existing records to avoid duplicates
+    for (const data of attendanceData) {
+      await attendance.destroy({
+        where: {
+          admission_no: data.admission_no,
+          date: data.date,
+          period: data.period,
+          attendance_type: data.attendance_type
+        }
+      });
+    }
+
+    // Bulk insert new attendance
+    await attendance.bulkCreate(attendanceData);
+
+    return res.status(201).json({ message: "Attendance uploaded successfully" });
 
   } catch (error) {
-    console.error("Error uploading bulk attendance:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error uploading attendance:", error.message || error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
 
 exports.updateAttendance = async (req, res) => {
   try {
@@ -590,45 +584,111 @@ exports.getAssignedSubjectByTeacher = async (req, res) => {
 
 exports.getCertificates = async (req, res) => {
   try {
+    const emp_id = req.params.emp_id;
+
+    if (!emp_id) {
+      return res.status(403).json({ message: "Unauthorized: Teacher ID missing" });
+    }
+
+    // Step 1: Get teacher's assigned class-section pairs
+    const assignedSections = await teacher_class_sections.findAll({
+      where: { emp_id },
+      attributes: ['class_name', 'section_name']
+    });
+
+    if (!assignedSections.length) {
+      return res.status(404).json({ message: "No assigned class-sections found for this teacher" });
+    }
+
+    // Step 2: Match with student table columns
+    const assignedPairs = assignedSections.map(s => ({
+      class: s.class_name,
+      section: s.section_name
+    }));
+
+    // Step 3: Get students in those class-sections
+    const students = await student.findAll({
+      where: {
+        [Op.or]: assignedPairs
+      },
+      attributes: ['admission_no', 'student_name', 'class', 'section']
+    });
+
+    if (!students.length) {
+      return res.status(404).json({ message: "No students found for assigned classes" });
+    }
+
+    const studentMap = {};
+    const admissionNos = students.map(std => {
+      studentMap[std.admission_no] = std;
+      return std.admission_no;
+    });
+
+    // Step 4: Fetch certificates for those students
     const certificates = await achievement.findAll({
-      include: {
-        model: student,
-        attributes: ['student_name'], // or 'student_name'
-        required: false
+      where: {
+        admission_no: admissionNos
       }
     });
 
-    if (!certificates || certificates.length === 0) {
-      return res.status(404).json({ message: "No certificates found" });
+    if (!certificates.length) {
+      return res.status(404).json({ message: "No certificates found for assigned students" });
     }
 
-    // Optional: Flatten student_mname into root level
+    // Step 5: Format response with student name
     const formatted = certificates.map(cert => ({
       ...cert.toJSON(),
-      student_name: cert.student?.student_name || null
+      student_name: studentMap[cert.admission_no]?.student_name || null,
+      class: studentMap[cert.admission_no]?.class || null,
+      section: studentMap[cert.admission_no]?.section || null
     }));
 
     res.status(200).json({
       message: "Certificates retrieved successfully",
       certificates: formatted
     });
+
   } catch (error) {
     console.error("Error fetching certificates:", error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
 
+
+
 // Get all leave applications
 exports.getLeaveApplications = async (req, res) => {
   try {
+    const { emp_id } = req.params;  // Get emp_id from params
+
+    if (!emp_id) {
+      return res.status(400).json({ message: "Missing emp_id" });
+    }
+
+    // 1️⃣ Fetch leave applications where emp_id matches
     const leaves = await leaveapplication.findAll({
-      order: [['created_at', 'DESC']],
+      where: {
+        emp_id
+      }
     });
 
-    res.status(200).json({ leaves });
+    if (leaves.length === 0) {
+      return res.status(404).json({
+        message: "No leave applications found for this teacher"
+      });
+    }
+
+    res.status(200).json({
+      message: "Leave applications fetched successfully",
+      leaves
+    });
+
   } catch (error) {
-    console.error("Error fetching leave applications:", error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error("Error fetching teacher leaves:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message
+    });
   }
 };
 
@@ -683,7 +743,4 @@ exports.uploadCircular = async (req, res) => {
     return res.status(500).json({ error: "Failed to upload circular", details: error.message });
   }
 };
-
-
-
 

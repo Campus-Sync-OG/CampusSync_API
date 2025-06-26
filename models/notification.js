@@ -10,11 +10,6 @@ module.exports = function (sequelize, DataTypes) {
         autoIncrement: true,
         primaryKey: true,
       },
-      notification_type: {
-        type: DataTypes.ENUM('General Announcement', 'Fee Update','Event Announcement','Academic Results','Leave Update'),
-        allowNull: false,
-        defaultValue: 'General Announcement'
-      },
       title: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -23,6 +18,14 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: false,
       },
+       class_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    section_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
       user_id: {
         type: DataTypes.STRING,
         allowNull: false,

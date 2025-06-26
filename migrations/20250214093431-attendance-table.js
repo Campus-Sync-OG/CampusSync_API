@@ -1,44 +1,54 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("attendance", {
+    await queryInterface.createTable('attendance', {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        allowNull: false,
       },
       admission_no: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: "student", // Table name
-          key: "admission_no",
+          model: 'student', // name of the referenced table
+          key: 'admission_no',
         },
-        onDelete: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
-      emp_id: {
-        type: Sequelize.STRING(10),
+      class: {
+        type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: "teacher", // Table name
-          key: "emp_id",
-        },
-        onDelete: "CASCADE",
+      },
+      section: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       date: {
         type: Sequelize.DATEONLY,
         allowNull: false,
-        defaultValue: Sequelize.NOW, // Automatically fills the current date
+        defaultValue: Sequelize.fn('NOW'),
+      },
+      period: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 'day-wise',
       },
       status: {
-        type: Sequelize.STRING(10),
+        type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: "active",
       },
     });
   },
 
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("attendance");
+  down: async (queryInterface) => {
+    await queryInterface.dropTable('attendance');
   },
 };

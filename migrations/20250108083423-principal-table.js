@@ -33,6 +33,10 @@ module.exports = {
           isEmail: true,
         },
       },
+       address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       school_name: {
         type: Sequelize.STRING,
         allowNull: false,

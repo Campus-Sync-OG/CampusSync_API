@@ -10,4 +10,7 @@ router.put('/update', timetableController.updateTimetable);
 
 router.get('/student/:admission_no', timetableController.getTimetableByAdmissionNo);
 
+router.get('/class-section', timetableController.getTimetableByClassSection);
+
+
 module.exports = router;

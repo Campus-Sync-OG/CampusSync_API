@@ -12,12 +12,20 @@ module.exports = {
       title: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique:true,
+        unique: true,
       },
-      date: {
-        type: Sequelize.DATEONLY,
+      start_date: {
+        type: DataTypes.DATEONLY,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        // Fix defaultValue for DATEONLY
+      },
+      end_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+      },
+      status: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
       link: {
         type: Sequelize.STRING,

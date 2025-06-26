@@ -67,6 +67,10 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.DATE,
         allowNull: true,
       },
+       images: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     },
     {
       sequelize,

@@ -25,6 +25,14 @@ const _class_section = require('./class_section');
 const _timetable = require('./timetable');
 const _teacher_subject = require('./teacher_subject');
 const _circular = require('./circular');
+const _student_assignment = require('./student_assignment'); // Assuming this is needed
+const _studymodules = require('./studymodules'); // Assuming this is needed
+const _student_documents= require('./studentdocument');
+const _teacher_leave_application = require('./teacher_leave_application');
+const _teacher_class_sections = require('./teacher_class_sections'); // Assuming this is needed
+const _student_promotion = require('./student-promotion'); // Assuming this is needed
+const _fee_plan = require('./fee_plan'); // Assuming this is needed
+const _calendar = require('./calendar'); // Assuming this is needed 
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -50,6 +58,13 @@ const class_section = _class_section(sequelize, DataTypes);
 const timetable = _timetable(sequelize, DataTypes);
 const teacher_subject = _teacher_subject(sequelize, DataTypes);
 const circular = _circular(sequelize, DataTypes);
+const student_assignment = _student_assignment(sequelize, DataTypes);
+const studymodules = _studymodules(sequelize, DataTypes); // Assuming this is needed
+const teacher_leave_application = _teacher_leave_application(sequelize, DataTypes);
+const student_documents=_student_documents(sequelize, DataTypes);const teacher_class_sections = _teacher_class_sections(sequelize, DataTypes); // Assuming this is needed
+const student_promotion = _student_promotion(sequelize, DataTypes); // Assuming this is needed
+const fee_plan = _fee_plan(sequelize, DataTypes); // Assuming this is needed
+const calendar = _calendar(sequelize, DataTypes); // Assuming this is needed
 
 // Define associations between models
 
@@ -84,10 +99,12 @@ achievement.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admissi
 
 // Attendance tracking
 student.hasMany(attendance, { foreignKey: "admission_no", targetKey: "admission_no", as: "attendances" });
-teacher.hasMany(attendance, { foreignKey: "emp_id", targetKey: "emp_id", as: "attendances" });
+attendance.belongsTo(student, { foreignKey: 'admission_no', targetKey: 'admission_no' });
+
+
 
 // Fee tracking
-student.hasMany(fee, { foreignKey: "admission_no", targetKey: "admission_no" });
+student.hasMany(fee, { foreignKey: "admission_no", sourceKey: "admission_no" , as: "fee" });
 fee.belongsTo(student, { foreignKey: "admission_no", targetKey: "admission_no" });
 
 // Subject mapping with principal (unclear)
@@ -108,6 +125,43 @@ user.hasMany(announcement, { foreignKey: 'user_id', targetKey: 'unique_id', as: 
 // Subject assignment to teachers
 teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 teacher_subject.belongsTo(teacher, { foreignKey: 'emp_id', targetKey: 'emp_id' });
+
+user.hasMany(teacher_leave_application, {
+  foreignKey: 'emp_id',
+  sourceKey: 'unique_id',
+  as: 'leaveApplications',
+});
+
+// leave application belongs to a user (teacher)
+teacher_leave_application.belongsTo(user, {
+  foreignKey: 'emp_id',
+  targetKey: 'unique_id',
+  as: 'teacher',
+});
+ student_documents.belongsTo(student, {
+      foreignKey: 'admission_no',
+      targetKey: 'admission_no'
+    });
+
+teacher.hasMany(teacher_class_sections, {
+  foreignKey: 'emp_id',targetKey: 'emp_id'
+
+});
+
+teacher_class_sections.belongsTo(teacher, {
+  foreignKey: 'emp_id', targetKey: 'emp_id'
+ 
+});
+
+student.hasMany(fee_plan, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no',
+  as: 'fee_plan',
+});
+fee_plan.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+});
 
 // Export all models
 module.exports = {
@@ -135,4 +189,12 @@ module.exports = {
   timetable,
   teacher_subject,
   circular,
+  student_assignment,
+  studymodules,
+  teacher_leave_application,
+  student_documents,
+  teacher_class_sections,
+  student_promotion,
+  fee_plan,
+  calendar,
 };

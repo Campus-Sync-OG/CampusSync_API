@@ -50,7 +50,11 @@ module.exports = {
         type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
         defaultValue: 'active',
-      }
+      },
+       images: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     });
   },
 

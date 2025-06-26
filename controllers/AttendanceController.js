@@ -1,7 +1,7 @@
-const { attendance } = require('../models');
+const { attendance,student } = require('../models');
 
 // Get all attendance records
-const getAllAttendance = async (req, res) => {
+exports.getAllAttendance = async (req, res) => {
   try {
     const attendanceRecords = await attendance.findAll();
     res.status(200).json(attendanceRecords);
@@ -12,7 +12,7 @@ const getAllAttendance = async (req, res) => {
 };
 
 // Get attendance record by ID
-const  getAttendanceByAdmissionNo
+exports.getAttendanceByAdmissionNo
   = async (req, res) => {
   try {
     const { admission_no } = req.params;
@@ -37,7 +37,7 @@ const  getAttendanceByAdmissionNo
 };
 
 // Delete attendance record by ID
-const deleteAttendanceById = async (req, res) => {
+exports.deleteAttendanceById = async (req, res) => {
   try {
     const { admission_no } = req.params;
     const deleted = await attendance.destroy({ where: { admission_no } });
@@ -51,5 +51,5 @@ const deleteAttendanceById = async (req, res) => {
     res.status(500).json({ error: "Failed to delete attendance record" });
   }
 };
+// controllers/attendanceController.js
 
-module.exports = { getAllAttendance, getAttendanceByAdmissionNo , deleteAttendanceById };

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f5faff;
+      color: #000;
+    }
+
+    .marksheet {
+      border: 1px solid #000;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .header p {
+      margin: 2px 0;
+      font-size: 12px;
+    }
+
+    .section-title {
+      background: #d9e7f4;
+      padding: 5px 10px;
+      font-weight: bold;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .student-info {
+      font-size: 14px;
+      margin-top: 10px;
+      line-height: 1.8;
+    }
+
+    .student-info span {
+      display: inline-block;
+      min-width: 200px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    table th, table td {
+      border: 1px solid #000;
+      padding: 5px;
+      text-align: center;
+    }
+
+    table th {
+      background: #d9e7f4;
+    }
+
+    .summary {
+      font-size: 14px;
+      margin-top: 10px;
+      line-height: 1.8;
+    }
+
+    .principal {
+      margin-top: 40px;
+      text-align: right;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="marksheet">
+    <div class="header">
+      <h1>ABC PUBLIC SCHOOL</h1>
+      <p>Affiliated to ABX Board | Affiliation No: 123456</p>
+      <p>123, Main Road, City, State - ZIPCODE</p>
+      <p>Contact: +91-XXXXXXXXXX | www.abcschool.edu.in</p>
+    </div>
+
+    <div class="section-title">STUDENT INFORMATION</div>
+    <div class="student-info">
+      <div><span><strong>Student Name:</strong></span> {{student_name}} <span><strong>Roll Number:</strong></span> {{roll_number}}</div>
+      <div><span><strong>Admission No:</strong></span> {{admission_no}} <span><strong>Class / Section:</strong></span> {{class}} / {{section}}</div>
+      <div><span><strong>Academic Year:</strong></span> {{academic_year}} <span><strong>Date of Birth:</strong></span> {{dob}}</div>
+      <div><span><strong>Exam Type:</strong></span> {{exam_format}} <span><strong>Issue Date:</strong></span> {{issue_date}}</div>
+    </div>
+
+    <div class="section-title">ACADEMIC PERFORMANCE</div>
+    <table>
+    <tr>
+      <th>Subject</th><th>Max Marks</th><th>Marks Obtained</th><th>Grade</th>
+    </tr>
+    {{subjects_table}}
+  </table>
+
+    <div class="section-title">SUMMARY</div>
+    <div class="summary">
+      <div><strong>Total Marks Obtained:</strong> {{total_marks_obtained}} / {{total_max_marks}}</div>
+      <div><strong>Percentage:</strong> {{percentage}}%</div>
+      <div><strong>Result:</strong> {{result}}</div>
+      <div><strong>Overall Grade:</strong> {{overall_grade}}</div>
+      <div><strong>Remarks:</strong> {{remarks}}</div>
+    </div>
+
+    <div class="principal">
+      Principal: __________________
+    </div>
+  </div>
+</body>
+</html>

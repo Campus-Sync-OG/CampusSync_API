@@ -3,6 +3,16 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const http = require("http");
+
+//const { connectRedis } = require('./config/redisClient'); // adjust path
+//(async () => {
+ //await connectRedis(); // 🧠 important: make sure to call before using the client
+//})();
+
+const path = require("path");
+
+
+
 const userRoutes = require("./routes/UserRoute");
 const studentRoutes = require('./routes/StudentRoute');
 const teacherRoutes = require('./routes/TeacherRoute');
@@ -21,12 +31,20 @@ const AnnouncementRoutes = require("./routes/AnnouncementRoute");
 const subjectRoutes = require('./routes/SubjectRoute');
 const classsectionRoutes=require('./routes/ClassSectionRoutes');
 const timetableRoutes=require('./routes/TimetableRoute');
+const leavesRoutes = require('./routes/LeavesRoutes');
+const studymodulesRoutes = require('./routes/StudymoduleRoute');
+const chatRoutes = require('./routes/ChatRoute');
+const promotionRoutes = require('./routes/PromotionRoute');
+const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
+const calendarRoutes = require('./routes/CalendarRoute');
 
 
 
 const server = http.createServer(app);
 
 
+app.use("/receipts", express.static(path.join(__dirname, "receipts")));
+app.use("/marksheets", express.static(path.join(__dirname, "marksheets")));
 
 app.use(express.json());
 //routes needs to be defined 
@@ -69,6 +87,12 @@ app.use('/api/announcement', AnnouncementRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/classsection', classsectionRoutes);
 app.use('/api/timetable', timetableRoutes);
+app.use('/api/studymodules', studymodulesRoutes);
+app.use('/api/leaves', leavesRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/promotion', promotionRoutes);
+app.use('/api/studentdocuments', studentDocumentRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);

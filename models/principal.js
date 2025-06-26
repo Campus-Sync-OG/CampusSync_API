@@ -28,6 +28,14 @@ module.exports = function (sequelize, DataTypes) {
           isNumeric: true,
         },
       },
+       address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      school_name: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -43,7 +51,7 @@ module.exports = function (sequelize, DataTypes) {
     }, {
     sequelize,
     tableName: 'principal',
-    timestamps: false, // Disable createdAt/updatedAt timestamps
+    timestamps: false, // Disable createdAt/updatedAt timestamp
   }
   );
 };

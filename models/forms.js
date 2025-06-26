@@ -14,10 +14,18 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
       },
-      date: {
+      start_date: {
         type: DataTypes.DATEONLY,
-        allowNull: false,
-        defaultValue: sequelize.fn("NOW"), // Fix defaultValue for DATEONLY
+        allowNull: true,
+        // Fix defaultValue for DATEONLY
+      },
+      end_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+      },
+      status:{
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       link: {
         type: DataTypes.STRING,
