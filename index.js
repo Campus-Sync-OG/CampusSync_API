@@ -37,9 +37,9 @@ const chatRoutes = require('./routes/ChatRoute');
 const promotionRoutes = require('./routes/PromotionRoute');
 const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
 const calendarRoutes = require('./routes/CalendarRoute');
-
-
-
+const locationRoutes = require('./routes/LocationRoutes');
+const busRoutes = require('./routes/BusRoutes');
+const driverRoutes = require('./routes/DriverRoutes');
 const server = http.createServer(app);
 
 
@@ -75,6 +75,9 @@ app.use('/api/classsection', classsectionRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/studymodules', studymodulesRoutes);
 app.use('/api/leaves', leavesRoutes);
+app.use('/api/location', locationRoutes);
+app.use('/api/bus', busRoutes);
+app.use('/api/driver', driverRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/promotion', promotionRoutes);
 app.use('/api/studentdocuments', studentDocumentRoutes);
