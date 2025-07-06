@@ -11,6 +11,8 @@ module.exports = {
           model: 'user',
           key: 'unique_id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       emp_name: {
         type: Sequelize.STRING,
@@ -20,15 +22,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      subjects: {
+      blood_gp: {
         type: Sequelize.STRING,
         allowNull: true,
-        references: {
-          model: 'subject',
-          key: 'subject_name',
-        },
       },
-      password: {
+      religion: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -51,14 +49,38 @@ module.exports = {
         allowNull: false,
         defaultValue: 'active',
       },
-       images: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dob: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      images: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      salary_structure_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'salary_structure',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      }
     });
   },
 
   down: async (queryInterface, Sequelize) => {
+    // Only drop the table, no enum cleanup
     await queryInterface.dropTable('teacher');
+    
   }
 };
