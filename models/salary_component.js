@@ -1,8 +1,5 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
-
 module.exports = function (sequelize, DataTypes) {
-  const salary_component = sequelize.define('salary_component', {
+  return sequelize.define('salary_component', {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
@@ -11,45 +8,29 @@ module.exports = function (sequelize, DataTypes) {
     structure_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: true, // One set per structure
       references: {
         model: 'salary_structure',
         key: 'id',
       },
       onDelete: 'CASCADE',
     },
-    name: {
-      type: DataTypes.STRING,
+    component_values: {
+      type: DataTypes.JSONB, // or JSON
       allowNull: false,
-    },
-    type: {
-      type: DataTypes.ENUM('earning', 'deduction'),
-      allowNull: false,
-    },
-    amount: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-    },
-    is_percentage: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
     },
     created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
       defaultValue: DataTypes.NOW,
     },
     updated_at: {
       type: DataTypes.DATE,
-      allowNull: false,
       defaultValue: DataTypes.NOW,
-    }
+    },
   }, {
     sequelize,
     tableName: 'salary_component',
     underscored: true,
     timestamps: false,
   });
-
-  return salary_component;
 };

@@ -1,6 +1,3 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
-
 module.exports = function (sequelize, DataTypes) {
   const payroll_record = sequelize.define('payroll_record', {
     id: {
@@ -18,7 +15,7 @@ module.exports = function (sequelize, DataTypes) {
       onDelete: 'CASCADE',
     },
     month: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING, // or DATEONLY if you prefer "2025-07-01"
       allowNull: false,
     },
     earnings: {
@@ -33,10 +30,20 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    earnings_breakdown: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      // Example: { "Basic": 20000, "HRA": 12000 }
+    },
+    deductions_breakdown: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      // Example: { "PF": 1800 }
+    },
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'processed',
+      defaultValue: 'processed', // processed, failed, pending, etc.
     },
     created_at: {
       type: DataTypes.DATE,

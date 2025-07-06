@@ -11,39 +11,28 @@ module.exports = {
       structure_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        unique: true,
         references: {
           model: 'salary_structure',
           key: 'id',
         },
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       },
-      name: {
-        type: Sequelize.STRING,
+      component_values: {
+        type: Sequelize.JSONB, // or Sequelize.JSON if not using PostgreSQL
         allowNull: false,
-      },
-      type: {
-        type: Sequelize.ENUM('earning', 'deduction'),
-        allowNull: false,
-      },
-      amount: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
-      is_percentage: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
       },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
-      }
+        defaultValue: Sequelize.fn('NOW'),
+      },
     });
   },
 

@@ -33,6 +33,14 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      earnings_breakdown: {
+        type: Sequelize.JSONB, // use Sequelize.JSON if not on PostgreSQL
+        allowNull: true,
+      },
+      deductions_breakdown: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
       status: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -41,13 +49,13 @@ module.exports = {
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        defaultValue: Sequelize.fn('NOW'),
       },
       updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
-      }
+        defaultValue: Sequelize.fn('NOW'),
+      },
     });
   },
 

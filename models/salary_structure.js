@@ -21,11 +21,7 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    school_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      // Optional: You can later link to a `school` table
-    },
+   
     created_at: {
       type: DataTypes.DATE,
       allowNull: false,
