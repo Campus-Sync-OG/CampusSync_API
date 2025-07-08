@@ -9,6 +9,6 @@ router.get('/all', subjectController.getAllSubjects);
 router.get('/subjects/:id', subjectController.getSubjectById);
 
 // Delete a subject by ID
-router.delete('/subjects/:id', subjectController.deleteSubject);
+router.delete('/:id', subjectController.deleteSubject);
 
 module.exports = router;
