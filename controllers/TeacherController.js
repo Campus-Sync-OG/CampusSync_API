@@ -137,17 +137,30 @@ exports.getTeacherById = async (req, res) => {
   }
 };
 
+
+
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { emp_name, email, subjects, password, phone_no, joining_date, status } = req.body;
+    const {
+      emp_name,
+      email,
+      subjects,
+      password,
+      phone_no,
+      joining_date,
+      status,
+      role,               // ⬅️ Added
+      class_name,         // ⬅️ Added
+      section_name        // ⬅️ Added
+    } = req.body;
 
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
     if (!foundTeacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
-    // Update fields if provided
+    // ✅ Update fields if provided
     foundTeacher.emp_name = emp_name || foundTeacher.emp_name;
     foundTeacher.email = email || foundTeacher.email;
     foundTeacher.subjects = subjects || foundTeacher.subjects;
@@ -160,12 +173,39 @@ exports.updateTeacher = async (req, res) => {
     }
 
     await foundTeacher.save();
-    return res.status(200).json({ message: 'Teacher updated successfully', teacher: foundTeacher });
+
+    // ✅ If teacher is assigned role "Class Teacher" then add/update teacher_class_sections
+    if (role === "Class Teacher" && class_name && section_name) {
+      // Check if entry exists already
+      const existingRecord = await teacher_class_sections.findOne({
+        where: { emp_id, class_name, section_name }
+      });
+
+      if (!existingRecord) {
+        await teacher_class_sections.create({
+          emp_id,
+          role,
+          class_name,
+          section_name
+        });
+      } else {
+        // Optional: update role if it changed
+        existingRecord.role = role;
+        await existingRecord.save();
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Teacher updated successfully',
+      teacher: foundTeacher
+    });
+
   } catch (error) {
     console.error("Error updating teacher:", error);
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 // Soft delete a teacher (mark as inactive)
 exports.softDeleteTeacher = async (req, res) => {

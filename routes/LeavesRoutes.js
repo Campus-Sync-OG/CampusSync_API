@@ -8,4 +8,6 @@ router.put('/review/:id', Auth.verifyToken, leaveController.reviewLeave);
 router.get('/my-leaves', Auth.verifyToken, leaveController.viewMyLeaves);
 router.get('/all', Auth.verifyToken, leaveController.viewAllLeaves);
 
+router.get("/teacher-leaves", Auth.verifyToken, leaveController.viewLeavesByTeacher);
+
 module.exports = router;
