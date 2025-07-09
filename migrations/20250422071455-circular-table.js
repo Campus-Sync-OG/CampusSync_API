@@ -41,6 +41,14 @@ module.exports = {
           key: 'admission_no'
         },
       },
+      emp_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'teacher',
+          key: 'emp_id'
+        },
+      },
       // If you want timestamps later, add createdAt, updatedAt here
     });
   },

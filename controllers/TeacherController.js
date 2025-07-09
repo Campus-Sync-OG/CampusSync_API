@@ -696,29 +696,37 @@ exports.uploadCircular = async (req, res) => {
   try {
     const { title, description, date, class_name, section } = req.body;
     const file = req.file;
+    const emp_id = req.user?.unique_id; // ⬅️ Take emp_id directly from token
 
+    // 🔍 Validation
     if (!title || !description || !date || !class_name || !section) {
-      return res.status(400).json({ error: "Title, description, date, class_name, and section are required" });
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const fileName = `${Date.now()}-${file.originalname}`;
+    if (!emp_id) {
+      return res.status(401).json({ error: "Unauthorized: emp_id missing in token" });
+    }
 
-    // Upload file to Azure Blob Storage
+    // ☁️ Upload file to Azure
+    const fileName = `${Date.now()}-${file.originalname}`;
     const blobUrl = await uploadImageToAzure(file.buffer, fileName);
 
     if (!blobUrl) {
       return res.status(500).json({ error: "File upload failed" });
     }
 
-    // Fetch students by class_name and section
-    const students = await student.findAll({ where: { class: class_name, section } });
+    // 🎯 Get students of target class and section
+    const students = await student.findAll({
+      where: { class: class_name, section },
+    });
+
     const admissionNos = students.map((s) => s.admission_no);
 
-    // Loop through the admissionNos array and create a new circular record for each
+    // 📩 Create a circular per student
     const circulars = [];
     for (const admission_no of admissionNos) {
       const newCircular = await circular.create({
@@ -728,19 +736,24 @@ exports.uploadCircular = async (req, res) => {
         attachment_url: blobUrl,
         class_name,
         section,
-        admission_no, // Store each admission_no individually
+        admission_no,
+        emp_id: emp_id, // ⬅️ Directly from token
       });
       circulars.push(newCircular);
     }
 
     return res.status(201).json({
-      message: "Circulars uploaded successfully for each student",
+      message: "Circulars uploaded successfully",
       circulars,
     });
 
   } catch (error) {
     console.error("Upload Circular Error:", error);
-    return res.status(500).json({ error: "Failed to upload circular", details: error.message });
+    return res.status(500).json({
+      error: "Failed to upload circular",
+      details: error.message,
+    });
   }
 };
 
+exports.upload = upload;

@@ -59,7 +59,8 @@ router.get("/certificates/:emp_id", teacherController.getCertificates);
 
 router.get("/leaves/:emp_id", teacherController.getLeaveApplications);
 
-router.post("/circular", upload.single("file"), teacherController.uploadCircular);
+router.post("/circular", upload.single("file"), Auth.verifyToken,teacherController.uploadCircular);
+
 
 
 
