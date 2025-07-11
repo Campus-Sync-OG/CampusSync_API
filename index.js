@@ -37,6 +37,7 @@ const chatRoutes = require('./routes/ChatRoute');
 const promotionRoutes = require('./routes/PromotionRoute');
 const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
 const calendarRoutes = require('./routes/CalendarRoute');
+const circularRoutes = require('./routes/CircularRoute');
 
 
 
@@ -95,6 +96,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/promotion', promotionRoutes);
 app.use('/api/studentdocuments', studentDocumentRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/circulars', circularRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);

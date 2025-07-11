@@ -69,3 +69,24 @@ exports.viewAllLeaves = async (req, res) => {
     res.status(500).json({ message: 'Error fetching leave records' });
   }
 };
+
+exports.viewLeavesByTeacher = async (req, res) => {
+  try {
+    const emp_id = req.user?.unique_id;
+
+    if (!emp_id) {
+      return res.status(401).json({ error: "Unauthorized: emp_id missing" });
+    }
+
+    const leaves = await teacher_leave_application.findAll({
+      where: { emp_id }, // Only this teacher's leaves
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.status(200).json({ success: true, data: leaves });
+  } catch (err) {
+    console.error("Error fetching teacher leaves:", err);
+    res.status(500).json({ message: "Error fetching leave records" });
+  }
+};
+

@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
 const puppeteer = require("puppeteer");
+const { get } = require('http');
 
 // Get all academic records
 const getAllAcademics = async (req, res) => {
@@ -161,7 +162,81 @@ const generateMarksheet = async (req, res) => {
   }
 };
 
-module.exports = { getAllAcademics, getAcademicById, deleteAcademicById, generateMarksheet };
+
+// 🎯 Controller: Fetch class-wise performance
+const getClassPerformance = async (req, res) => {
+  const { classGrade, section } = req.params;
+
+  try {
+    // Step 1: Get all academic records for the class + section
+    const records = await academics.findAll({
+      where: {
+        class_grade: classGrade,
+        section: section,
+      },
+    });
+
+    if (records.length === 0) {
+      return res.status(404).json({ message: 'No academic data found for this class and section.' });
+    }
+
+    // Step 2: Group by student (admission_no)
+    const performanceMap = {};
+
+    records.forEach((entry) => {
+      const admission_no = entry.admission_no;
+
+      if (!performanceMap[admission_no]) {
+        performanceMap[admission_no] = {
+          admission_no: entry.admission_no,
+          class_grade: entry.class_grade,
+          section: entry.section,
+          academic_year: entry.academic_year,
+          exam_format: entry.exam_format,
+          subjects: [],
+          total_obtained: 0,
+          total_max: 0,
+        };
+      }
+
+      performanceMap[admission_no].subjects.push({
+        subject: entry.subjects,
+        marks_obtained: entry.marks_obtained,
+        total_marks: entry.total_marks,
+      });
+
+      performanceMap[admission_no].total_obtained += entry.marks_obtained;
+      performanceMap[admission_no].total_max += entry.total_marks;
+    });
+
+    // Step 3: Add student names and percentage
+    const admissionNos = Object.keys(performanceMap);
+    const students = await student.findAll({
+      where: { admission_no: { [Op.in]: admissionNos } },
+      attributes: ['admission_no', 'student_name'],
+    });
+
+    const studentMap = Object.fromEntries(
+      students.map((s) => [s.admission_no, s.student_name])
+    );
+
+    const result = Object.values(performanceMap).map((studentData) => ({
+      ...studentData,
+      student_name: studentMap[studentData.admission_no] || 'Unknown',
+      percentage: ((studentData.total_obtained / studentData.total_max) * 100).toFixed(2),
+    }));
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('❌ Error in getClassPerformance:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+
+
+module.exports = { getAllAcademics, getAcademicById, deleteAcademicById, generateMarksheet,getClassPerformance };
 
 
 

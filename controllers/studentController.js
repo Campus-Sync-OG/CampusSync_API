@@ -585,9 +585,4 @@ exports.getStudentsByClassAndSection = async (req, res) => {
   }
 };
 
-
-
-
 exports.upload = upload;
-
-
