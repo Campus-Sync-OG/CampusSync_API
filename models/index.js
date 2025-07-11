@@ -36,7 +36,7 @@ const _calendar = require('./calendar'); // Assuming this is needed
 const _salary_structure = require('./salary_structure');
 const _salary_component =require('./salary_component');
 const _payroll_record = require('./payroll_record');
-
+const _component_type = require('./component_type');
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -72,6 +72,7 @@ const calendar = _calendar(sequelize, DataTypes); // Assuming this is needed
 const salary_structure = _salary_structure(sequelize, DataTypes);
 const salary_component = _salary_component(sequelize, DataTypes);
 const payroll_record = _payroll_record(sequelize, DataTypes);
+const component_type = _component_type(sequelize, DataTypes);
 // Define associations between models
 
 // User to role mapping
@@ -241,4 +242,5 @@ module.exports = {
   salary_structure,
   salary_component,
   payroll_record,
+  component_type
 };
