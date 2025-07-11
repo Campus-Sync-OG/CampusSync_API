@@ -58,13 +58,13 @@ app.use(
       "http://localhost:5173",
       "http://127.0.0.1:5173",
       "https://school-test.trippcard.in"
-     
     ],
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     credentials: true
   })
 );
 
+app.options("*", cors());
 
 PORT = process.env.PORT || 3000;
 app.get("/", (req, res) => {
