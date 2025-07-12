@@ -36,6 +36,10 @@ module.exports = {
         allowNull: false,
         defaultValue: 'Pending',
       },
+      emp_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,

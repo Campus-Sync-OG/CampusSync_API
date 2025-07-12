@@ -38,6 +38,7 @@ module.exports = function (sequelize, DataTypes) {
       emp_id: {
         type: DataTypes.STRING,
         allowNull: true,
+
       },
       created_at: {
         type: DataTypes.DATE,
