@@ -7,6 +7,8 @@ const {
 const { Op } = require('sequelize');
 const cron = require('node-cron');
 
+
+
 exports.createComponents = async (req, res) => {
   try {
     const { structure_id, component_values } = req.body;
@@ -15,18 +17,38 @@ exports.createComponents = async (req, res) => {
       return res.status(400).json({ error: 'Invalid input data' });
     }
 
-    // Delete existing components for the structure (overwrite logic)
-    await salary_component.destroy({ where: { structure_id } });
+    // Fetch component types from DB
+    const allTypes = await component_type.findAll();
+    const typeMap = new Map();
+    allTypes.forEach(type => typeMap.set(type.name.trim().toLowerCase(), type.type));
 
-    // Create new entry
-    const result = await salary_component.create({
-      structure_id,
-      component_values
+    // Enrich the input with the correct type based on component name
+    const enrichedComponents = component_values.map(comp => {
+      const typeFromDB = typeMap.get(comp.name.trim().toLowerCase());
+      return {
+        name: comp.name.trim(),
+        amount: comp.amount,
+        is_percentage: comp.is_percentage,
+        type: typeFromDB || 'earning' // default to 'earning' if not found
+      };
     });
 
-    return res.status(201).json({ message: 'Components saved (overwritten if existed)', result });
+    // Overwrite existing components
+    await salary_component.destroy({ where: { structure_id } });
+
+    // Save new set
+    const result = await salary_component.create({
+      structure_id,
+      component_values: enrichedComponents
+    });
+
+    return res.status(201).json({
+      message: '✅ Component values saved successfully.',
+      result
+    });
+
   } catch (err) {
-    console.error('Component creation failed:', err);
+    console.error('❌ Component creation failed:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -170,6 +192,7 @@ exports.generatePayroll = async (req, res) => {
 };
 
 
+
 exports.generatePayrollForAllTeachers = async (req, res) => {
   try {
     const { month } = req.body;
@@ -178,104 +201,104 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
       return res.status(400).json({ error: 'Month is required in the request body' });
     }
 
-    const parsedMonth = month.slice(0, 7); // keep YYYY-MM format
+    // Ensure correct format for DB comparison
+    const parsedMonth = `${month}`; // Convert "2025-07" to "2025-07-01"
 
+    // Step 1: Get all active teachers with valid salary structure
     const teachers = await teacher.findAll({
       where: {
         status: 'active',
         salary_structure_id: { [Op.ne]: null },
-        emp_id: { [Op.ne]: null },
+        emp_id: { [Op.ne]: null }
       },
       attributes: ['emp_id', 'salary_structure_id']
     });
 
-    const structures = await salary_structure.findAll(); // includes base_salary
-    const components = await salary_component.findAll(); // includes component_values as JSON string
+    // Step 2: Fetch all salary structures and their components
+    const structures = await salary_structure.findAll();
+    const components = await salary_component.findAll();
 
-    // Map structure_id → base_salary
+    // Step 3: Create lookup maps
     const structureMap = new Map();
-    structures.forEach(s => structureMap.set(s.id, Number(s.base_salary)));
+    structures.forEach(s => structureMap.set(s.id, parseFloat(s.base_salary)));
 
-    // Map structure_id → [components...]
     const componentMap = new Map();
     components.forEach(c => {
-      try {
-        const parsed = typeof c.component_values === 'string'
-          ? JSON.parse(c.component_values)
-          : c.component_values;
-
-        if (!componentMap.has(c.structure_id)) {
-          componentMap.set(c.structure_id, []);
-        }
-        componentMap.get(c.structure_id).push(parsed);
-      } catch (err) {
-        console.error(`Invalid component JSON for structure_id ${c.structure_id}:`, err);
-      }
+      componentMap.set(c.structure_id, c.component_values); // Array of component objects
     });
 
     let generated = 0;
     const failed = [];
 
+    // Step 4: Generate payroll per teacher
     for (const t of teachers) {
       const empId = t.emp_id;
       const structureId = t.salary_structure_id;
-
       const baseSalary = structureMap.get(structureId);
-      const componentsList = componentMap.get(structureId);
+      const componentValues = componentMap.get(structureId);
 
-      if (!baseSalary || !componentsList) {
-        failed.push({ emp_id: empId, reason: 'Missing salary structure or components' });
+      if (!baseSalary || !componentValues) {
+        failed.push({ emp_id: empId, reason: 'Missing base salary or components' });
         continue;
       }
 
       let totalEarnings = 0;
       let totalDeductions = 0;
-      const earnings = [];
-      const deductions = [];
+      const earningsBreakdown = [];
+      const deductionsBreakdown = [];
 
-      for (const component of componentsList) {
-        const name = component.name;
-        const type = component.type;
-        const isPercentage = component.is_percentage;
-        const amountValue = parseFloat(component.amount);
+      for (const comp of componentValues) {
+  const isPercentage = comp.is_percentage === true || comp.is_percentage === 'true';
+  const rawAmount = parseFloat(comp.amount);
 
-        if (isNaN(amountValue)) continue;
+  if (isNaN(rawAmount)) {
+    failed.push({ emp_id: empId, reason: `Invalid amount for component "${comp.name}"` });
+    continue;
+  }
 
-        const calculatedAmount = isPercentage
-          ? (baseSalary * amountValue) / 100
-          : amountValue;
+  // ✅ Proper percentage calculation
+  const amount = isPercentage
+    ? (baseSalary * (rawAmount / 100))  // ← This is correct for amount like 50%
+    : rawAmount;
 
-        const breakdownItem = { name, amount: Math.round(calculatedAmount) };
+  const roundedAmount = parseFloat(amount.toFixed(2));
 
-        if (type === 'earning') {
-          earnings.push(breakdownItem);
-          totalEarnings += calculatedAmount;
-        } else if (type === 'deduction') {
-          deductions.push(breakdownItem);
-          totalDeductions += calculatedAmount;
-        }
-      }
+  console.log(`➡️ ${comp.name} | Base: ${baseSalary} | ${isPercentage ? 'PERCENTAGE' : 'FLAT'} | Amount: ${roundedAmount}`);
 
-      const netPay = Math.round(totalEarnings - totalDeductions);
+  const entry = {
+    name: comp.name,
+    amount: roundedAmount
+  };
 
-      // Remove old record
+  if (comp.type === 'earning') {
+    totalEarnings += roundedAmount;
+    earningsBreakdown.push(entry);
+  } else if (comp.type === 'deduction') {
+    totalDeductions += roundedAmount;
+    deductionsBreakdown.push(entry);
+  }
+}
+
+      const netPay = parseFloat((totalEarnings - totalDeductions).toFixed(2));
+
+      // Step 5: Remove previous payroll if exists
       await payroll_record.destroy({
         where: {
           employee_id: empId,
-          month: parsedMonth,
+          month: parsedMonth
         }
       });
 
-      // Create new payroll
+      // Step 6: Save payroll record
       await payroll_record.create({
         employee_id: empId,
         salary_structure_id: structureId,
         base_salary: baseSalary,
-        earnings: Math.round(totalEarnings),
-        deductions: Math.round(totalDeductions),
+        earnings: parseFloat(totalEarnings.toFixed(2)),
+        deductions: parseFloat(totalDeductions.toFixed(2)),
         net_pay: netPay,
-        earnings_breakdown: earnings,
-        deductions_breakdown: deductions,
+        earnings_breakdown: earningsBreakdown,
+        deductions_breakdown: deductionsBreakdown,
         month: parsedMonth,
         status: 'processed'
       });
@@ -293,6 +316,11 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
     return res.status(500).json({ error: 'Payroll generation failed' });
   }
 };
+
+
+
+
+
 
 
 
@@ -332,6 +360,7 @@ exports.getPayrollsForMonth = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch payrolls' });
   }
 };
+
 exports.createComponentType = async (req, res) => {
   try {
     const { name, type } = req.body;
