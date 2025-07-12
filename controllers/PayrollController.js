@@ -105,91 +105,7 @@ exports.getAllSalaryStructures = async (req, res) => {
   }
 };
 
-exports.generatePayroll = async (req, res) => {
-  try {
-    const { employee_id, month } = req.body;
 
-    // Step 1: Fetch teacher and their salary structure
-    const teacherData = await teacher.findOne({ where: { emp_id: employee_id } });
-    if (!teacherData || !teacherData.salary_structure_id) {
-      return res.status(404).json({ error: 'Teacher or salary structure not found' });
-    }
-
-    const structure = await salary_structure.findByPk(teacherData.salary_structure_id);
-    if (!structure) {
-      return res.status(404).json({ error: 'Salary structure not found' });
-    }
-
-    const components = await salary_component.findAll({
-      where: { structure_id: structure.id },
-    });
-
-    const base_salary = structure.base_salary;
-    let totalEarnings = 0;
-    let totalDeductions = 0;
-
-    const earnings = [];
-    const deductions = [];
-
-    for (const comp of components) {
-      const calculatedAmount = comp.is_percentage
-        ? (base_salary * comp.amount) / 100
-        : comp.amount;
-
-      const componentData = {
-        name: comp.name,
-        amount: calculatedAmount
-      };
-
-      if (comp.type === 'earning') {
-        earnings.push(componentData);
-        totalEarnings += calculatedAmount;
-      } else if (comp.type === 'deduction') {
-        deductions.push(componentData);
-        totalDeductions += calculatedAmount;
-      }
-    }
-
-    const net_pay = totalEarnings - totalDeductions;
-
-    // Step 2: Check if payroll already exists for same month
-    const existingRecord = await payroll_record.findOne({
-      where: { employee_id, month }
-    });
-
-    if (existingRecord) {
-      return res.status(409).json({ error: 'Payroll already generated for this month' });
-    }
-
-    // Step 3: Create payroll record
-    await payroll_record.create({
-      employee_id,
-      salary_structure_id: structure.id,
-      base_salary,
-      earnings,
-      deductions,
-      net_pay,
-      month,
-      status: 'processed'
-    });
-
-    res.status(201).json({
-      message: 'Payroll generated successfully',
-      employee_id,
-      month,
-      base_salary,
-      totalEarnings,
-      totalDeductions,
-      net_pay,
-      earnings,
-      deductions
-    });
-
-  } catch (err) {
-    console.error('Payroll generation error:', err);
-    res.status(500).json({ error: 'Payroll generation failed' });
-  }
-};
 
 
 
@@ -248,36 +164,38 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
       const deductionsBreakdown = [];
 
       for (const comp of componentValues) {
-  const isPercentage = comp.is_percentage === true || comp.is_percentage === 'true';
-  const rawAmount = parseFloat(comp.amount);
+        const isPercentage = comp.is_percentage === true || comp.is_percentage === 'true';
+        const rawAmount = parseFloat(comp.amount);
 
-  if (isNaN(rawAmount)) {
-    failed.push({ emp_id: empId, reason: `Invalid amount for component "${comp.name}"` });
-    continue;
-  }
+        if (isNaN(rawAmount)) {
+          failed.push({ emp_id: empId, reason: `Invalid amount for component "${comp.name}"` });
+          continue;
+        }
 
-  // ✅ Proper percentage calculation
-  const amount = isPercentage
-    ? (baseSalary * (rawAmount / 100))  // ← This is correct for amount like 50%
-    : rawAmount;
+        const amount = comp.is_percentage == true 
+          ? (baseSalary * (rawAmount/ 100)) 
+          : rawAmount;
 
-  const roundedAmount = parseFloat(amount.toFixed(2));
 
-  console.log(`➡️ ${comp.name} | Base: ${baseSalary} | ${isPercentage ? 'PERCENTAGE' : 'FLAT'} | Amount: ${roundedAmount}`);
+        const roundedAmount = parseFloat(amount.toFixed(2));
 
-  const entry = {
-    name: comp.name,
-    amount: roundedAmount
-  };
+        const entry = {
+          name: comp.name,
+          amount: roundedAmount
+        };
 
-  if (comp.type === 'earning') {
-    totalEarnings += roundedAmount;
-    earningsBreakdown.push(entry);
-  } else if (comp.type === 'deduction') {
-    totalDeductions += roundedAmount;
-    deductionsBreakdown.push(entry);
-  }
-}
+        if (comp.type === 'earning') {
+          totalEarnings += roundedAmount;
+          earningsBreakdown.push(entry);
+        } else if (comp.type === 'deduction') {
+          totalDeductions += roundedAmount;
+          deductionsBreakdown.push(entry);
+        } else {
+          failed.push({ emp_id: empId, reason: `Invalid component type "${comp.type}"` });
+        }
+      }
+
+
 
       const netPay = parseFloat((totalEarnings - totalDeductions).toFixed(2));
 
@@ -399,5 +317,26 @@ exports.getAllComponentTypes = async (req, res) => {
   } catch (error) {
     console.error('Error fetching component types:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.getTeacherPayrollById = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+
+    if (!emp_id) {
+      return res.status(400).json({ error: 'emp_id is required' });
+    }
+
+    const records = await payroll_record.findAll({
+      where: { employee_id: emp_id },
+      
+      order: [['month', 'DESC']],
+    });
+
+    return res.status(200).json(records);
+  } catch (error) {
+    console.error('Error in getTeacherPayrollById:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
