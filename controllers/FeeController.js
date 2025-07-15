@@ -14,36 +14,42 @@ const razorpay = new Razorpay({
 
 // Helper to generate receipt PDF
 async function generateReceiptPdf(feeRecord) {
-  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
-  const templatePath = path.join(
-    __dirname,
-    "../templates/receiptTemplate.html"
-  );
-  const fileName = `Receipt_${receiptNo}.pdf`;
-  const receiptPath = path.join(__dirname, "../receipts", fileName);
+  try {
+    const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
+    const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
 
-  const html = fs.readFileSync(templatePath, "utf8");
-  const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
-    (feeRecord[key.trim()] || "").toString()
-  );
+    if (!fs.existsSync(templatePath)) {
+      throw new Error("Template HTML file not found at: " + templatePath);
+    }
 
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(filledHtml, { waitUntil: "load" });
+    const html = fs.readFileSync(templatePath, "utf8");
+    const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
+      (feeRecord[key.trim()] || "").toString()
+    );
 
-  if (!fs.existsSync(path.dirname(receiptPath))) {
-    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] }); // ⛑️ Important for Azure
+    const page = await browser.newPage();
+    await page.setContent(filledHtml, { waitUntil: "load" });
+
+    const receiptPath = path.join(__dirname, "../receipts", `Receipt_${receiptNo}.pdf`);
+    if (!fs.existsSync(path.dirname(receiptPath))) {
+      fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+    }
+
+    await page.pdf({
+      path: receiptPath,
+      format: "A4",
+      printBackground: true,
+    });
+
+    await browser.close();
+    return `Receipt_${receiptNo}.pdf`;
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    throw error; // So it bubbles up
   }
-
-  await page.pdf({
-    path: receiptPath,
-    format: "A4",
-    printBackground: true,
-  });
-
-  await browser.close();
-  return fileName;
 }
+
 
 // ✅ Receipt Controller
 exports.generateReceipt = async (req, res) => {
@@ -703,8 +709,8 @@ exports.getStudentFeeDetails = async (req, res) => {
         total: fp.total_fee,
         paid,
         due,
-        due_date: fp.due_date 
-      
+        due_date: fp.due_date
+
       };
     });
 
