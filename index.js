@@ -39,6 +39,7 @@ const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
 const calendarRoutes = require('./routes/CalendarRoute');
 const circularRoutes = require('./routes/CircularRoute');
 
+const payrollRoutes = require('./routes/PayrollRoute');
 
 
 const server = http.createServer(app);
@@ -82,6 +83,7 @@ app.use('/api/studentdocuments', studentDocumentRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/circulars', circularRoutes);
 
+app.use('/api/payroll', payrollRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });
