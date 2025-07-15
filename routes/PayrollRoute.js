@@ -12,5 +12,5 @@ router.get('/getall', payrollController.getPayrollsForMonth);
 router.post('/component_types', payrollController.createComponentType);
 router.get('/allcomp', payrollController.getAllComponentTypes);
 router.get('/getbyid/:emp_id', payrollController.getTeacherPayrollById);
-
+router.get('/all', payrollController.getAllPayrolls);
 module.exports = router;
