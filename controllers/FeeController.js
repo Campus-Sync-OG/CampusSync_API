@@ -14,31 +14,36 @@ const razorpay = new Razorpay({
 });
 
 async function generateReceiptPdf(feeRecord) {
-  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
-  const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
-  const fileName = `Receipt_${receiptNo}.pdf`;
-  const receiptPath = path.join(__dirname, "../receipts", fileName);
+  try {
+    const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
+    const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
+    const fileName = `Receipt_${receiptNo}.pdf`;
+    const receiptDir = path.join(__dirname, "../receipts");
+    const receiptPath = path.join(receiptDir, fileName);
 
+    // Read and fill HTML template
     const html = fs.readFileSync(templatePath, "utf8");
     const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
       (feeRecord[key.trim()] || "").toString()
     );
 
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-  });
+    // Launch Puppeteer with AWS Lambda-compatible Chromium
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
 
-  const page = await browser.newPage();
-  await page.setContent(filledHtml, { waitUntil: "load" });
+    const page = await browser.newPage();
+    await page.setContent(filledHtml, { waitUntil: "load" });
 
-    const receiptPath = path.join(__dirname, "../receipts", `Receipt_${receiptNo}.pdf`);
-    if (!fs.existsSync(path.dirname(receiptPath))) {
-      fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+    // Ensure receipts directory exists
+    if (!fs.existsSync(receiptDir)) {
+      fs.mkdirSync(receiptDir, { recursive: true });
     }
 
+    // Generate the PDF
     await page.pdf({
       path: receiptPath,
       format: "A4",
@@ -46,10 +51,10 @@ async function generateReceiptPdf(feeRecord) {
     });
 
     await browser.close();
-    return `Receipt_${receiptNo}.pdf`;
+    return fileName; // just return file name, full path not needed here
   } catch (error) {
     console.error("PDF generation failed:", error);
-    throw error; // So it bubbles up
+    throw error;
   }
 }
 
