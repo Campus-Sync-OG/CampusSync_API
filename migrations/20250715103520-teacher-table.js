@@ -8,9 +8,11 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
         references: {
-          model: 'user',
+          model: 'user', // Assumes 'user' table already exists
           key: 'unique_id',
         },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       emp_name: {
         type: Sequelize.STRING,
@@ -20,15 +22,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      subjects: {
+      blood_gp: {
         type: Sequelize.STRING,
         allowNull: true,
-        references: {
-          model: 'subject',
-          key: 'subject_name',
-        },
       },
-      password: {
+      religion: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -51,14 +49,31 @@ module.exports = {
         allowNull: false,
         defaultValue: 'active',
       },
-       images: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      gender: {
+        type: Sequelize.ENUM('Male', 'Female'),
+        allowNull: true,
+      },
+      dob: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      images: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
     });
   },
 
   down: async (queryInterface, Sequelize) => {
+    // Drop ENUMs explicitly before dropping the table (important for Postgres)
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_teacher_role";');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_teacher_status";');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_teacher_gender";');
+
     await queryInterface.dropTable('teacher');
-  }
+  },
 };
