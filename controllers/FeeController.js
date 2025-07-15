@@ -5,45 +5,13 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
-const puppeteer = require("puppeteer");
+const chromium = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
-
-// Helper to generate receipt PDF
-async function generateReceiptPdf(feeRecord) {
-  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
-  const templatePath = path.join(
-    __dirname,
-    "../templates/receiptTemplate.html"
-  );
-  const fileName = `Receipt_${receiptNo}.pdf`;
-  const receiptPath = path.join(__dirname, "../receipts", fileName);
-
-  const html = fs.readFileSync(templatePath, "utf8");
-  const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
-    (feeRecord[key.trim()] || "").toString()
-  );
-
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(filledHtml, { waitUntil: "load" });
-
-  if (!fs.existsSync(path.dirname(receiptPath))) {
-    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
-  }
-
-  await page.pdf({
-    path: receiptPath,
-    format: "A4",
-    printBackground: true,
-  });
-
-  await browser.close();
-  return fileName;
-}
 
 // ✅ Receipt Controller
 exports.generateReceipt = async (req, res) => {
