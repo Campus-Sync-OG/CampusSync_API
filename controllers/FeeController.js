@@ -13,6 +13,41 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
 
+async function generateReceiptPdf(feeRecord) {
+  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
+  const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
+  const fileName = `Receipt_${receiptNo}.pdf`;
+  const receiptPath = path.join(__dirname, "../receipts", fileName);
+
+  const html = fs.readFileSync(templatePath, "utf8");
+  const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
+    (feeRecord[key.trim()] || "").toString()
+  );
+
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+  });
+
+  const page = await browser.newPage();
+  await page.setContent(filledHtml, { waitUntil: "load" });
+
+  if (!fs.existsSync(path.dirname(receiptPath))) {
+    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  }
+
+  await page.pdf({
+    path: receiptPath,
+    format: "A4",
+    printBackground: true,
+  });
+
+  await browser.close();
+  return fileName;
+}
+
 // ✅ Receipt Controller
 exports.generateReceipt = async (req, res) => {
   try {
@@ -671,8 +706,8 @@ exports.getStudentFeeDetails = async (req, res) => {
         total: fp.total_fee,
         paid,
         due,
-        due_date: fp.due_date 
-      
+        due_date: fp.due_date
+
       };
     });
 
