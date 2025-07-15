@@ -5,31 +5,34 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
-const puppeteer = require("puppeteer");
+const chromium = require("chrome-aws-lambda");
+const puppeteer = require("puppeteer-core");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
 
-// Helper to generate receipt PDF
 async function generateReceiptPdf(feeRecord) {
-  try {
-    const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
-    const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
-
-    if (!fs.existsSync(templatePath)) {
-      throw new Error("Template HTML file not found at: " + templatePath);
-    }
+  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
+  const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
+  const fileName = `Receipt_${receiptNo}.pdf`;
+  const receiptPath = path.join(__dirname, "../receipts", fileName);
 
     const html = fs.readFileSync(templatePath, "utf8");
     const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
       (feeRecord[key.trim()] || "").toString()
     );
 
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] }); // ⛑️ Important for Azure
-    const page = await browser.newPage();
-    await page.setContent(filledHtml, { waitUntil: "load" });
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+  });
+
+  const page = await browser.newPage();
+  await page.setContent(filledHtml, { waitUntil: "load" });
 
     const receiptPath = path.join(__dirname, "../receipts", `Receipt_${receiptNo}.pdf`);
     if (!fs.existsSync(path.dirname(receiptPath))) {
