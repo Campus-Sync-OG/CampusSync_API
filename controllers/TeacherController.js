@@ -57,7 +57,21 @@ const findStudentByAdmissionNo = async (admission_no, res) => {
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, blood_gp, religion, address, dob, phone_no, joining_date, role, status, gender } = req.body;
+    const {
+      emp_id,
+      emp_name,
+      email,
+      blood_gp,
+      religion,
+      address,
+      dob,
+      phone_no,
+      joining_date,
+      role,
+      status,
+      gender,
+      salary_structure_id // ✅ new field
+    } = req.body;
 
     if (!emp_id || !emp_name) {
       return res.status(400).json({ message: 'emp_id, emp_name are required' });
@@ -95,6 +109,7 @@ exports.createTeacher = async (req, res) => {
       status,
       address,
       gender,
+      salary_structure_id, // ✅ added to model creation
       images: imageUrl
     });
 
@@ -104,6 +119,7 @@ exports.createTeacher = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.getAllTeachers = async (req, res) => {
   try {
