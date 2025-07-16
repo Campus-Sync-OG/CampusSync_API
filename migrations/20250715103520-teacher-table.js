@@ -54,11 +54,11 @@ module.exports = {
         allowNull: true,
       },
       gender: {
-<<<<<<<< HEAD:migrations/20250715103520-teacher-table.js
+
         type: Sequelize.ENUM('Male', 'Female'),
-========
+
         type: Sequelize.STRING,
->>>>>>>> main:migrations/20250716052232-teacher-table.js
+
         allowNull: true,
       },
       dob: {
@@ -69,8 +69,8 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-<<<<<<<< HEAD:migrations/20250715103520-teacher-table.js
-========
+
+
       salary_structure_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -81,12 +81,12 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       }
->>>>>>>> main:migrations/20250716052232-teacher-table.js
+
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-<<<<<<<< HEAD:migrations/20250715103520-teacher-table.js
+
     // Drop ENUMs explicitly before dropping the table (important for Postgres)
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_teacher_role";');
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_teacher_status";');
@@ -94,10 +94,8 @@ module.exports = {
 
     await queryInterface.dropTable('teacher');
   },
-========
-    // Only drop the table, no enum cleanup
-    await queryInterface.dropTable('teacher');
+
+
     
-  }
->>>>>>>> main:migrations/20250716052232-teacher-table.js
-};
+  };
+
