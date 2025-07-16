@@ -5,13 +5,13 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
-const chromium = require("chrome-aws-lambda");
-const puppeteer = require("puppeteer-core");
+const { chromium } = require("playwright");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
+
 
 async function generateReceiptPdf(feeRecord) {
   try {
@@ -27,28 +27,24 @@ async function generateReceiptPdf(feeRecord) {
       (feeRecord[key.trim()] || "").toString()
     );
 
-    // Launch Puppeteer with AWS Lambda-compatible Chromium
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-    });
+  // ✅ Launch headless Chromium using Playwright
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
 
-    const page = await browser.newPage();
-    await page.setContent(filledHtml, { waitUntil: "load" });
+  // ✅ Set HTML content
+  await page.setContent(filledHtml, { waitUntil: "load" });
 
-    // Ensure receipts directory exists
-    if (!fs.existsSync(receiptDir)) {
-      fs.mkdirSync(receiptDir, { recursive: true });
-    }
+  // ✅ Ensure directory exists
+  if (!fs.existsSync(path.dirname(receiptPath))) {
+    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+  }
 
-    // Generate the PDF
-    await page.pdf({
-      path: receiptPath,
-      format: "A4",
-      printBackground: true,
-    });
+  // ✅ Generate PDF
+  await page.pdf({
+    path: receiptPath,
+    format: "A4",
+    printBackground: true,
+  });
 
     await browser.close();
     return fileName; // just return file name, full path not needed here
