@@ -5,13 +5,13 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
-const chromium = require("chrome-aws-lambda");
-const puppeteer = require("puppeteer-core");
+const { chromium } = require("playwright");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
+
 
 async function generateReceiptPdf(feeRecord) {
   const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
@@ -24,20 +24,19 @@ async function generateReceiptPdf(feeRecord) {
     (feeRecord[key.trim()] || "").toString()
   );
 
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-  });
-
+  // ✅ Launch headless Chromium using Playwright
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
+  // ✅ Set HTML content
   await page.setContent(filledHtml, { waitUntil: "load" });
 
+  // ✅ Ensure directory exists
   if (!fs.existsSync(path.dirname(receiptPath))) {
     fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
   }
 
+  // ✅ Generate PDF
   await page.pdf({
     path: receiptPath,
     format: "A4",
