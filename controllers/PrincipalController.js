@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { Op } = require("sequelize");
-const { uploadImageToAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 

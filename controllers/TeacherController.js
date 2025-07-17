@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const { Op } = require("sequelize");
-const { uploadImageToAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -29,9 +29,6 @@ const upload = multer({
     }
   },
 }).single("attachment");
-
-
-
 
 /* Helper Functions */
 const findTeacherById = async (emp_id, res) => {
