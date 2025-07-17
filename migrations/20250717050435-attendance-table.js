@@ -7,48 +7,53 @@ module.exports = {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-        allowNull: false,
+        allowNull: false
       },
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'student', // name of the referenced table
+          model: 'student',
           key: 'admission_no',
         },
-        onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       class: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
       section: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
       date: {
         type: Sequelize.DATEONLY,
         allowNull: false,
-        defaultValue: Sequelize.fn('NOW'),
+        defaultValue: Sequelize.NOW
       },
       period: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: false
       },
-      type: {
+      attendance_type: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 'day-wise',
+        defaultValue: 'day-wise'
+      },
+      percentage: {
+        type: Sequelize.FLOAT,
+        allowNull: true
       },
       status: {
         type: Sequelize.STRING,
         allowNull: false,
-      },
+        defaultValue: 'present'
+      }
     });
   },
 
-  down: async (queryInterface) => {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('attendance');
-  },
+  }
 };

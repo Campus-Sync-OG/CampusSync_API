@@ -51,3 +51,4 @@ module.exports = {
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_announcement_status";');
   }
 };
+
