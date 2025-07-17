@@ -6,7 +6,7 @@ const multer = require("multer");
 const upload = multer();
 
 router.post('/create',  upload.single('photo'),principalController.createPrincipal);
-router.put('/update/:p_id', Auth.verifyToken, principalController.updatePrincipal);
+router.put('/update/:p_id', upload.single("photo"),Auth.verifyToken, principalController.updatePrincipal);
 router.delete('/delete/:p_id', Auth.verifyToken, principalController.softDeletePrincipal);
 router.get('/all/:p_id', Auth.verifyToken, principalController.getPrincipalDetails);
 router.get("/view",Auth.verifyToken, principalController.getAllFeedback);
