@@ -36,7 +36,6 @@ module.exports = function (sequelize, DataTypes) {
     status: {
       type: DataTypes.ENUM("Paid", "Unpaid"),
       allowNull: false,
-      defaultValue: "UnPaid", // Default to Unpaid
     },
 
     // ✅ Updated to ENUM type
