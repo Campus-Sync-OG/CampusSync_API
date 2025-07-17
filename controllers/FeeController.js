@@ -5,45 +5,55 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
-const puppeteer = require("puppeteer");
+const { chromium } = require("playwright");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
 
-// Helper to generate receipt PDF
+
 async function generateReceiptPdf(feeRecord) {
-  const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
-  const templatePath = path.join(
-    __dirname,
-    "../templates/receiptTemplate.html"
-  );
-  const fileName = `Receipt_${receiptNo}.pdf`;
-  const receiptPath = path.join(__dirname, "../receipts", fileName);
+  try {
+    const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
+    const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
+    const fileName = `Receipt_${receiptNo}.pdf`;
+    const receiptDir = path.join(__dirname, "../receipts");
+    const receiptPath = path.join(receiptDir, fileName);
 
-  const html = fs.readFileSync(templatePath, "utf8");
-  const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
-    (feeRecord[key.trim()] || "").toString()
-  );
+    // Read and fill HTML template
+    const html = fs.readFileSync(templatePath, "utf8");
+    const filledHtml = html.replace(/{{(.*?)}}/g, (_, key) =>
+      (feeRecord[key.trim()] || "").toString()
+    );
 
-  const browser = await puppeteer.launch();
+  // ✅ Launch headless Chromium using Playwright
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
+  // ✅ Set HTML content
   await page.setContent(filledHtml, { waitUntil: "load" });
 
+  // ✅ Ensure directory exists
   if (!fs.existsSync(path.dirname(receiptPath))) {
     fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
   }
 
+  // ✅ Generate PDF
   await page.pdf({
     path: receiptPath,
     format: "A4",
     printBackground: true,
   });
 
-  await browser.close();
-  return fileName;
+    await browser.close();
+    return fileName; // just return file name, full path not needed here
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+    throw error;
+  }
 }
+
 
 // ✅ Receipt Controller
 exports.generateReceipt = async (req, res) => {
@@ -703,8 +713,8 @@ exports.getStudentFeeDetails = async (req, res) => {
         total: fp.total_fee,
         paid,
         due,
-        due_date: fp.due_date 
-      
+        due_date: fp.due_date
+
       };
     });
 

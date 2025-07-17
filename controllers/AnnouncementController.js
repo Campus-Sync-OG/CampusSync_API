@@ -4,7 +4,7 @@ const { announcement, user } = require("../models");
 // 📌 Get all announcements
 exports.getAllAnnouncements = async (req, res) => {
   try {
-    const Announcements = await announcement.findAll({ order: [["date", "DESC"]] });
+    const Announcements = await announcement.findAll({ order: [["id", "DESC"]] });
     res.status(200).json({ success: true, Announcements });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
