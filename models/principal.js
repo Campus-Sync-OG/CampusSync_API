@@ -17,10 +17,6 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       phone_no: {
         type: DataTypes.BIGINT,
         allowNull: true,
@@ -28,7 +24,7 @@ module.exports = function (sequelize, DataTypes) {
           isNumeric: true,
         },
       },
-       address: {
+      address: {
         type: DataTypes.STRING,
         allowNull: true,
       },
@@ -41,7 +37,19 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
         validate: {
           isEmail: true,
-        },
+        }
+      },
+      images: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      designation: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      gender: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       joining_date: {
         type: DataTypes.DATE,

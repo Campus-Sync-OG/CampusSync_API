@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('principal', {
@@ -7,49 +8,53 @@ module.exports = {
         allowNull: false,
         unique: true,
         references: {
-          model: 'user', // Reference to the 'user' table
-          key: 'unique_id',
+          model: 'user',
+          key: 'unique_id'
         },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       name: {
         type: Sequelize.STRING,
-        allowNull: true,
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true
       },
       phone_no: {
         type: Sequelize.BIGINT,
-        allowNull: true,
-        validate: {
-          isNumeric: true,
-        },
+        allowNull: true
       },
-      email: {
+      address: {
         type: Sequelize.STRING,
-        allowNull: true,
-        validate: {
-          isEmail: true,
-        },
-      },
-       address: {
-        type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: true
       },
       school_name: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true
+      },
+      email: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      images: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      designation: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: true
       },
       joining_date: {
         type: Sequelize.DATE,
         allowNull: true,
-        defaultValue: Sequelize.NOW,
-      },
+        defaultValue: Sequelize.NOW
+      }
     });
   },
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('principal');
-  },
+  }
 };

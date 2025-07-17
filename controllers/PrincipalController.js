@@ -1,11 +1,41 @@
-const { principal, user, feedback, teacher_subject, student, attendance,sequelize } = require('../models');
+const { principal, user, feedback, teacher_subject, student, attendance, sequelize } = require('../models');
 const ExcelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+const { Op } = require("sequelize");
+const { uploadImageToAzure } = require('../services/AzureBlobService');
+const sharp = require("sharp");
+const teacherAssignments = {}; // Object to store assignments in-memory
+
+// Set up multer for PDF uploads
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max size
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp"
+    ];
+
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF and image files (jpeg, png, webp) are allowed"));
+    }
+  },
+}).single("attachment");
+
+
 
 exports.createPrincipal = async (req, res) => {
   try {
-    const { p_id, name, password, phone_no, email, joining_date } = req.body;
+    const { p_id, name, password, phone_no, email, joining_date ,designation,gender,school_name,address} = req.body;
 
     if (!p_id || !name || !password || !joining_date) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -23,6 +53,16 @@ exports.createPrincipal = async (req, res) => {
       return res.status(400).json({ message: 'No user found with this unique_id and role principal' });
     }
 
+    let imageUrl = null;
+    if (req.file) {
+      const resizedImageBuffer = await sharp(req.file.buffer)
+        .resize(200, 200)
+        .toFormat("jpeg")
+        .toBuffer();
+
+      imageUrl = await uploadImageToAzure(resizedImageBuffer, req.file.originalname, "teacher-profiles");
+    }
+
     const newPrincipal = await principal.create({
       p_id,
       name,
@@ -30,6 +70,11 @@ exports.createPrincipal = async (req, res) => {
       phone_no,
       email,
       joining_date,
+      designation: 'Principal',
+      address: req.body.address || null,
+      school_name: req.body.school_name || null,
+      images: imageUrl || null ,// Store the image URL if uploaded
+      gender
     });
 
     res.status(201).json({ message: 'Principal created successfully', principal: newPrincipal });
