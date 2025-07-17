@@ -294,7 +294,7 @@ exports.getFeesByAdmissionNo = async (req, res) => {
     // Add paid/unpaid status to each fee entry
     const enhancedFees = fees.map((f) => ({
       ...f.toJSON(),
-      status: f.payment_status === "paid" ? "Paid" : "Unpaid",
+      status: f.status === "Paid" ? "Paid" : "Unpaid",
     }));
 
     return res.status(200).json({
