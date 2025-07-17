@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const principalController = require('../controllers/PrincipalController');
 const Auth = require("../middleware/authMiddleware");
+const multer = require("multer");
+const upload = multer();
 
-router.post('/create',  principalController.createPrincipal);
+router.post('/create',  upload.single('photo'),principalController.createPrincipal);
 router.put('/update/:p_id', Auth.verifyToken, principalController.updatePrincipal);
 router.delete('/delete/:p_id', Auth.verifyToken, principalController.softDeletePrincipal);
 router.get('/all/:p_id', Auth.verifyToken, principalController.getPrincipalDetails);
