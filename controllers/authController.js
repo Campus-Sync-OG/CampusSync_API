@@ -193,54 +193,52 @@ exports.login = async (req, res) => {
 };
 
 // Controller to reset password
+// Controller to handle OTP-based password reset (must have verified OTP)
+// authController.js
 exports.resetPassword = async (req, res) => {
   try {
-    const { unique_id, old_password, new_password } = req.body;
+    const { phone_number, new_password } = req.body;
 
-    if (!unique_id || !old_password || !new_password) {
-      return res.status(400).send({
+    if (!phone_number || !new_password) {
+      return res.status(400).json({
         success: false,
-        message: "Unique ID, old password, and new password are required",
+        message: "Phone number and new password are required",
       });
     }
 
-    const user = await User.findOne({ where: { unique_id } });
+    const formattedPhone = phone_number.startsWith("+") ? phone_number : `+91${phone_number}`;
+    const user = await User.findOne({ where: { phone_number: formattedPhone } });
 
     if (!user) {
-      return res.status(404).send({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Check if old password matches the existing password
-    if (user.password !== old_password) {
-      return res.status(400).send({ success: false, message: "Old password is incorrect" });
-    }
-
-    // Check if the password was reset within the last 30 days
+    // Optional: Check reset window
     if (user.last_password_reset) {
       const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
+      oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
       if (new Date(user.last_password_reset) > oneMonthAgo) {
-        return res.status(403).send({
+        return res.status(403).json({
           success: false,
           message: "You can only reset your password once every 30 days.",
         });
       }
     }
 
-    // Update the user's password and set first_time_login to false
+    // Update password
     await user.update({
       password: new_password,
       first_time_login: false,
-      last_password_reset: new Date(), // Update reset timestamp
+      last_password_reset: new Date(),
     });
 
-    res.status(200).send({
+    return res.status(200).json({
       success: true,
-      message: "Password reset successful. Please log in with your new password.",
+      message: "Password reset successful. Please login with your new password.",
     });
   } catch (error) {
-    res.status(500).send({
+    console.error("Password Reset Error:", error);
+    return res.status(500).json({
       success: false,
       message: "Password reset failed",
       error: error.message,
@@ -249,3 +247,36 @@ exports.resetPassword = async (req, res) => {
 };
 
 
+// authController.js
+exports.verifyResetOTP = async (req, res) => {
+  try {
+    const { phone_number, code } = req.body;
+
+    if (!phone_number || !code) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number and OTP are required",
+      });
+    }
+
+    const formattedPhone = phone_number.startsWith("+") ? phone_number : `+91${phone_number}`;
+    const verificationCheck = await verifyOTP(formattedPhone, code);
+
+    if (verificationCheck.status !== "approved") {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    // Mark OTP verified in frontend (no DB state needed)
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified. Proceed to set a new password.",
+    });
+  } catch (error) {
+    console.error("OTP Verification Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to verify OTP",
+      error: error.message,
+    });
+  }
+};

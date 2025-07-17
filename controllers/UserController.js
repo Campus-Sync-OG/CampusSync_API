@@ -60,12 +60,12 @@ exports.getUserByUniqueId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid unique_id provided' });
     }
 
-    const user = await user.findOne({
+    const users = await user.findOne({
       where: { unique_id: unique_id.trim() }, // Trim to avoid extra spaces
     });
 
-    if (user) {
-      res.status(200).json(user);
+    if (users) {
+      res.status(200).json(users);
     } else {
       res.status(404).json({ message: 'User not found' });
     }

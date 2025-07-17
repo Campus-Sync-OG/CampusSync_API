@@ -59,6 +59,7 @@ router.get('/profile', (req, res) => {
 // OTP
 router.post('/Otp', authControlller.sendOTP);
 router.post('/verify', authControlller.verifyOTP);
+router.post('/verify-reset-otp', authControlller.verifyResetOTP);
 
 // Token refresh
 router.post("/token/refresh", RefreshToken.refreshToken);
