@@ -185,6 +185,7 @@ exports.login = async (req, res) => {
         unique_id: user.unique_id,
         role: user.role,
         status: user.status,
+         name: user.name,
       },
     });
   } catch (error) {
