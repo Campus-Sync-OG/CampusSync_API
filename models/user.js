@@ -31,6 +31,11 @@ module.exports = function (sequelize) {
         allowNull: false,
         defaultValue: "active",
       },
+      base_salary: {
+        type: DataTypes.FLOAT,
+        allowNull: true, // or false if mandatory for teachers/principals
+      },
+
       first_time_login: {
         type: DataTypes.BOOLEAN,
         defaultValue: true, // Indicates whether the user has logged in for the first time

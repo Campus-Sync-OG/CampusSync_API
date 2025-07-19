@@ -1,6 +1,6 @@
 const {
-  teacher,
-  salary_structure,
+ 
+  user,
   salary_component,
   payroll_record,component_type
 } = require('../models');
@@ -8,82 +8,60 @@ const { Op } = require('sequelize');
 const cron = require('node-cron');
 
 
-
 exports.createComponents = async (req, res) => {
   try {
-    const { structure_id, component_values } = req.body;
+    const { role, component_values } = req.body;
 
-    if (!structure_id || !Array.isArray(component_values)) {
+    if (!role || !Array.isArray(component_values)) {
       return res.status(400).json({ error: 'Invalid input data' });
     }
 
     // Fetch component types from DB
     const allTypes = await component_type.findAll();
     const typeMap = new Map();
-    allTypes.forEach(type => typeMap.set(type.name.trim().toLowerCase(), type.type));
+    allTypes.forEach(type => {
+      typeMap.set(type.name.trim().toLowerCase(), type.type);
+    });
 
-    // Enrich the input with the correct type based on component name
+    // Enrich component values with type
     const enrichedComponents = component_values.map(comp => {
       const typeFromDB = typeMap.get(comp.name.trim().toLowerCase());
       return {
         name: comp.name.trim(),
         amount: comp.amount,
         is_percentage: comp.is_percentage,
-        type: typeFromDB || 'earning' // default to 'earning' if not found
+        type: typeFromDB || 'earning', // default fallback
       };
     });
 
-    // Overwrite existing components
-    await salary_component.destroy({ where: { structure_id } });
+    // Delete existing component values for the role
+    await salary_component.destroy({ where: { role } });
 
     // Save new set
     const result = await salary_component.create({
-      structure_id,
-      component_values: enrichedComponents
+      role,
+      component_values: enrichedComponents,
     });
 
     return res.status(201).json({
-      message: '✅ Component values saved successfully.',
-      result
+      message: '✅ Component values saved successfully for role.',
+      result,
     });
-
   } catch (err) {
     console.error('❌ Component creation failed:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-exports.createSalaryStructure = async (req, res) => {
-  try {
-    const { name, base_salary, is_default} = req.body;
-
-    const structure = await salary_structure.create({
-      name,
-      base_salary,
-      is_default,
-      
-    });
-
-    res.status(201).json({
-      message: 'Salary structure created successfully',
-      structure
-    });
-  } catch (err) {
-    console.error('Error creating salary structure:', err);
-    res.status(500).json({ error: 'Structure creation failed' });
-  }
-};
-
 exports.getSalaryComponents = async (req, res) => {
-  try {
-    const { structure_id } = req.query;
-
-    const whereClause = structure_id ? { structure_id } : {};
-
+ try {
     const components = await salary_component.findAll({
-      where: whereClause,
-      order: [['id', 'ASC']]
+      order: [['role', 'ASC'], ['id', 'ASC']],
     });
+
+    if (!components || components.length === 0) {
+      return res.status(404).json({ error: 'No salary components found' });
+    }
 
     res.status(200).json(components);
   } catch (error) {
@@ -92,24 +70,7 @@ exports.getSalaryComponents = async (req, res) => {
   }
 };
 
-exports.getAllSalaryStructures = async (req, res) => {
-  try {
-    const structures = await salary_structure.findAll({
-      order: [['created_at', 'DESC']]
-    });
-
-    res.status(200).json(structures);
-  } catch (error) {
-    console.error('Error fetching salary structures:', error);
-    res.status(500).json({ error: 'Failed to fetch salary structures' });
-  }
-};
-
-
-
-
-
-exports.generatePayrollForAllTeachers = async (req, res) => {
+exports.generatePayrollForAllUsers = async (req, res) => {
   try {
     const { month } = req.body;
 
@@ -117,43 +78,35 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
       return res.status(400).json({ error: 'Month is required in the request body' });
     }
 
-    // Ensure correct format for DB comparison
-    const parsedMonth = `${month}`; // Convert "2025-07" to "2025-07-01"
+    const parsedMonth = `${month}`; // e.g., "2025-07"
 
-    // Step 1: Get all active teachers with valid salary structure
-    const teachers = await teacher.findAll({
+    // 1. Get all active users excluding students and with base_salary defined
+    const users = await user.findAll({
       where: {
         status: 'active',
-        salary_structure_id: { [Op.ne]: null },
-        emp_id: { [Op.ne]: null }
+        role: { [Op.not]: 'student' },
+        base_salary: { [Op.ne]: null },
       },
-      attributes: ['emp_id', 'salary_structure_id']
+      attributes: ['unique_id', 'role', 'base_salary']
     });
 
-    // Step 2: Fetch all salary structures and their components
-    const structures = await salary_structure.findAll();
-    const components = await salary_component.findAll();
-
-    // Step 3: Create lookup maps
-    const structureMap = new Map();
-    structures.forEach(s => structureMap.set(s.id, parseFloat(s.base_salary)));
-
+    // 2. Get all role-based salary components
+    const roleComponents = await salary_component.findAll(); // each contains `role`, `component_values`
     const componentMap = new Map();
-    components.forEach(c => {
-      componentMap.set(c.structure_id, c.component_values); // Array of component objects
+    roleComponents.forEach(c => {
+      componentMap.set(c.role, c.component_values);
     });
 
     let generated = 0;
     const failed = [];
 
-    // Step 4: Generate payroll per teacher
-    for (const t of teachers) {
-      const empId = t.emp_id;
-      const structureId = t.salary_structure_id;
-      const baseSalary = structureMap.get(structureId);
-      const componentValues = componentMap.get(structureId);
+    for (const u of users) {
+      const empId = u.unique_id;
+      const role = u.role;
+      const baseSalary = parseFloat(u.base_salary);
+      const components = componentMap.get(role);
 
-      if (!baseSalary || !componentValues) {
+      if (!components || isNaN(baseSalary)) {
         failed.push({ emp_id: empId, reason: 'Missing base salary or components' });
         continue;
       }
@@ -163,7 +116,7 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
       const earningsBreakdown = [];
       const deductionsBreakdown = [];
 
-      for (const comp of componentValues) {
+      for (const comp of components) {
         const isPercentage = comp.is_percentage === true || comp.is_percentage === 'true';
         const rawAmount = parseFloat(comp.amount);
 
@@ -172,17 +125,12 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
           continue;
         }
 
-        const amount = comp.is_percentage == true 
-          ? (baseSalary * (rawAmount/ 100)) 
+        const amount = isPercentage
+          ? (baseSalary * rawAmount / 100)
           : rawAmount;
 
-
         const roundedAmount = parseFloat(amount.toFixed(2));
-
-        const entry = {
-          name: comp.name,
-          amount: roundedAmount
-        };
+        const entry = { name: comp.name, amount: roundedAmount };
 
         if (comp.type === 'earning') {
           totalEarnings += roundedAmount;
@@ -195,22 +143,17 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
         }
       }
 
-
-
       const netPay = parseFloat((totalEarnings - totalDeductions).toFixed(2));
 
-      // Step 5: Remove previous payroll if exists
+      // Remove old payroll record if exists
       await payroll_record.destroy({
-        where: {
-          employee_id: empId,
-          month: parsedMonth
-        }
+        where: { employee_id: empId, month: parsedMonth }
       });
 
-      // Step 6: Save payroll record
+      // Save new payroll record
       await payroll_record.create({
         employee_id: empId,
-        salary_structure_id: structureId,
+        salary_structure_id: null, // No longer relevant
         base_salary: baseSalary,
         earnings: parseFloat(totalEarnings.toFixed(2)),
         deductions: parseFloat(totalDeductions.toFixed(2)),
@@ -225,7 +168,7 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: `✅ Payroll generated for ${generated} teacher(s)`,
+      message: `✅ Payroll generated for ${generated} user(s)`,
       skipped: failed.length > 0 ? failed : undefined
     });
 
@@ -234,10 +177,6 @@ exports.generatePayrollForAllTeachers = async (req, res) => {
     return res.status(500).json({ error: 'Payroll generation failed' });
   }
 };
-
-
-
-
 
 
 
@@ -255,7 +194,7 @@ exports.runPayrollCron = async (req, res) => {
       }),
     };
 
-    await generatePayrollForAllTeachers(req, res);
+    await generatePayrollForAllUsers(req, res);
   });
 };
 
@@ -269,12 +208,25 @@ exports.getPayrollsForMonth = async (req, res) => {
 
     const payrolls = await payroll_record.findAll({
       where: { month },
-      include: [{ model: teacher }]
+      include: [
+        {
+          model: user,
+          as: 'user', // ensure alias matches association
+          attributes: ['unique_id', 'role', 'name'],
+          where: {
+            role: {
+              [Op.in]: ['teacher', 'admin', 'principal', 'operator'] // exclude students
+            }
+          },
+          required: true
+        }
+      ],
+      order: [['created_at', 'DESC']]
     });
 
     res.status(200).json(payrolls);
   } catch (err) {
-    console.error('Error fetching payrolls:', err);
+    console.error('❌ Error fetching payrolls:', err);
     res.status(500).json({ error: 'Failed to fetch payrolls' });
   }
 };
@@ -320,7 +272,7 @@ exports.getAllComponentTypes = async (req, res) => {
   }
 };
 
-exports.getTeacherPayrollById = async (req, res) => {
+exports.getUserPayrollById = async (req, res) => {
   try {
     const { emp_id } = req.params;
 
@@ -330,13 +282,20 @@ exports.getTeacherPayrollById = async (req, res) => {
 
     const records = await payroll_record.findAll({
       where: { employee_id: emp_id },
-      
-      order: [['month', 'DESC']],
+      include: [
+        {
+          model: user,
+          as: 'user', // this alias must match the one used in your model association
+          attributes: ['name', 'role'],
+          required: true
+        }
+      ],
+      order: [['month', 'DESC']]
     });
 
     return res.status(200).json(records);
   } catch (error) {
-    console.error('Error in getTeacherPayrollById:', error);
+    console.error('❌ Error in getUserPayrollById:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
