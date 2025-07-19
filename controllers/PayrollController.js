@@ -302,8 +302,10 @@ exports.getUserPayrollById = async (req, res) => {
 exports.getAllPayrolls = async (req, res) => {
   try {
     const records = await payroll_record.findAll();
+     
     res.status(200).json(records);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to fetch payrolls' });
   }
 };

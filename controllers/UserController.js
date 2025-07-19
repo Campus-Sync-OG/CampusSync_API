@@ -78,12 +78,13 @@ exports.getUserByUniqueId = async (req, res) => {
   }
 };
 
-/*exports.updateUser = async (req, res) => {
+exports.updateUser = async (req, res) => {
   const { unique_id } = req.params;
-  const { role, name, password } = req.body;
+  const { role, name, password, base_salary } = req.body;
 
   try {
     const { user } = require('../models');
+
     if (!unique_id || typeof unique_id !== 'string') {
       return res.status(400).json({ message: 'Invalid unique_id provided' });
     }
@@ -93,7 +94,13 @@ exports.getUserByUniqueId = async (req, res) => {
     });
 
     if (userRecord) {
-      await userRecord.update({ role, name, password });
+      await userRecord.update({
+        ...(role && { role }),
+        ...(name && { name }),
+        ...(password && { password }),
+        ...(base_salary !== undefined && { base_salary }), // allow 0
+      });
+
       res.status(200).json({
         message: 'User updated successfully',
         user: userRecord,
