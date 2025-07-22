@@ -126,8 +126,8 @@ user.hasMany(notification, { foreignKey: "user_id", targetKey: "unique_id" });
 notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
 
 // Announcements by user
-announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
-user.hasMany(announcement, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'announcements' });
+announcement.belongsTo(user, { foreignKey: 'unique_id', targetKey: 'unique_id', as: 'creator' });
+user.hasMany(announcement, { foreignKey: 'unique_id', targetKey: 'unique_id', as: 'announcements' });
 
 // Subject assignment to teachers
 teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
