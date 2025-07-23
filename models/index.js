@@ -33,7 +33,7 @@ const _teacher_class_sections = require('./teacher_class_sections'); // Assuming
 const _student_promotion = require('./student-promotion'); // Assuming this is needed
 const _fee_plan = require('./fee_plan'); // Assuming this is needed
 const _calendar = require('./calendar'); // Assuming this is needed 
-const _salary_structure = require('./salary_structure');
+
 const _salary_component =require('./salary_component');
 const _payroll_record = require('./payroll_record');
 const _component_type = require('./component_type');
@@ -69,7 +69,7 @@ const student_documents=_student_documents(sequelize, DataTypes);const teacher_c
 const student_promotion = _student_promotion(sequelize, DataTypes); // Assuming this is needed
 const fee_plan = _fee_plan(sequelize, DataTypes); // Assuming this is needed
 const calendar = _calendar(sequelize, DataTypes); // Assuming this is needed
-const salary_structure = _salary_structure(sequelize, DataTypes);
+
 const salary_component = _salary_component(sequelize, DataTypes);
 const payroll_record = _payroll_record(sequelize, DataTypes);
 const component_type = _component_type(sequelize, DataTypes);
@@ -170,38 +170,20 @@ fee_plan.belongsTo(student, {
   targetKey: 'admission_no',
 });
 
-salary_structure.hasMany(salary_component, {
-  foreignKey: 'structure_id',
-  sourceKey: 'id',
- 
-});
 
-salary_component.belongsTo(salary_structure, {
-  foreignKey: 'structure_id',
-  targetKey: 'id',
- 
-});
-salary_structure.hasMany(teacher, {
-  foreignKey: 'salary_structure_id',
-  sourceKey: 'id',
-  
-});
 
-teacher.belongsTo(salary_structure, {
-  foreignKey: 'salary_structure_id',
-  targetKey: 'id',
 
-});
-teacher.hasMany(payroll_record, {
+
+user.hasMany(payroll_record, {
   foreignKey: 'employee_id',
-  sourceKey: 'emp_id',
- 
+  sourceKey: 'unique_id',
+  as: 'payrolls',
 });
 
-payroll_record.belongsTo(teacher, {
+payroll_record.belongsTo(user, {
   foreignKey: 'employee_id',
-  targetKey: 'emp_id',
- 
+  targetKey: 'unique_id',
+  as: 'user', // Important for eager loading
 });
 
 
@@ -239,7 +221,7 @@ module.exports = {
   student_promotion,
   fee_plan,
   calendar,
-  salary_structure,
+  
   salary_component,
   payroll_record,
   component_type

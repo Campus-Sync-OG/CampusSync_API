@@ -65,16 +65,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      salary_structure_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'salary_structure',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
-      }
+      
     });
   },
 

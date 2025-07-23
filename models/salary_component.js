@@ -5,16 +5,11 @@ module.exports = function (sequelize, DataTypes) {
       autoIncrement: true,
       primaryKey: true,
     },
-    structure_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      unique: true, // One set per structure
-      references: {
-        model: 'salary_structure',
-        key: 'id',
+    role: {
+        type: DataTypes.ENUM("teacher", "principal", "admin", "operator"),
+        allowNull: false,
+        unique: true, // Ensure only one component set per role
       },
-      onDelete: 'CASCADE',
-    },
     component_values: {
       type: DataTypes.JSONB, // or JSON
       allowNull: false,
