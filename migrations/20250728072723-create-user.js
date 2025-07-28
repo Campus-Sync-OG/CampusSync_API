@@ -55,10 +55,6 @@ module.exports = {
       },
     });
   },
-
-  
-
-
   down: async (queryInterface, Sequelize) => {
     // Drop the table and clean up ENUM values
     await queryInterface.dropTable("user");
