@@ -112,11 +112,13 @@ exports.getNotifications = async (req, res) => {
   try {
     const { user_id, class_id, section_id } = req.query;
 
-    let whereClause = {};
-
-    if (user_id) {
-      whereClause.user_id = user_id;
+    if (!user_id) {
+      return res.status(400).json({ error: "user_id is required" });
     }
+
+    const whereClause = {
+      user_id,
+    };
 
     if (class_id) {
       whereClause.class_id = class_id;
@@ -128,7 +130,7 @@ exports.getNotifications = async (req, res) => {
 
     const notifications = await notification.findAll({
       where: whereClause,
-      order: [['createdAt', 'DESC']],  // sort latest first
+      order: [['createdAt', 'DESC']], // latest first
     });
 
     return res.status(200).json({ data: notifications });
