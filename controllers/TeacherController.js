@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const { Op } = require("sequelize");
-const { uploadImageToAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -29,9 +29,6 @@ const upload = multer({
     }
   },
 }).single("attachment");
-
-
-
 
 /* Helper Functions */
 const findTeacherById = async (emp_id, res) => {
@@ -158,70 +155,119 @@ exports.getTeacherById = async (req, res) => {
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const {
-      emp_name,
-      email,
-      subjects,
-      password,
-      phone_no,
-      joining_date,
-      status,
-      role,               // ⬅️ Added
-      class_name,         // ⬅️ Added
-      section_name        // ⬅️ Added
-    } = req.body;
+    const updateFields = req.body;
 
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
     if (!foundTeacher) {
-      return res.status(404).json({ message: 'Teacher not found' });
+      console.log("Teacher not found for emp_id:", emp_id);
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
-    // ✅ Update fields if provided
-    foundTeacher.emp_name = emp_name || foundTeacher.emp_name;
-    foundTeacher.email = email || foundTeacher.email;
-    foundTeacher.subjects = subjects || foundTeacher.subjects;
-    foundTeacher.status = status || foundTeacher.status;
-    foundTeacher.phone_no = phone_no || foundTeacher.phone_no;
-    foundTeacher.joining_date = joining_date || foundTeacher.joining_date;
+    console.log("Existing Teacher Data:", foundTeacher.toJSON());
 
-    if (password) {
-      foundTeacher.password = await bcrypt.hash(password, 10);
-    }
+    let updatedFields = {}; // Track modified fields
 
-    await foundTeacher.save();
+    // ✅ Handle profile picture update
+    if (req.file) {
+      console.log("Profile image upload detected");
 
-    // ✅ If teacher is assigned role "Class Teacher" then add/update teacher_class_sections
-    if (role === "Class Teacher" && class_name && section_name) {
-      // Check if entry exists already
-      const existingRecord = await teacher_class_sections.findOne({
-        where: { emp_id, class_name, section_name }
-      });
+      if (foundTeacher.images) {
+        await deleteImageFromAzure(foundTeacher.images);
+      }
 
-      if (!existingRecord) {
-        await teacher_class_sections.create({
-          emp_id,
-          role,
-          class_name,
-          section_name
-        });
-      } else {
-        // Optional: update role if it changed
-        existingRecord.role = role;
-        await existingRecord.save();
+      try {
+        const resizedImageBuffer = await sharp(req.file.buffer)
+          .resize(200, 200)
+          .toFormat("jpeg")
+          .toBuffer();
+
+        const imageUrl = await uploadImageToAzure(
+          resizedImageBuffer,
+          req.file.originalname,
+          "teacher-profiles"
+        );
+
+        updatedFields.images = imageUrl;
+        console.log("Uploaded Image URL:", imageUrl);
+      } catch (err) {
+        console.error("Image Upload Failed:", err.message);
+        return res.status(500).json({ message: "Image upload failed", error: err.message });
       }
     }
 
+    // ✅ List of fields allowed for update
+    const allowedFields = [
+      "emp_name",
+      "email",
+      "subjects",
+      "phone_no",
+      "joining_date",
+      "status",
+      "role",
+      "class_name",
+      "section_name"
+    ];
+
+    for (const field of allowedFields) {
+      if (updateFields[field] !== undefined && String(foundTeacher[field]) !== String(updateFields[field])) {
+        updatedFields[field] = updateFields[field];
+      }
+    }
+
+    // ✅ Handle password update
+    if (updateFields.password) {
+      updatedFields.password = await bcrypt.hash(updateFields.password, 10);
+    }
+
+    console.log("Fields to Update:", updatedFields);
+
+    if (Object.keys(updatedFields).length === 0) {
+      console.log("No changes detected");
+      return res.status(200).json({ message: "No changes detected" });
+    }
+
+    await foundTeacher.update(updatedFields);
+
+    // ✅ Class Teacher Assignment Logic
+    if (
+      (updateFields.role === "Class Teacher" || updatedFields.role === "Class Teacher") &&
+      (updateFields.class_name || updatedFields.class_name) &&
+      (updateFields.section_name || updatedFields.section_name)
+    ) {
+      const class_name = updateFields.class_name || foundTeacher.class_name;
+      const section_name = updateFields.section_name || foundTeacher.section_name;
+
+      const existingAssignment = await teacher_class_sections.findOne({
+        where: { emp_id, class_name, section_name }
+      });
+
+      if (!existingAssignment) {
+        await teacher_class_sections.create({
+          emp_id,
+          role: "Class Teacher",
+          class_name,
+          section_name
+        });
+        console.log("Assigned class and section to class teacher");
+      } else {
+        existingAssignment.role = "Class Teacher";
+        await existingAssignment.save();
+        console.log("Updated existing class teacher assignment");
+      }
+    }
+
+    const updatedTeacher = await teacher.findOne({ where: { emp_id } });
+
     return res.status(200).json({
-      message: 'Teacher updated successfully',
-      teacher: foundTeacher
+      message: "Teacher updated successfully",
+      teacher: updatedTeacher
     });
 
   } catch (error) {
     console.error("Error updating teacher:", error);
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "Error updating teacher", error: error.message });
   }
 };
-
 
 // Soft delete a teacher (mark as inactive)
 exports.softDeleteTeacher = async (req, res) => {

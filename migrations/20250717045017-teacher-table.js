@@ -69,8 +69,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-
-
       salary_structure_id: {
         type: Sequelize.INTEGER,
         allowNull: true,
@@ -81,7 +79,6 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       }
-
     });
   },
 

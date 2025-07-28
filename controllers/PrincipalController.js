@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { Op } = require("sequelize");
-const { uploadImageToAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -88,22 +88,94 @@ exports.createPrincipal = async (req, res) => {
 // Function to update the details of a principal
 exports.updatePrincipal = async (req, res) => {
   try {
-    const { p_id } = req.params; // Principal ID from the URL
-    const updates = req.body; // Updates from the request body
+    const { p_id } = req.params;
+    const updateFields = req.body;
 
-    // Find the principal using p_id
-    const existingPrincipal = await principal.findOne({ where: { p_id } });
-    if (!existingPrincipal) {
-      return res.status(404).json({ message: 'Principal not found' });
+    const principalRecord = await principal.findOne({ where: { p_id } });
+
+    if (!principalRecord) {
+      console.log("Principal not found for p_id:", p_id);
+      return res.status(404).json({ message: "Principal not found" });
     }
 
-    // Update the principal's details
-    await existingPrincipal.update(updates);
+    console.log("Existing Principal Data:", principalRecord.toJSON());
 
-    res.status(200).json({ message: 'Principal updated successfully', principal: existingPrincipal });
+    let updatedFields = {}; // Track updated fields
+
+    // Handle profile picture update
+    if (req.file) {
+      console.log("Profile picture upload detected");
+
+      if (principalRecord.images) {
+        await deleteImageFromAzure(principalRecord.images);
+      }
+
+      try {
+        const resizedImageBuffer = await sharp(req.file.buffer)
+          .resize(200, 200)
+          .toFormat("jpeg")
+          .toBuffer();
+
+        const imageUrl = await uploadImageToAzure(
+          resizedImageBuffer,
+          req.file.originalname,
+          "principal-profiles"
+        );
+
+        updatedFields.images = imageUrl;
+        console.log("Uploaded Image URL:", imageUrl);
+      } catch (error) {
+        console.error("Image Upload Failed:", error.message);
+        return res.status(500).json({ message: "Image upload failed", error: error.message });
+      }
+    }
+
+    // Allowed fields to update
+    const allowedFields = [
+      "name",
+      "phone_no",
+      "email",
+      "address",
+      "school_name",
+      "designation",
+      "gender",
+      "joining_date"
+    ];
+
+    for (const field of allowedFields) {
+      if (
+        updateFields[field] !== undefined &&
+        String(principalRecord[field]) !== String(updateFields[field])
+      ) {
+        updatedFields[field] = updateFields[field];
+      }
+    }
+
+    console.log("Fields to Update:", updatedFields);
+
+    if (Object.keys(updatedFields).length === 0) {
+      console.log("No changes detected");
+      return res.status(200).json({ message: "No changes detected" });
+    }
+
+    // Update principal record
+    await principalRecord.update(updatedFields);
+
+    // Fetch updated record
+    const updatedPrincipal = await principal.findOne({ where: { p_id } });
+
+    console.log("Principal updated successfully:", updatedPrincipal.toJSON());
+
+    res.status(200).json({
+      message: "Principal updated successfully",
+      principal: updatedPrincipal,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: error.message });
+    console.error("Error updating principal:", error.message);
+    res.status(500).json({
+      message: "Error updating principal",
+      error: error.message,
+    });
   }
 };
 

@@ -12,7 +12,7 @@ const {  authorizeRole } = require("../middleware/authMiddleware");
  router.get('/list', Auth.verifyToken, userController.getAllUsers);
 router.get('/:unique_id', Auth.verifyToken, userController.getUserByUniqueId);
 // router.post('/create', Auth.verifyToken, userController.createUser);
-// router.put('/update/:unique_id', Auth.verifyToken, userController.updateUser);
+router.put('/update/:unique_id', Auth.verifyToken, userController.updateUser);
 // router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser);
 
 // CSV upload routes

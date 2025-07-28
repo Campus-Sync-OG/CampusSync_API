@@ -12,8 +12,8 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'teacher',
-          key: 'emp_id',
+          model: 'user',
+          key: 'unique_id',
         },
         onDelete: 'CASCADE',
       },

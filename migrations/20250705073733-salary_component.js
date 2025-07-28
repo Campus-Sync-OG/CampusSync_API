@@ -8,16 +8,10 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      structure_id: {
-        type: Sequelize.INTEGER,
+      role: {
+        type: Sequelize.ENUM("teacher", "principal", "admin", "operator"),
         allowNull: false,
-        unique: true,
-        references: {
-          model: 'salary_structure',
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
+        unique: true, // Ensure only one component set per role
       },
       component_values: {
         type: Sequelize.JSONB, // or Sequelize.JSON if not using PostgreSQL

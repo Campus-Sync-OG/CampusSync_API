@@ -17,7 +17,7 @@ router.get('/all',  teacherController.getAllTeachers);
 router.get('/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
 
 // Route to update a teacher's details by employee ID (requires authentication)
-router.put('/update/:emp_id', Auth.verifyToken, teacherController.updateTeacher);
+router.put('/update/:emp_id', upload.single('photo'),Auth.verifyToken, teacherController.updateTeacher);
 
 // Route to soft delete a teacher (mark as inactive) by employee ID (requires authentication)
 router.delete('/delete/:emp_id', Auth.verifyToken, teacherController.softDeleteTeacher);

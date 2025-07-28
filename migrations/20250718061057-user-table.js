@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
       },
       role: {
-        type: Sequelize.ENUM("student", "teacher", "principal"),
+        type: Sequelize.ENUM("admin", "operator", "student", "teacher", "principal"),
         allowNull: false,
       },
       name: {
@@ -19,6 +19,29 @@ module.exports = {
       password: {
         type: Sequelize.STRING,
         allowNull: false,
+      },
+      phone_number: {
+        type: Sequelize.BIGINT,
+        allowNull: false,
+        unique: true,
+      },
+      status: {
+        type: Sequelize.ENUM("active", "inactive"),
+        allowNull: false,
+        defaultValue: "active",
+      },
+      base_salary: {
+        type: Sequelize.FLOAT,
+        allowNull: true, // or false depending on your logic
+      },
+      first_time_login: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
+      last_password_reset: {
+        type: Sequelize.DATE,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
@@ -32,6 +55,9 @@ module.exports = {
       },
     });
   },
+
+  
+
 
   down: async (queryInterface, Sequelize) => {
     // Drop the table and clean up ENUM values
