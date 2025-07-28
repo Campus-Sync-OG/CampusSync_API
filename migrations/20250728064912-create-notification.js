@@ -25,7 +25,7 @@ module.exports = {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
-      user_id: {
+   user_id: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
