@@ -148,7 +148,7 @@ exports.updateUser = async (req, res) => {
 
 exports.addFee = async (req, res) => {
   try {
-    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date,feestype,class_name,section_name} = req.body;
+    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date, feestype, class_name, section_name } = req.body;
 
     // Check if student exists for the provided admission_no
     const Student = await student.findOne({ where: { admission_no } });
@@ -167,7 +167,7 @@ exports.addFee = async (req, res) => {
       due_date,
       feestype,
       class_name,
-      section_name  
+      section_name
     });
     res.status(201).json(newFee);
   } catch (error) {
@@ -650,11 +650,11 @@ exports.assignSubjectToTeacher = async (req, res) => {
   }
 };
 
-exports.deleteAssignedSubject= async (req, res) => {
+exports.deleteAssignedSubject = async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await teacher_subject.destroy({ where: { id } });
-    
+
     if (deleted) {
       res.status(204).send(); // No Content
     } else {
@@ -667,7 +667,6 @@ exports.deleteAssignedSubject= async (req, res) => {
 
 exports.getAssignedSubjects = async (req, res) => {
   try {
-    // Fetch all teacher_subject entries with associated teacher info
     const assignedSubjects = await teacher_subject.findAll({
       include: [
         {
@@ -677,13 +676,15 @@ exports.getAssignedSubjects = async (req, res) => {
       ]
     });
 
-    // Return full subjects array without slicing or indexing
-    const result = assignedSubjects.map(item => ({
+    // Filter out records with no associated teacher
+    const validSubjects = assignedSubjects.filter(item => item.teacher);
+
+    const result = validSubjects.map(item => ({
       employeeID: item.teacher.emp_id,
       teacherName: item.teacher.emp_name,
       class: item.class_name,
       section: item.section,
-      subjects: item.subjects,  // full list of subject names
+      subjects: item.subjects,
       role: item.teacher.role
     }));
 
@@ -693,7 +694,6 @@ exports.getAssignedSubjects = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 
 
