@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const { Op } = require("sequelize");
-const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure, deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -854,6 +854,47 @@ exports.uploadCircular = async (req, res) => {
     return res.status(500).json({
       error: "Failed to upload circular",
       details: error.message,
+    });
+  }
+};
+
+exports.getStudentsForClassTeacher = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+
+    // Step 1: Get the assigned class_name and section_name for the teacher
+    const assignment = await teacher_class_sections.findOne({
+      where: { emp_id },
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "No class and section assigned to this teacher.",
+      });
+    }
+
+    const { class_name, section_name } = assignment;
+
+    // Step 2: Find all students matching that class and section
+    const students = await student.findAll({
+      where: {
+        class: class_name,
+        section: section_name,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      class: class_name,
+      section: section_name,
+      students,
+    });
+  } catch (error) {
+    console.error("Error fetching students for teacher:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching students.",
     });
   }
 };
