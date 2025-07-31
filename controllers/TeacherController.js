@@ -229,8 +229,9 @@ exports.updateTeacher = async (req, res) => {
     await foundTeacher.update(updatedFields);
 
     // ✅ Class Teacher Assignment Logic
+    // ✅ Class Teacher Assignment Logic
     if (
-      (updateFields.role === "Class Teacher" || updatedFields.role === "Class Teacher") &&
+      (updateFields.role === "classTeacher" || updatedFields.role === "classTeacher") &&
       (updateFields.class_name || updatedFields.class_name) &&
       (updateFields.section_name || updatedFields.section_name)
     ) {
@@ -238,23 +239,26 @@ exports.updateTeacher = async (req, res) => {
       const section_name = updateFields.section_name || foundTeacher.section_name;
 
       const existingAssignment = await teacher_class_sections.findOne({
-        where: { emp_id, class_name, section_name }
+        where: { emp_id }
       });
 
       if (!existingAssignment) {
         await teacher_class_sections.create({
           emp_id,
-          role: "Class Teacher",
+          teacher_role: "classTeacher",
           class_name,
           section_name
         });
         console.log("Assigned class and section to class teacher");
       } else {
-        existingAssignment.role = "Class Teacher";
+        existingAssignment.teacher_role = "classTeacher";
+        existingAssignment.class_name = class_name;
+        existingAssignment.section_name = section_name;
         await existingAssignment.save();
         console.log("Updated existing class teacher assignment");
       }
     }
+
 
     const updatedTeacher = await teacher.findOne({ where: { emp_id } });
 
