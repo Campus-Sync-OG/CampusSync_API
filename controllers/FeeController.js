@@ -282,7 +282,6 @@ exports.getFeesByAdmissionNo = async (req, res) => {
 
     console.log(`Fetching fees for admission_no: ${admission_no}`);
 
-    // Fetch all non-deleted fees with joined student details
     const fees = await fee.findAll({
       where: {
         admission_no,
@@ -291,12 +290,11 @@ exports.getFeesByAdmissionNo = async (req, res) => {
       include: [
         {
           model: student,
-          attributes: ["student_name", "class", "section"], // 👈 desired fields
+          attributes: ["student_name", "class", "section"],
         },
       ],
     });
 
-    // If no fees at all, just return a message
     if (fees.length === 0) {
       return res.status(200).json({
         success: true,
@@ -305,15 +303,15 @@ exports.getFeesByAdmissionNo = async (req, res) => {
       });
     }
 
-    // Add paid/unpaid status and flatten student fields
     const enhancedFees = fees.map((f) => {
       const feeData = f.toJSON();
+
       return {
         ...feeData,
         status: f.status === "Paid" ? "Paid" : "Unpaid",
         student_name: feeData.student?.student_name || null,
-        class: feeData.student?.class || null,
-        section: feeData.student?.section || null,
+        class_name: feeData.student?.class || feeData.class_name || null, // override with student.class
+        section_name: feeData.student?.section || feeData.section_name || null, // override with student.section
       };
     });
 
@@ -329,7 +327,6 @@ exports.getFeesByAdmissionNo = async (req, res) => {
     });
   }
 };
-
 
 // Generate and Download Fee PDF
 
