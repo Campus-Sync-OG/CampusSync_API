@@ -641,14 +641,15 @@ exports.getStudentFeeStatus = async (req, res) => {
     }
 
     const feePayments = await fee.findAll({
-      where: { admission_no, deletedAt: null }
+      where: { admission_no, deletedAt: null },
+      order: [['pay_date', 'DESC']] // for latest payment first
     });
 
-    // 👉 Here’s your updated mapping with parsed item_details
+    // 👉 Mapping with latest receipt_no and pay_date
     const statusList = feePlans.map(plan => {
-      const paidForType = feePayments
-        .filter(p => p.feestype === plan.feestype)
-        .reduce((sum, p) => sum + p.paid_amount, 0);
+      const matchedPayments = feePayments.filter(p => p.feestype === plan.feestype);
+      const paid_amount = matchedPayments.reduce((sum, p) => sum + p.paid_amount, 0);
+      const latestPayment = matchedPayments[0]; // most recent
 
       let itemDetails = null;
       if (plan.item_details) {
@@ -663,11 +664,13 @@ exports.getStudentFeeStatus = async (req, res) => {
       return {
         feestype: plan.feestype,
         total_fee: plan.total_fee,
-        due_amount: plan.total_fee - paidForType,
-        paid_amount: paidForType,
+        due_amount: plan.total_fee - paid_amount,
+        paid_amount,
         due_date: plan.due_date,
         notes: plan.notes,
-        item_details: itemDetails
+        item_details: itemDetails,
+        receipt_no: latestPayment?.receipt_no || null,
+        pay_date: latestPayment?.pay_date || null
       };
     });
 
@@ -681,6 +684,7 @@ exports.getStudentFeeStatus = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 exports.getStudentFeeDetails = async (req, res) => {
   const { admission_no } = req.params;
