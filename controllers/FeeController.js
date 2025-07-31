@@ -27,24 +27,24 @@ async function generateReceiptPdf(feeRecord) {
       (feeRecord[key.trim()] || "").toString()
     );
 
-  // ✅ Launch headless Chromium using Playwright
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+    // ✅ Launch headless Chromium using Playwright
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
 
-  // ✅ Set HTML content
-  await page.setContent(filledHtml, { waitUntil: "load" });
+    // ✅ Set HTML content
+    await page.setContent(filledHtml, { waitUntil: "load" });
 
-  // ✅ Ensure directory exists
-  if (!fs.existsSync(path.dirname(receiptPath))) {
-    fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
-  }
+    // ✅ Ensure directory exists
+    if (!fs.existsSync(path.dirname(receiptPath))) {
+      fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
+    }
 
-  // ✅ Generate PDF
-  await page.pdf({
-    path: receiptPath,
-    format: "A4",
-    printBackground: true,
-  });
+    // ✅ Generate PDF
+    await page.pdf({
+      path: receiptPath,
+      format: "A4",
+      printBackground: true,
+    });
 
     await browser.close();
     return fileName; // just return file name, full path not needed here
@@ -282,12 +282,18 @@ exports.getFeesByAdmissionNo = async (req, res) => {
 
     console.log(`Fetching fees for admission_no: ${admission_no}`);
 
-    // Fetch all non-deleted fees for the admission number
+    // Fetch all non-deleted fees with joined student details
     const fees = await fee.findAll({
       where: {
         admission_no,
         deletedAt: null,
       },
+      include: [
+        {
+          model: student,
+          attributes: ["student_name", "class", "section"], // 👈 desired fields
+        },
+      ],
     });
 
     // If no fees at all, just return a message
@@ -299,11 +305,17 @@ exports.getFeesByAdmissionNo = async (req, res) => {
       });
     }
 
-    // Add paid/unpaid status to each fee entry
-    const enhancedFees = fees.map((f) => ({
-      ...f.toJSON(),
-      status: f.status === "Paid" ? "Paid" : "Unpaid",
-    }));
+    // Add paid/unpaid status and flatten student fields
+    const enhancedFees = fees.map((f) => {
+      const feeData = f.toJSON();
+      return {
+        ...feeData,
+        status: f.status === "Paid" ? "Paid" : "Unpaid",
+        student_name: feeData.student?.student_name || null,
+        class: feeData.student?.class || null,
+        section: feeData.student?.section || null,
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -317,6 +329,7 @@ exports.getFeesByAdmissionNo = async (req, res) => {
     });
   }
 };
+
 
 // Generate and Download Fee PDF
 

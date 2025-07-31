@@ -171,9 +171,6 @@ fee_plan.belongsTo(student, {
 });
 
 
-
-
-
 user.hasMany(payroll_record, {
   foreignKey: 'employee_id',
   sourceKey: 'unique_id',
