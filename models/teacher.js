@@ -28,10 +28,6 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      religion: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       phone_no: {
         type: DataTypes.STRING,
         allowNull: true,

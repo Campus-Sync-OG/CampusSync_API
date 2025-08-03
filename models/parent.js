@@ -43,10 +43,6 @@ module.exports = (sequelize, DataTypes) => {
           type: DataTypes.TEXT,
           allowNull: false,
         },
-        religion: {
-            type: DataTypes.TEXT,
-            allowNull: false,
-        },
         
         
       },

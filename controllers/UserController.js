@@ -388,7 +388,7 @@ exports.createAnnouncement = async (req, res) => {
 
 exports.createParent = async (req, res) => {
   try {
-    const { admission_no, father_name, father_contact, father_email, mother_name, mother_contact, mother_email, address, religion } = req.body;
+    const { admission_no, father_name, father_contact, father_email, mother_name, mother_contact, mother_email, address } = req.body;
 
     // Check if parent info already exists for the given admission_no
     const existingParent = await parent.findOne({ where: { admission_no } });
@@ -405,7 +405,7 @@ exports.createParent = async (req, res) => {
       mother_contact,
       mother_email,
       address,
-      religion
+    
     });
 
     res.status(201).json({ success: true, message: "Parent info created successfully", data: newParent });
