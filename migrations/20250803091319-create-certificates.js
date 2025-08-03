@@ -12,9 +12,8 @@ module.exports = {
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
         references: {
-          model: 'students', // Make sure this matches your actual student table name
+          model: 'student', // Make sure this matches your actual student table name
           key: 'admission_no',
         },
         onUpdate: 'CASCADE',
