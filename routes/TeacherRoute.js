@@ -63,9 +63,7 @@ router.post("/circular", upload.single("file"), Auth.verifyToken,teacherControll
 
 router.get("/students/:emp_id", Auth.verifyToken,teacherController.getStudentsForClassTeacher);
 
-
-
-
+router.get("/class-sections/:emp_id", teacherController.getTeacherClassSectionsByEmpId);
 
 
 

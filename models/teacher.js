@@ -64,7 +64,7 @@ module.exports = function (sequelize, DataTypes) {
 
       },
       dob:{
-        type: DataTypes.DATE,
+        type: DataTypes.DATEONLY,
         allowNull: true,
       },
        images: {
