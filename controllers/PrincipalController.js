@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { Op } = require("sequelize");
-const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure, deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -35,7 +35,7 @@ const upload = multer({
 
 exports.createPrincipal = async (req, res) => {
   try {
-    const { p_id, name, password, phone_no, email, joining_date ,designation,gender,school_name,address} = req.body;
+    const { p_id, name, password, phone_no, email, joining_date, designation, gender, school_name, address } = req.body;
 
     if (!p_id || !name || !password || !joining_date) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -73,7 +73,7 @@ exports.createPrincipal = async (req, res) => {
       designation: 'Principal',
       address: req.body.address || null,
       school_name: req.body.school_name || null,
-      images: imageUrl || null ,// Store the image URL if uploaded
+      images: imageUrl || null,// Store the image URL if uploaded
       gender
     });
 
@@ -422,7 +422,6 @@ exports.getAttendancePercentage = async (req, res) => {
   }
 };
 
-
 exports.updateAttendancePercentage = async (req, res) => {
   try {
     const { admission_no, percentage } = req.body;
@@ -435,18 +434,38 @@ exports.updateAttendancePercentage = async (req, res) => {
       return res.status(400).json({ message: 'Percentage must be between 0 and 100.' });
     }
 
-    const record = await attendance.findOne({ where: { admission_no } });
+    // Step 1: Fetch all attendance records of the student
+    const records = await attendance.findAll({
+      where: { admission_no },
+      order: [['date', 'ASC']] // oldest first
+    });
 
-    if (!record) {
-      return res.status(404).json({ message: 'Student attendance record not found.' });
+    const total_days = records.length;
+    if (total_days === 0) {
+      return res.status(404).json({ message: 'No attendance records found for this student.' });
     }
 
-    record.percentage = percentage;
-    await record.save();
+    const present_days = Math.round((percentage / 100) * total_days);
 
-    res.status(200).json({ message: 'Percentage updated successfully.' });
+    // Step 2: Set all to "Absent" first
+    await attendance.update(
+      { status: 'Absent' },
+      { where: { admission_no } }
+    );
+
+    // Step 3: Update the earliest N records to "Present"
+    const present_ids = records.slice(0, present_days).map(r => r.id);
+
+    await attendance.update(
+      { status: 'Present' },
+      { where: { id: present_ids } }
+    );
+
+    res.status(200).json({
+      message: `Attendance updated to reflect ${percentage}%: ${present_days} Present out of ${total_days}.`
+    });
   } catch (error) {
-    console.error('Update percentage error:', error);
+    console.error('Manual percentage update error:', error);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
