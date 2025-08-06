@@ -35,7 +35,7 @@ router.post("/add", Auth.verifyToken, authorizeRole(["admin", "operator","princi
 
 // Parent info
 router.post("/postinfo", userController.createParent);
-router.put("/:admission_no", userController.updateParent);
+//router.put("/:admission_no", userController.updateParent);
 
 // Subjects and class-section
 router.post('/subjects', Auth.verifyToken, userController.createSubjects);
