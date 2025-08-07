@@ -9,9 +9,19 @@ const { get } = require('http');
 // Get all academic records
 const getAllAcademics = async (req, res) => {
   try {
-    const academic = await academics.findAll();
-    res.status(200).json(academic);
+    const academicRecords = await academics.findAll({
+      include: [
+        {
+          model: student,
+          as: "student",
+          attributes: ["student_name", "roll_no"],
+        },
+      ],
+    });
+
+    res.status(200).json(academicRecords);
   } catch (error) {
+    console.error("Error fetching academic records:", error);
     res.status(500).json({ error: "Failed to retrieve academic records" });
   }
 };
