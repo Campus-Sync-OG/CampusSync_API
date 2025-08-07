@@ -62,7 +62,7 @@ module.exports = {
         allowNull: true,
       },
       dob: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
         allowNull: true,
       },
       images: {

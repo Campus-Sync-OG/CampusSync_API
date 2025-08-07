@@ -43,6 +43,18 @@ module.exports = (sequelize, DataTypes) => {
           type: DataTypes.TEXT,
           allowNull: false,
         },
+        religion: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+        },
+        father_image: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },  
+        mother_image: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },  
         
         
       },

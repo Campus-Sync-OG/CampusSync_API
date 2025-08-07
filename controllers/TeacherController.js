@@ -446,7 +446,7 @@ exports.uploadAttendance = async (req, res) => {
       admission_no: record.admission_no,
       date: date || new Date().toISOString().split('T')[0],
       status: record.status,
-      period: attendance_type === "period-wise" ? (record.period || "Full Day") : "Full Day",
+      period: attendance_type === "period-wise" ? (record.subject || "Unknown Subject") : "Full Day",
       attendance_type,
       class: record.class,
       section: record.section
@@ -474,9 +474,6 @@ exports.uploadAttendance = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
-
 
 exports.updateAttendance = async (req, res) => {
   try {
@@ -900,5 +897,32 @@ exports.getStudentsForClassTeacher = async (req, res) => {
     });
   }
 };
+
+exports.getTeacherClassSectionsByEmpId = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+
+    if (!emp_id) {
+      return res.status(400).json({
+        success: false,
+        message: "emp_id is required",
+      });
+    }
+
+    const sections = await teacher_class_sections.findAll({
+      where: { emp_id },
+      order: [["class_name", "ASC"]],
+    });
+
+    res.status(200).json({ success: true, data: sections });
+  } catch (error) {
+    console.error("Error fetching teacher_class_sections:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve class sections for the teacher",
+    });
+  }
+};
+
 
 exports.upload = upload;
