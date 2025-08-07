@@ -3,7 +3,7 @@ const router = express.Router();
 const studentController = require('../controllers/studentController');
 const Auth = require("../middleware/authMiddleware");
 const multer = require("multer");
-const upload = multer();
+const  upload = multer();
 
 
 // Create a new student

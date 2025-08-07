@@ -50,6 +50,14 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
+      father_image: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      mother_image: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

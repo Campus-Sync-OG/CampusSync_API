@@ -415,7 +415,7 @@ exports.createParent = async (req, res) => {
   }
 };
 
-exports.updateParent = async (req, res) => {
+/*exports.updateParent = async (req, res) => {
   try {
     const { admission_no } = req.params;
     const updatedData = req.body;
@@ -433,7 +433,7 @@ exports.updateParent = async (req, res) => {
     console.error("Error updating parent info:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
-};
+};*/
 
 exports.createSubjects = async (req, res) => {
   try {

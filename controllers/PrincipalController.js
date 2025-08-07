@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
 const { Op } = require("sequelize");
-const { uploadImageToAzure,deleteImageFromAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure, deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -35,7 +35,7 @@ const upload = multer({
 
 exports.createPrincipal = async (req, res) => {
   try {
-    const { p_id, name, password, phone_no, email, joining_date ,designation,gender,school_name,address} = req.body;
+    const { p_id, name, password, phone_no, email, joining_date, designation, gender, school_name, address } = req.body;
 
     if (!p_id || !name || !password || !joining_date) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -73,7 +73,7 @@ exports.createPrincipal = async (req, res) => {
       designation: 'Principal',
       address: req.body.address || null,
       school_name: req.body.school_name || null,
-      images: imageUrl || null ,// Store the image URL if uploaded
+      images: imageUrl || null,// Store the image URL if uploaded
       gender
     });
 
@@ -255,11 +255,11 @@ exports.getAllAssignedSubjectToTeacher = async (req, res) => {
 exports.getAttendanceByClassSectionDate = async (req, res) => {
   try {
     const { class: className, section, date } = req.query;
-    const download = req.query.download === 'true';
+    const download = req.query.download === "true";
 
-    if (!date) {
+    if (!className || !date) {
       return res.status(400).json({
-        message: 'Please provide at least className and date in the request body.'
+        message: "Please provide class and date.",
       });
     }
 
@@ -268,88 +268,137 @@ exports.getAttendanceByClassSectionDate = async (req, res) => {
 
     const students = await student.findAll({
       where: studentWhere,
-      attributes: ['admission_no', 'student_name', 'section']
+      attributes: ["admission_no", "student_name", "section"],
     });
 
-    const admissionNos = students.map(s => s.admission_no);
+    const admissionNos = students.map((s) => s.admission_no);
 
     const attendanceData = await attendance.findAll({
       where: {
         admission_no: admissionNos,
-        date
+        date,
       },
-      attributes: ['admission_no', 'status']
+      attributes: ["admission_no", "status", "period"],
     });
 
-    const attendanceMap = {};
-    attendanceData.forEach(record => {
-      attendanceMap[record.admission_no] = record.status;
-    });
+    // Define subjects for the class (you can make this dynamic)
+    const subjects = ["Math", "Science", "English"];
 
-    const result = students.map(student => {
-      const status = attendanceMap[student.admission_no] || 'Not Marked';
+    // Create a subject-wise attendance map per student
+    const subjectStats = {};
+    for (const subject of subjects) {
+      subjectStats[subject] = {
+        total: students.length,
+        present: 0,
+      };
+    }
+
+    // Track each student's subject-wise status
+    const studentMap = {};
+    for (const student of students) {
+      studentMap[student.admission_no] = {
+        ...student.dataValues,
+        status: {},
+      };
+      for (const subject of subjects) {
+        studentMap[student.admission_no].status[subject] = "Not Marked";
+      }
+    }
+
+    for (const record of attendanceData) {
+      const admission_no = record.admission_no;
+      const isPresent = record.status === "Present";
+
+      if (record.period === "Full Day") {
+        // Count as present for all subjects
+        for (const subject of subjects) {
+          if (isPresent) subjectStats[subject].present += 1;
+          studentMap[admission_no].status[subject] = record.status;
+        }
+      } else if (subjects.includes(record.period)) {
+        if (isPresent) subjectStats[record.period].present += 1;
+        studentMap[admission_no].status[record.period] = record.status;
+      }
+    }
+
+    // Prepare final response per student
+    const result = Object.values(studentMap);
+
+    // Final subject-wise percentage (ensure ≤ 100)
+    const subjectPercentages = subjects.map((subject) => {
+      const { total, present } = subjectStats[subject];
+      let percentage = total > 0 ? (present / total) * 100 : 0;
+      percentage = Math.min(percentage, 100);
       return {
-        admission_no: student.admission_no,
-        student_name: student.student_name,
-        section: student.section,
-        status
+        subject,
+        present,
+        total,
+        percentage: Number(percentage.toFixed(2)),
       };
     });
 
-    const total = result.length;
-    const present = result.filter(s => s.status === 'Present').length;
-    const absent = result.filter(s => s.status === 'Absent').length;
-
     if (download) {
-      // ✅ Ensure exports folder exists
-      const exportDir = path.join(__dirname, '../exports');
+      const exportDir = path.join(__dirname, "../exports");
       if (!fs.existsSync(exportDir)) {
         fs.mkdirSync(exportDir, { recursive: true });
       }
 
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Attendance');
+      const worksheet = workbook.addWorksheet("Attendance");
 
       worksheet.columns = [
-        { header: 'Admission No', key: 'admission_no', width: 15 },
-        { header: 'Student Name', key: 'student_name', width: 25 },
-        { header: 'Section', key: 'section', width: 10 },
-        { header: 'Status', key: 'status', width: 10 }
+        { header: "Admission No", key: "admission_no", width: 15 },
+        { header: "Student Name", key: "student_name", width: 25 },
+        { header: "Section", key: "section", width: 10 },
+        ...subjects.map((subject) => ({
+          header: `${subject} Status`,
+          key: subject,
+          width: 15,
+        })),
       ];
 
-      worksheet.addRows(result);
-      worksheet.addRow([]);
-      worksheet.addRow(['Total Students', total]);
-      worksheet.addRow(['Present', present]);
-      worksheet.addRow(['Absent', absent]);
+      result.forEach((student) => {
+        const row = {
+          admission_no: student.admission_no,
+          student_name: student.student_name,
+          section: student.section,
+        };
+        for (const subject of subjects) {
+          row[subject] = student.status[subject];
+        }
+        worksheet.addRow(row);
+      });
 
-      const filePath = path.join(exportDir, 'attendance_report.xlsx');
+      worksheet.addRow([]);
+      subjectPercentages.forEach((s) => {
+        worksheet.addRow([
+          `${s.subject} - Present: ${s.present}`,
+          `Total: ${s.total}`,
+          `Percentage: ${s.percentage}%`,
+        ]);
+      });
+
+      const filePath = path.join(exportDir, "attendance_subjectwise_report.xlsx");
       await workbook.xlsx.writeFile(filePath);
 
-      return res.download(filePath, 'attendance_report.xlsx', err => {
+      return res.download(filePath, "attendance_subjectwise_report.xlsx", (err) => {
         if (err) {
-          console.error('Download error:', err);
-          return res.status(500).json({ message: 'Failed to download file' });
+          console.error("Download error:", err);
+          return res.status(500).json({ message: "Failed to download file" });
         }
-        fs.unlinkSync(filePath); // Clean up file
+        fs.unlinkSync(filePath); // Clean up
       });
     }
 
     return res.status(200).json({
-      summary: {
-        total_students: total,
-        present,
-        absent
-      },
-      data: result
+      summary: subjectPercentages,
+      data: result,
     });
-
   } catch (error) {
-    console.error('Error fetching attendance:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching subject-wise attendance:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 exports.getAttendancePercentage = async (req, res) => {
   try {
@@ -422,7 +471,6 @@ exports.getAttendancePercentage = async (req, res) => {
   }
 };
 
-
 exports.updateAttendancePercentage = async (req, res) => {
   try {
     const { admission_no, percentage } = req.body;
@@ -435,18 +483,38 @@ exports.updateAttendancePercentage = async (req, res) => {
       return res.status(400).json({ message: 'Percentage must be between 0 and 100.' });
     }
 
-    const record = await attendance.findOne({ where: { admission_no } });
+    // Step 1: Fetch all attendance records of the student
+    const records = await attendance.findAll({
+      where: { admission_no },
+      order: [['date', 'ASC']] // oldest first
+    });
 
-    if (!record) {
-      return res.status(404).json({ message: 'Student attendance record not found.' });
+    const total_days = records.length;
+    if (total_days === 0) {
+      return res.status(404).json({ message: 'No attendance records found for this student.' });
     }
 
-    record.percentage = percentage;
-    await record.save();
+    const present_days = Math.round((percentage / 100) * total_days);
 
-    res.status(200).json({ message: 'Percentage updated successfully.' });
+    // Step 2: Set all to "Absent" first
+    await attendance.update(
+      { status: 'Absent' },
+      { where: { admission_no } }
+    );
+
+    // Step 3: Update the earliest N records to "Present"
+    const present_ids = records.slice(0, present_days).map(r => r.id);
+
+    await attendance.update(
+      { status: 'Present' },
+      { where: { id: present_ids } }
+    );
+
+    res.status(200).json({
+      message: `Attendance updated to reflect ${percentage}%: ${present_days} Present out of ${total_days}.`
+    });
   } catch (error) {
-    console.error('Update percentage error:', error);
+    console.error('Manual percentage update error:', error);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
