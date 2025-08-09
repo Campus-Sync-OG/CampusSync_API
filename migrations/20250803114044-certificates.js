@@ -12,9 +12,8 @@ module.exports = {
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
         references: {
-          model: 'students', // Make sure this matches your actual student table name
+          model: 'student', // Make sure this matches your actual student table name
           key: 'admission_no',
         },
         onUpdate: 'CASCADE',
@@ -22,12 +21,12 @@ module.exports = {
       },
       certificate_type: {
         type: Sequelize.ENUM(
-          'bonafide',
-          'transfer',
-          'character',
-          'study',
-          'migration',
-          'scholarship'
+           'Transfer Certificate',
+        'Character Certificate',
+        'Bonafide Certificate',
+        'Study Certificate',
+        'Migration Certificate',
+        'Scholarship Certificate'
         ),
         allowNull: false,
       },

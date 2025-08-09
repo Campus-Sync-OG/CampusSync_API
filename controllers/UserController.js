@@ -330,12 +330,22 @@ exports.getStudentRequests = async (req, res) => {
 // 3. Get all certificate requests (admin use)
 exports.getAllRequests = async (req, res) => {
   try {
-    const requests = await certificates.findAll();
+    const requests = await certificates.findAll({
+      include: [
+        {
+          model: student,
+          attributes: ['student_name', 'admission_no']
+        }
+      ]
+    });
     res.status(200).json(requests);
   } catch (error) {
-    res.status(500).json({ error: 'Could not fetch requests' });
+    console.error('Error fetching all requests:', error);
+    res.status(500).json({ error: 'Failed to retrieve certificate requests' });
   }
 };
+
+
 
 // 4. Update certificate request status (approve or reject)
 exports.updateCertificateStatus = async (req, res) => {
