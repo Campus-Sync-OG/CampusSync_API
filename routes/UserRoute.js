@@ -27,7 +27,7 @@ router.post("/reset-password", authControlller.resetPassword);
 
 // Certificates
 router.get('/certificates/:admission_no', userController.getStudentRequests);
-router.get('/certificates/all', userController.getAllRequests);
+router.get('/get/all', userController.getAllRequests);
 router.put('/certificates/update/:id', userController.updateCertificateStatus);
 
 // Announcement
