@@ -58,7 +58,7 @@ router.get("/assignedSubjects/:emp_id", teacherController.getAssignedSubjectByTe
 router.get("/certificates/:emp_id", teacherController.getCertificates);
 
 router.get("/leaves/:emp_id", teacherController.getLeaveApplications);
-
+router.get("/teacherleaves/:emp_id", teacherController.getTeacherLeaveApplications);
 router.post("/circular", upload.single("file"), Auth.verifyToken,teacherController.uploadCircular);
 
 router.get("/students/:emp_id", Auth.verifyToken,teacherController.getStudentsForClassTeacher);

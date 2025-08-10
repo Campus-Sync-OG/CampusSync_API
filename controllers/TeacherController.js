@@ -1,4 +1,4 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject, teacher_class_sections } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject, teacher_class_sections,teacher_leave_application } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
@@ -790,7 +790,36 @@ exports.getLeaveApplications = async (req, res) => {
     });
   }
 };
+exports.getTeacherLeaveApplications = async (req, res) => {
+  try {
+    const { emp_id } = req.params;  // Get emp_id from params
 
+    if (!emp_id) {
+      return res.status(400).json({ message: "Missing emp_id" });
+    }
+
+    // 1️⃣ Fetch leave applications where emp_id matches
+    const leaves = await teacher_leave_application.findAll({
+      where: {
+        emp_id
+      }
+    });
+
+  
+
+    res.status(200).json({
+      message: "Leave applications fetched successfully",
+      leaves
+    });
+
+  } catch (error) {
+    console.error("Error fetching teacher leaves:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
 exports.uploadCircular = async (req, res) => {
   try {
     const { title, description, date, class_name, section } = req.body;
