@@ -170,6 +170,13 @@ fee_plan.belongsTo(student, {
   targetKey: 'admission_no',
 });
 
+certificates.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+
+});
+
+
 
 user.hasMany(payroll_record, {
   foreignKey: 'employee_id',
