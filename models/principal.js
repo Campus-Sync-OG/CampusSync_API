@@ -4,6 +4,11 @@ const sequelize = require('../config/sequelize');
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define('principal',
     {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,   // ✅ New primary key
+      },
       p_id: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -59,9 +64,6 @@ module.exports = function (sequelize, DataTypes) {
     }, {
     sequelize,
     tableName: 'principal',
-    timestamps: false, // Disable createdAt/updatedAt timestamp
-  }
-  );
+    timestamps: false,
+  });
 };
-
-

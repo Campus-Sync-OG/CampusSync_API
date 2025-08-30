@@ -3,12 +3,18 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('principal', {
+      id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false,
+      },
       p_id: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
         references: {
-          model: 'user',
+          model: 'user',        // Must exist
           key: 'unique_id',
         },
         onUpdate: 'CASCADE',
@@ -49,8 +55,8 @@ module.exports = {
       joining_date: {
         type: Sequelize.DATE,
         allowNull: true,
-        defaultValue: Sequelize.NOW,
-      }
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+      },
     });
   },
 
