@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon next.js",
+    "dev": "node index.js",
     "create-db": "node config/sequelize.js",
     "migrate": "npm run create-db && npx sequelize-cli db:migrate",
     "seed": "npx sequelize-cli db:seed:all",

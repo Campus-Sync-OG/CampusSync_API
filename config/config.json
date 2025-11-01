@@ -3,7 +3,7 @@
     "username": "zaroor",
     "password": "Karthik@0306",
     "database": "schooldb_prod",
-    "host": "zaroor.postgres.database.azure.com",
+    "host": "locateus-projects.postgres.database.azure.com",
     "port": 5432,
     "dialect": "postgres",
     "dialectOptions": {
