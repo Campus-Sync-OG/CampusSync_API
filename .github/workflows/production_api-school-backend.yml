@@ -27,6 +27,7 @@ jobs:
         run: |
           npm install
           npm run build --if-present
+          npm run test --if-present
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -50,9 +51,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DE32F4ACFDC341769C66326B8B672785 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_077CC2F87CE047EF8A6E8C8C415D2C53 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7AD2BB18BF8640C9B4574895AD3D1CAF }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A9E86969F3FE409395425584B14440E2 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B42CE18848904CE3A3350D6EE6D77311 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5DD7A6B35A674AD8A79D7EB49710FAB4 }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -61,5 +62,4 @@ jobs:
           app-name: 'api-school-backend'
           slot-name: 'Production'
           package: .
-
           
