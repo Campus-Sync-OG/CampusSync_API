@@ -58,7 +58,8 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "https://campus-synergy.in"
+      "https://campus-synergy.in",
+     "https://www.campus-synergy.in"
     ],
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     credentials: true
