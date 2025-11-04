@@ -53,12 +53,12 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://green-river-045967c00.6.azurestaticapps.net",
+      "https://polite-glacier-010030c00.3.azurestaticapps.net",
       "http://127.0.0.1:3000",
       "http://localhost:3000",
       "http://localhost:5173",
       "http://127.0.0.1:5173",
-      "https://school-test.trippcard.in"
+      "https://campus-synergy.in"
     ],
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     credentials: true
