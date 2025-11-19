@@ -1,5 +1,5 @@
 const { Sequelize } = require("sequelize");
-const sequelize = require("../config/sequelize"); // Sequelize instance
+const sequelize = require("../config/sequelize"); 
 
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
@@ -9,7 +9,7 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: false,
         references: {
-          model: 'student', // Table name
+          model: 'student', 
           key: 'admission_no',
         },
       },
