@@ -3,7 +3,7 @@ const router = express.Router();
 const studentController = require('../controllers/studentController');
 const Auth = require("../middleware/authMiddleware");
 const multer = require("multer");
-const upload = multer();
+const  upload = multer();
 
 
 // Create a new student
@@ -21,7 +21,7 @@ router.put("/update/:admission_no", upload.single("photo"), studentController.up
 // Delete a student by admission_no
 router.delete('/delete/:admission_no', Auth.verifyToken, studentController.softDeleteStudent);
 
-router.post("/upload-certificate", upload.single("certificate"), studentController.uploadCertificate);
+router.post("/upload-certificate", upload.single("certificateurl"), studentController.uploadCertificate);
 
 router.delete("/certificates/:admission_no", studentController.deleteCertificate);
 

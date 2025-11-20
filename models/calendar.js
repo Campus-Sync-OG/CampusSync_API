@@ -30,5 +30,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: true,
     }
-  });
+  },
+    {
+        sequelize,
+        tableName: 'calendar',
+        timestamps: false,
+    },
+  );
 };

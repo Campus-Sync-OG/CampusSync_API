@@ -1,9 +1,9 @@
-const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject, teacher_class_sections } = require('../models');
+const { teacher, student, academics, examformat, user, attendance, assignment, subject, achievement, leaveapplication, circular, teacher_subject, teacher_class_sections,teacher_leave_application } = require('../models');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const { Op } = require("sequelize");
-const { uploadImageToAzure } = require('../services/AzureBlobService');
+const { uploadImageToAzure, deleteImageFromAzure } = require('../services/AzureBlobService');
 const sharp = require("sharp");
 const teacherAssignments = {}; // Object to store assignments in-memory
 
@@ -30,9 +30,6 @@ const upload = multer({
   },
 }).single("attachment");
 
-
-
-
 /* Helper Functions */
 const findTeacherById = async (emp_id, res) => {
   const foundTeacher = await teacher.findOne({ where: { emp_id } });
@@ -57,7 +54,21 @@ const findStudentByAdmissionNo = async (admission_no, res) => {
 // Create a new teacher
 exports.createTeacher = async (req, res) => {
   try {
-    const { emp_id, emp_name, email, blood_gp, religion, address, dob, phone_no, joining_date, role, status, gender } = req.body;
+    const {
+      emp_id,
+      emp_name,
+      email,
+      blood_gp,
+      religion,
+      address,
+      dob,
+      phone_no,
+      joining_date,
+      role,
+      status,
+      gender,
+      salary_structure_id // ✅ new field
+    } = req.body;
 
     if (!emp_id || !emp_name) {
       return res.status(400).json({ message: 'emp_id, emp_name are required' });
@@ -95,6 +106,7 @@ exports.createTeacher = async (req, res) => {
       status,
       address,
       gender,
+      salary_structure_id, // ✅ added to model creation
       images: imageUrl
     });
 
@@ -104,6 +116,7 @@ exports.createTeacher = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
 
 exports.getAllTeachers = async (req, res) => {
   try {
@@ -137,33 +150,122 @@ exports.getTeacherById = async (req, res) => {
   }
 };
 
+
+
 exports.updateTeacher = async (req, res) => {
   try {
     const { emp_id } = req.params;
-    const { emp_name, email, subjects, password, phone_no, joining_date, status } = req.body;
+    const updateFields = req.body;
 
     const foundTeacher = await teacher.findOne({ where: { emp_id } });
     if (!foundTeacher) {
-      return res.status(404).json({ message: 'Teacher not found' });
+      console.log("Teacher not found for emp_id:", emp_id);
+      return res.status(404).json({ message: "Teacher not found" });
     }
 
-    // Update fields if provided
-    foundTeacher.emp_name = emp_name || foundTeacher.emp_name;
-    foundTeacher.email = email || foundTeacher.email;
-    foundTeacher.subjects = subjects || foundTeacher.subjects;
-    foundTeacher.status = status || foundTeacher.status;
-    foundTeacher.phone_no = phone_no || foundTeacher.phone_no;
-    foundTeacher.joining_date = joining_date || foundTeacher.joining_date;
+    console.log("Existing Teacher Data:", foundTeacher.toJSON());
 
-    if (password) {
-      foundTeacher.password = await bcrypt.hash(password, 10);
+    let updatedFields = {}; // Track modified fields
+
+    // ✅ Handle profile picture update
+    if (req.file) {
+      console.log("Profile image upload detected");
+
+      if (foundTeacher.images) {
+        await deleteImageFromAzure(foundTeacher.images);
+      }
+
+      try {
+        const resizedImageBuffer = await sharp(req.file.buffer)
+          .resize(200, 200)
+          .toFormat("jpeg")
+          .toBuffer();
+
+        const imageUrl = await uploadImageToAzure(
+          resizedImageBuffer,
+          req.file.originalname,
+          "teacher-profiles"
+        );
+
+        updatedFields.images = imageUrl;
+        console.log("Uploaded Image URL:", imageUrl);
+      } catch (err) {
+        console.error("Image Upload Failed:", err.message);
+        return res.status(500).json({ message: "Image upload failed", error: err.message });
+      }
     }
 
-    await foundTeacher.save();
-    return res.status(200).json({ message: 'Teacher updated successfully', teacher: foundTeacher });
+    // ✅ List of fields allowed for update
+    const allowedFields = [
+      "emp_name",
+      "email",
+      "subjects",
+      "phone_no",
+      "joining_date",
+      "status",
+      "role",
+      "class_name",
+      "section_name"
+    ];
+
+    for (const field of allowedFields) {
+      if (updateFields[field] !== undefined && String(foundTeacher[field]) !== String(updateFields[field])) {
+        updatedFields[field] = updateFields[field];
+      }
+    }
+
+    // ✅ Handle password update
+    if (updateFields.password) {
+      updatedFields.password = await bcrypt.hash(updateFields.password, 10);
+    }
+
+    console.log("Fields to Update:", updatedFields);
+
+    if (Object.keys(updatedFields).length === 0) {
+      console.log("No changes detected");
+      return res.status(200).json({ message: "No changes detected" });
+    }
+
+    await foundTeacher.update(updatedFields);
+
+    // ✅ Class Teacher Assignment Logic
+    if (
+      (updateFields.role === "Class Teacher" || updatedFields.role === "Class Teacher") &&
+      (updateFields.class_name || updatedFields.class_name) &&
+      (updateFields.section_name || updatedFields.section_name)
+    ) {
+      const class_name = updateFields.class_name || foundTeacher.class_name;
+      const section_name = updateFields.section_name || foundTeacher.section_name;
+
+      const existingAssignment = await teacher_class_sections.findOne({
+        where: { emp_id, class_name, section_name }
+      });
+
+      if (!existingAssignment) {
+        await teacher_class_sections.create({
+          emp_id,
+          role: "Class Teacher",
+          class_name,
+          section_name
+        });
+        console.log("Assigned class and section to class teacher");
+      } else {
+        existingAssignment.role = "Class Teacher";
+        await existingAssignment.save();
+        console.log("Updated existing class teacher assignment");
+      }
+    }
+
+    const updatedTeacher = await teacher.findOne({ where: { emp_id } });
+
+    return res.status(200).json({
+      message: "Teacher updated successfully",
+      teacher: updatedTeacher
+    });
+
   } catch (error) {
     console.error("Error updating teacher:", error);
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: "Error updating teacher", error: error.message });
   }
 };
 
@@ -342,7 +444,7 @@ exports.uploadAttendance = async (req, res) => {
       admission_no: record.admission_no,
       date: date || new Date().toISOString().split('T')[0],
       status: record.status,
-      period: attendance_type === "period-wise" ? (record.period || "Full Day") : "Full Day",
+      period: attendance_type === "period-wise" ? (record.subject || "Unknown Subject") : "Full Day",
       attendance_type,
       class: record.class,
       section: record.section
@@ -370,9 +472,6 @@ exports.uploadAttendance = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
-
 
 exports.updateAttendance = async (req, res) => {
   try {
@@ -691,34 +790,71 @@ exports.getLeaveApplications = async (req, res) => {
     });
   }
 };
+exports.getTeacherLeaveApplications = async (req, res) => {
+  try {
+    const { emp_id } = req.params;  // Get emp_id from params
 
+    if (!emp_id) {
+      return res.status(400).json({ message: "Missing emp_id" });
+    }
+
+    // 1️⃣ Fetch leave applications where emp_id matches
+    const leaves = await teacher_leave_application.findAll({
+      where: {
+        emp_id
+      }
+    });
+
+  
+
+    res.status(200).json({
+      message: "Leave applications fetched successfully",
+      leaves
+    });
+
+  } catch (error) {
+    console.error("Error fetching teacher leaves:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: error.message
+    });
+  }
+};
 exports.uploadCircular = async (req, res) => {
   try {
     const { title, description, date, class_name, section } = req.body;
     const file = req.file;
+    const emp_id = req.user?.unique_id; // ⬅️ Take emp_id directly from token
 
+    // 🔍 Validation
     if (!title || !description || !date || !class_name || !section) {
-      return res.status(400).json({ error: "Title, description, date, class_name, and section are required" });
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const fileName = `${Date.now()}-${file.originalname}`;
+    if (!emp_id) {
+      return res.status(401).json({ error: "Unauthorized: emp_id missing in token" });
+    }
 
-    // Upload file to Azure Blob Storage
+    // ☁️ Upload file to Azure
+    const fileName = `${Date.now()}-${file.originalname}`;
     const blobUrl = await uploadImageToAzure(file.buffer, fileName);
 
     if (!blobUrl) {
       return res.status(500).json({ error: "File upload failed" });
     }
 
-    // Fetch students by class_name and section
-    const students = await student.findAll({ where: { class: class_name, section } });
+    // 🎯 Get students of target class and section
+    const students = await student.findAll({
+      where: { class: class_name, section },
+    });
+
     const admissionNos = students.map((s) => s.admission_no);
 
-    // Loop through the admissionNos array and create a new circular record for each
+    // 📩 Create a circular per student
     const circulars = [];
     for (const admission_no of admissionNos) {
       const newCircular = await circular.create({
@@ -728,19 +864,92 @@ exports.uploadCircular = async (req, res) => {
         attachment_url: blobUrl,
         class_name,
         section,
-        admission_no, // Store each admission_no individually
+        admission_no,
+        emp_id: emp_id, // ⬅️ Directly from token
       });
       circulars.push(newCircular);
     }
 
     return res.status(201).json({
-      message: "Circulars uploaded successfully for each student",
+      message: "Circulars uploaded successfully",
       circulars,
     });
 
   } catch (error) {
     console.error("Upload Circular Error:", error);
-    return res.status(500).json({ error: "Failed to upload circular", details: error.message });
+    return res.status(500).json({
+      error: "Failed to upload circular",
+      details: error.message,
+    });
   }
 };
 
+exports.getStudentsForClassTeacher = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+
+    // Step 1: Get the assigned class_name and section_name for the teacher
+    const assignment = await teacher_class_sections.findOne({
+      where: { emp_id },
+    });
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "No class and section assigned to this teacher.",
+      });
+    }
+
+    const { class_name, section_name } = assignment;
+
+    // Step 2: Find all students matching that class and section
+    const students = await student.findAll({
+      where: {
+        class: class_name,
+        section: section_name,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      class: class_name,
+      section: section_name,
+      students,
+    });
+  } catch (error) {
+    console.error("Error fetching students for teacher:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching students.",
+    });
+  }
+};
+
+exports.getTeacherClassSectionsByEmpId = async (req, res) => {
+  try {
+    const { emp_id } = req.params;
+
+    if (!emp_id) {
+      return res.status(400).json({
+        success: false,
+        message: "emp_id is required",
+      });
+    }
+
+    const sections = await teacher_class_sections.findAll({
+      where: { emp_id },
+      order: [["class_name", "ASC"]],
+    });
+
+    res.status(200).json({ success: true, data: sections });
+  } catch (error) {
+    console.error("Error fetching teacher_class_sections:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve class sections for the teacher",
+    });
+  }
+};
+
+
+exports.upload = upload;

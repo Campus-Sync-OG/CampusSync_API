@@ -9,6 +9,8 @@ router.delete("/delete/:admission_no", Auth.verifyToken, academicController.dele
 
 router.get("/marksheet/:admission_no/:exam_format", academicController.generateMarksheet);
 
+router.get('/performance/:classGrade/:section', academicController.getClassPerformance);
+
 
 
 module.exports = router;

@@ -34,6 +34,14 @@ module.exports = function (sequelize, DataTypes) {
           key: "admission_no",
         },
       },
+      emp_id:{
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+          model: "teacher",
+          key: "emp_id",
+        },
+      },
     },
     {
       sequelize,

@@ -9,26 +9,47 @@ const colorMap = {
 
 exports.getAllEvents = async (req, res) => {
   try {
-    const role = req.query.role; // e.g., ?role=Teacher
+    const role = req.query.role?.toLowerCase(); // Normalize incoming role to lowercase
     let events = await calendar.findAll();
 
-    // Filter by role if provided
     if (role) {
-      events = events.filter(event => 
-        !event.visibleTo || event.visibleTo.includes(role)
-      );
+      events = events.filter(event => {
+        let visibleTo = event.visibleTo;
+
+        if (!visibleTo) return true; // Show to everyone if no restriction
+
+        try {
+          // If it's a stringified JSON array like '["Student"]'
+          if (typeof visibleTo === 'string') {
+            try {
+              visibleTo = JSON.parse(visibleTo); // → ['Student', 'Parent']
+            } catch {
+              // Or fallback for comma-separated like "Student,Teacher"
+              visibleTo = visibleTo.split(',').map(r => r.trim());
+            }
+          }
+
+          // Normalize to lowercase for case-insensitive match
+          const normalizedVisibleTo = visibleTo.map(role => role.toLowerCase());
+
+          return normalizedVisibleTo.includes(role);
+        } catch (e) {
+          console.warn('Failed to parse visibleTo for event:', event.id);
+          return false;
+        }
+      });
     }
 
-    // Apply dynamic color if not specified
+    // Map color fallback
     events = events.map(e => ({
       ...e.toJSON(),
-      color: e.color || colorMap[e.tag] || "#A9A9A9"
+      color: e.color || '#A9A9A9'
     }));
 
     res.status(200).json(events);
   } catch (err) {
-    console.error("Error fetching events:", err);
-    res.status(500).json({ message: "Error fetching events" });
+    console.error('Error fetching events:', err);
+    res.status(500).json({ message: 'Error fetching events' });
   }
 };
 

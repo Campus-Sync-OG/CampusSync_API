@@ -12,7 +12,7 @@ const {  authorizeRole } = require("../middleware/authMiddleware");
  router.get('/list', Auth.verifyToken, userController.getAllUsers);
 router.get('/:unique_id', Auth.verifyToken, userController.getUserByUniqueId);
 // router.post('/create', Auth.verifyToken, userController.createUser);
-// router.put('/update/:unique_id', Auth.verifyToken, userController.updateUser);
+router.put('/update/:unique_id', Auth.verifyToken, userController.updateUser);
 // router.delete('/delete/:unique_id', Auth.verifyToken, userController.deleteUser);
 
 // CSV upload routes
@@ -27,7 +27,7 @@ router.post("/reset-password", authControlller.resetPassword);
 
 // Certificates
 router.get('/certificates/:admission_no', userController.getStudentRequests);
-router.get('/certificates/all', userController.getAllRequests);
+router.get('/get/all', userController.getAllRequests);
 router.put('/certificates/update/:id', userController.updateCertificateStatus);
 
 // Announcement
@@ -35,7 +35,7 @@ router.post("/add", Auth.verifyToken, authorizeRole(["admin", "operator","princi
 
 // Parent info
 router.post("/postinfo", userController.createParent);
-router.put("/:admission_no", userController.updateParent);
+//router.put("/:admission_no", userController.updateParent);
 
 // Subjects and class-section
 router.post('/subjects', Auth.verifyToken, userController.createSubjects);

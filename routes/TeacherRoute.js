@@ -17,7 +17,7 @@ router.get('/all', Auth.verifyToken, teacherController.getAllTeachers);
 router.get('/:emp_id', Auth.verifyToken, teacherController.getTeacherById);
 
 // Route to update a teacher's details by employee ID (requires authentication)
-router.put('/update/:emp_id', Auth.verifyToken, teacherController.updateTeacher);
+router.put('/update/:emp_id', upload.single('photo'),Auth.verifyToken, teacherController.updateTeacher);
 
 // Route to soft delete a teacher (mark as inactive) by employee ID (requires authentication)
 router.delete('/delete/:emp_id', Auth.verifyToken, teacherController.softDeleteTeacher);
@@ -58,11 +58,12 @@ router.get("/assignedSubjects/:emp_id", teacherController.getAssignedSubjectByTe
 router.get("/certificates/:emp_id", teacherController.getCertificates);
 
 router.get("/leaves/:emp_id", teacherController.getLeaveApplications);
+router.get("/teacherleaves/:emp_id", teacherController.getTeacherLeaveApplications);
+router.post("/circular", upload.single("file"), Auth.verifyToken,teacherController.uploadCircular);
 
-router.post("/circular", upload.single("file"), teacherController.uploadCircular);
+router.get("/students/:emp_id", Auth.verifyToken,teacherController.getStudentsForClassTeacher);
 
-
-
+router.get("/class-sections/:emp_id", teacherController.getTeacherClassSectionsByEmpId);
 
 
 

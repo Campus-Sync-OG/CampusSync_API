@@ -5,20 +5,17 @@ const path = require("path");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
-const puppeteer = require("puppeteer");
+const { chromium } = require("playwright");
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
   key_secret: process.env.RAZORPAY_TEST_KEY_SECRET,
 });
 
-// Helper to generate receipt PDF
+
 async function generateReceiptPdf(feeRecord) {
   const receiptNo = feeRecord.receipt_no || `REC-${Date.now()}`;
-  const templatePath = path.join(
-    __dirname,
-    "../templates/receiptTemplate.html"
-  );
+  const templatePath = path.join(__dirname, "../templates/receiptTemplate.html");
   const fileName = `Receipt_${receiptNo}.pdf`;
   const receiptPath = path.join(__dirname, "../receipts", fileName);
 
@@ -27,14 +24,19 @@ async function generateReceiptPdf(feeRecord) {
     (feeRecord[key.trim()] || "").toString()
   );
 
-  const browser = await puppeteer.launch();
+  // ✅ Launch headless Chromium using Playwright
+  const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
+
+  // ✅ Set HTML content
   await page.setContent(filledHtml, { waitUntil: "load" });
 
+  // ✅ Ensure directory exists
   if (!fs.existsSync(path.dirname(receiptPath))) {
     fs.mkdirSync(path.dirname(receiptPath), { recursive: true });
   }
 
+  // ✅ Generate PDF
   await page.pdf({
     path: receiptPath,
     format: "A4",
@@ -99,6 +101,7 @@ exports.generateReceipt = async (req, res) => {
   }
 };
 
+// ✅ Updated: createPayment (only saves if cash)
 exports.createPayment = async (req, res) => {
   try {
     const {
@@ -123,7 +126,6 @@ exports.createPayment = async (req, res) => {
     const class_name = studentdata.class;
     const section_name = studentdata.section;
 
-    // Basic validations
     if (!admission_no) {
       return res.status(400).json({ error: "Missing required fields." });
     }
@@ -133,33 +135,22 @@ exports.createPayment = async (req, res) => {
       return res.status(400).json({ error: "Invalid feestype." });
     }
 
-    if (feestype !== "Multiple") {
-      // Optional: Validate amounts for single fee type
-    } else {
-      const uniformTotal = uniform_details
-        ? Object.values(uniform_details).reduce((a, b) => a + b, 0)
-        : 0;
-      const sumAmounts =
-        (tuition_amount || 0) +
-        (book_amount || 0) +
-        (transport_amount || 0) +
-        uniformTotal;
-
+    if (feestype === "Multiple") {
+      const uniformTotal = uniform_details ? Object.values(uniform_details).reduce((a, b) => a + b, 0) : 0;
+      const sumAmounts = (tuition_amount || 0) + (book_amount || 0) + (transport_amount || 0) + uniformTotal;
       if (paid_amount !== sumAmounts) {
-        return res.status(400).json({
-          error: "paid_amount must equal sum of all fee components.",
-        });
+        return res.status(400).json({ error: "paid_amount must equal sum of all fee components." });
       }
     }
 
-    // Generate receipt number
-    const today = new Date();
-    const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
-    const randomPart = Math.floor(1000 + Math.random() * 9000);
-    const generatedReceiptNo = `REC-${dateStr}-${randomPart}`;
+    const amountInPaise = paid_amount * 100;
 
     if (pay_method === "Cash") {
-      // Directly create fee record and generate receipt
+      const today = new Date();
+      const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
+      const randomPart = Math.floor(1000 + Math.random() * 9000);
+      const generatedReceiptNo = `REC-${dateStr}-${randomPart}`;
+
       const newFee = await fee.create({
         admission_no,
         pay_date: new Date(),
@@ -181,23 +172,10 @@ exports.createPayment = async (req, res) => {
 
       return res.status(201).json({
         message: "Cash payment recorded successfully",
-        receipt: {
-          receipt_no: newFee.receipt_no,
-          admission_no: newFee.admission_no,
-          student_name: studentdata.student_name,
-          class_name: newFee.class_name,
-          section_name: newFee.section_name,
-          feestype: newFee.feestype,
-          paid_amount: newFee.paid_amount,
-          pay_method: newFee.pay_method,
-          pay_date: new Date(newFee.pay_date),
-
-        }
+        receipt: newFee
       });
     }
 
-    // If not cash → Razorpay order flow
-    const amountInPaise = paid_amount * 100;
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
       currency: "INR",
@@ -207,33 +185,19 @@ exports.createPayment = async (req, res) => {
         feestype,
         class_name,
         section_name,
+        due_date,
+        uniform_details,
+        transport_amount,
+        book_amount,
+        tuition_amount,
+        paid_for_items,
+        payment_notes,
       },
-    });
-
-    const newFee = await fee.create({
-      admission_no,
-      pay_date: new Date(),
-      pay_method,
-      paid_amount,
-      receipt_no: generatedReceiptNo,
-      status: "Unpaid",
-      feestype,
-      class_name,
-      section_name,
-      due_date,
-      uniform_details: uniform_details || null,
-      transport_amount: transport_amount || null,
-      book_amount: book_amount || null,
-      tuition_amount: tuition_amount || null,
-      paid_for_items: paid_for_items || null,
-      payment_notes: payment_notes || null,
-      razorpay_order_id: razorpayOrder.id,
     });
 
     return res.status(201).json({
       message: "Online order created successfully",
       order: razorpayOrder,
-      paymentRecord: newFee,
     });
 
   } catch (error) {
@@ -242,11 +206,10 @@ exports.createPayment = async (req, res) => {
   }
 };
 
-
+// ✅ Updated: verifyPayment (store only after success)
 exports.verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-      req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_TEST_KEY_SECRET)
@@ -257,42 +220,47 @@ exports.verifyPayment = async (req, res) => {
       return res.status(400).json({ error: "Invalid signature" });
     }
 
-    // Update payment record as Paid
-    const [updated] = await fee.update(
-      {
-        razorpay_payment_id,
-        razorpay_signature,
-        status: "Paid",
-        pay_date: new Date(),
-      },
-      { where: { razorpay_order_id } }
-    );
+    const razorpayOrder = await razorpay.orders.fetch(razorpay_order_id);
+    const notes = razorpayOrder.notes;
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ error: "Payment record not found for order id" });
+    const studentRecord = await student.findOne({ where: { admission_no: notes.admission_no } });
+    if (!studentRecord) {
+      return res.status(404).json({ error: "Student not found." });
     }
 
-    // Fetch updated payment record
-    const paymentRecord = await fee.findOne({ where: { razorpay_order_id } });
+    const today = new Date();
+    const dateStr = today.toISOString().split("T")[0].replace(/-/g, "");
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    const receiptNo = `REC-${dateStr}-${randomPart}`;
 
-    // Optional: Fetch student info to add name (if needed in receipt)
-    const studentRecord = await student.findOne({
-      where: { admission_no: paymentRecord.admission_no },
+    const newFee = await fee.create({
+      admission_no: notes.admission_no,
+      pay_date: new Date(),
+      pay_method: "Online",
+      paid_amount: razorpayOrder.amount / 100,
+      receipt_no: receiptNo,
+      status: "Paid",
+      feestype: notes.feestype,
+      class_name: notes.class_name,
+      section_name: notes.section_name,
+      due_date: notes.due_date || null,
+      uniform_details: notes.uniform_details || null,
+      transport_amount: notes.transport_amount || null,
+      book_amount: notes.book_amount || null,
+      tuition_amount: notes.tuition_amount || null,
+      paid_for_items: notes.paid_for_items || null,
+      payment_notes: notes.payment_notes || null,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
     });
-    paymentRecord.dataValues.student_name = studentRecord
-      ? studentRecord.name
-      : null;
-
-    // Generate receipt PDF
-    const receiptFileName = await generateReceiptPdf(paymentRecord.dataValues);
 
     return res.json({
       status: "success",
-      message: "Payment verified and receipt generated",
-      receiptFile: `/receipts/${receiptFileName}`, // adjust URL serving logic accordingly
+      message: "Payment verified and saved",
+      receipt: newFee,
     });
+
   } catch (error) {
     console.error("Error verifying payment:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -326,7 +294,7 @@ exports.getFeesByAdmissionNo = async (req, res) => {
     // Add paid/unpaid status to each fee entry
     const enhancedFees = fees.map((f) => ({
       ...f.toJSON(),
-      status: f.payment_status === "paid" ? "Paid" : "Unpaid",
+      status: f.status === "Paid" ? "Paid" : "Unpaid",
     }));
 
     return res.status(200).json({
@@ -737,8 +705,8 @@ exports.getStudentFeeDetails = async (req, res) => {
         total: fp.total_fee,
         paid,
         due,
-        due_date: fp.due_date 
-      
+        due_date: fp.due_date
+
       };
     });
 

@@ -43,7 +43,7 @@ module.exports = {
         allowNull: true
       },
       item_details: {
-        type: DataTypes.JSON, // ✅ Use JSON data type
+        type: Sequelize.JSON, // ✅ Use JSON data type
         allowNull: true, // Not required for all fee types
       },
     });

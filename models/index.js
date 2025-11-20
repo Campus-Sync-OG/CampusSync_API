@@ -36,6 +36,10 @@ const _student_promotion = require('./student-promotion'); // Assuming this is n
 const _fee_plan = require('./fee_plan'); // Assuming this is needed
 const _calendar = require('./calendar'); // Assuming this is needed 
 
+const _salary_component =require('./salary_component');
+const _payroll_record = require('./payroll_record');
+const _component_type = require('./component_type');
+
 // Initialize models
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -70,6 +74,9 @@ const student_promotion = _student_promotion(sequelize, DataTypes); // Assuming 
 const fee_plan = _fee_plan(sequelize, DataTypes); // Assuming this is needed
 const calendar = _calendar(sequelize, DataTypes); // Assuming this is needed
 
+const salary_component = _salary_component(sequelize, DataTypes);
+const payroll_record = _payroll_record(sequelize, DataTypes);
+const component_type = _component_type(sequelize, DataTypes);
 // Define associations between models
 
 // User to role mapping
@@ -123,8 +130,8 @@ user.hasMany(notification, { foreignKey: "user_id", targetKey: "unique_id" });
 notification.belongsTo(user, { foreignKey: "user_id", targetKey: "unique_id" });
 
 // Announcements by user
-announcement.belongsTo(user, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'creator' });
-user.hasMany(announcement, { foreignKey: 'user_id', targetKey: 'unique_id', as: 'announcements' });
+//announcement.belongsTo(user, { foreignKey: 'unique_id', targetKey: 'unique_id', as: 'creator' });
+//user.hasMany(announcement, { foreignKey: 'unique_id', targetKey: 'unique_id', as: 'announcements' });
 
 // Subject assignment to teachers
 teacher.hasMany(teacher_subject, { foreignKey: 'emp_id', targetKey: 'emp_id' });
@@ -186,6 +193,27 @@ fee_plan.belongsTo(student, {
   targetKey: 'admission_no',
 });
 
+certificates.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+
+});
+
+
+
+user.hasMany(payroll_record, {
+  foreignKey: 'employee_id',
+  sourceKey: 'unique_id',
+  as: 'payrolls',
+});
+
+payroll_record.belongsTo(user, {
+  foreignKey: 'employee_id',
+  targetKey: 'unique_id',
+  as: 'user', // Important for eager loading
+});
+
+
 // Export all models
 module.exports = {
   sequelize,
@@ -223,4 +251,8 @@ module.exports = {
   student_promotion,
   fee_plan,
   calendar,
+  
+  salary_component,
+  payroll_record,
+  component_type
 };

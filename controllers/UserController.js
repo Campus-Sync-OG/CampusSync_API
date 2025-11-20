@@ -78,12 +78,13 @@ exports.getUserByUniqueId = async (req, res) => {
   }
 };
 
-/*exports.updateUser = async (req, res) => {
+exports.updateUser = async (req, res) => {
   const { unique_id } = req.params;
-  const { role, name, password } = req.body;
+  const { role, name, password, base_salary } = req.body;
 
   try {
     const { user } = require('../models');
+
     if (!unique_id || typeof unique_id !== 'string') {
       return res.status(400).json({ message: 'Invalid unique_id provided' });
     }
@@ -93,7 +94,13 @@ exports.getUserByUniqueId = async (req, res) => {
     });
 
     if (userRecord) {
-      await userRecord.update({ role, name, password });
+      await userRecord.update({
+        ...(role && { role }),
+        ...(name && { name }),
+        ...(password && { password }),
+        ...(base_salary !== undefined && { base_salary }), // allow 0
+      });
+
       res.status(200).json({
         message: 'User updated successfully',
         user: userRecord,
@@ -141,7 +148,7 @@ exports.getUserByUniqueId = async (req, res) => {
 
 exports.addFee = async (req, res) => {
   try {
-    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date,feestype,class_name,section_name} = req.body;
+    const { admission_no, pay_date, pay_method, paid_amount, receipt_no, status, due_date, feestype, class_name, section_name } = req.body;
 
     // Check if student exists for the provided admission_no
     const Student = await student.findOne({ where: { admission_no } });
@@ -160,7 +167,7 @@ exports.addFee = async (req, res) => {
       due_date,
       feestype,
       class_name,
-      section_name  
+      section_name
     });
     res.status(201).json(newFee);
   } catch (error) {
@@ -323,12 +330,22 @@ exports.getStudentRequests = async (req, res) => {
 // 3. Get all certificate requests (admin use)
 exports.getAllRequests = async (req, res) => {
   try {
-    const requests = await certificates.findAll();
+    const requests = await certificates.findAll({
+      include: [
+        {
+          model: student,
+          attributes: ['student_name', 'admission_no']
+        }
+      ]
+    });
     res.status(200).json(requests);
   } catch (error) {
-    res.status(500).json({ error: 'Could not fetch requests' });
+    console.error('Error fetching all requests:', error);
+    res.status(500).json({ error: 'Failed to retrieve certificate requests' });
   }
 };
+
+
 
 // 4. Update certificate request status (approve or reject)
 exports.updateCertificateStatus = async (req, res) => {
@@ -358,13 +375,14 @@ exports.updateCertificateStatus = async (req, res) => {
 
 exports.createAnnouncement = async (req, res) => {
   try {
-    const { title, date, message, status } = req.body;
+    const { title, start_date, end_date, message, status } = req.body;
     const user_id = req.user.unique_id;
 
     // Create the announcement
     const Announcement = await announcement.create({
       title,
-      date,
+      start_date,
+      end_date,
       message,
       status,
       user_id, // This should match unique_id from User
@@ -376,6 +394,7 @@ exports.createAnnouncement = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 exports.createParent = async (req, res) => {
   try {
@@ -406,7 +425,7 @@ exports.createParent = async (req, res) => {
   }
 };
 
-exports.updateParent = async (req, res) => {
+/*exports.updateParent = async (req, res) => {
   try {
     const { admission_no } = req.params;
     const updatedData = req.body;
@@ -424,7 +443,7 @@ exports.updateParent = async (req, res) => {
     console.error("Error updating parent info:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
-};
+};*/
 
 exports.createSubjects = async (req, res) => {
   try {
@@ -641,11 +660,11 @@ exports.assignSubjectToTeacher = async (req, res) => {
   }
 };
 
-exports.deleteAssignedSubject= async (req, res) => {
+exports.deleteAssignedSubject = async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await teacher_subject.destroy({ where: { id } });
-    
+
     if (deleted) {
       res.status(204).send(); // No Content
     } else {
@@ -658,7 +677,6 @@ exports.deleteAssignedSubject= async (req, res) => {
 
 exports.getAssignedSubjects = async (req, res) => {
   try {
-    // Fetch all teacher_subject entries with associated teacher info
     const assignedSubjects = await teacher_subject.findAll({
       include: [
         {
@@ -668,13 +686,15 @@ exports.getAssignedSubjects = async (req, res) => {
       ]
     });
 
-    // Return full subjects array without slicing or indexing
-    const result = assignedSubjects.map(item => ({
+    // Filter out records with no associated teacher
+    const validSubjects = assignedSubjects.filter(item => item.teacher);
+
+    const result = validSubjects.map(item => ({
       employeeID: item.teacher.emp_id,
       teacherName: item.teacher.emp_name,
       class: item.class_name,
       section: item.section,
-      subjects: item.subjects,  // full list of subject names
+      subjects: item.subjects,
       role: item.teacher.role
     }));
 
@@ -684,7 +704,6 @@ exports.getAssignedSubjects = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 
 

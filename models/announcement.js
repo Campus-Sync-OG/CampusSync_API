@@ -1,5 +1,6 @@
 const { Sequelize } = require("sequelize");
 const sequelize = require('../config/sequelize');
+const { end } = require("pdfkit");
 module.exports = (sequelize, DataTypes) => {
   const Announcement = sequelize.define(
     "announcement",
@@ -14,10 +15,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
       },
-      date: {
+      start_date: {
         type: DataTypes.DATEONLY,
         allowNull: false,
         defaultValue: DataTypes.NOW, // Fix defaultValue for DATEONLY
+      },
+      end_date: {
+        type: DataTypes.DATEONLY, // Use DATEONLY for date without time
+        allowNull: false, // Ensure end_date is always after start_date
       },
       message: {
         type: DataTypes.TEXT,
