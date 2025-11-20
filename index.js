@@ -38,6 +38,9 @@ const promotionRoutes = require('./routes/PromotionRoute');
 const studentDocumentRoutes = require('./routes/StudentDocumentsRoute');
 const calendarRoutes = require('./routes/CalendarRoute');
 const circularRoutes = require('./routes/CircularRoute');
+const locationRoutes = require('./routes/LocationRoutes');
+const busRoutes = require('./routes/BusRoutes');
+const driverRoutes = require('./routes/DriverRoutes');
 
 const payrollRoutes = require('./routes/PayrollRoute');
 
