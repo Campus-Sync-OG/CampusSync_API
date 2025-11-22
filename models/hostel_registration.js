@@ -5,8 +5,9 @@ module.exports = function (sequelize, DataTypes) {
     {
       registration_id: {
         type: DataTypes.INTEGER,
-        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       admission_no: {
@@ -35,7 +36,13 @@ module.exports = function (sequelize, DataTypes) {
 
       preferred_sharing: {
         // stores user selection like 'Single','Double','Triple','3 Sharing'
-        type: DataTypes.ENUM("Single", "Double", "Triple", "3 Sharing", "4 Sharing"),
+        type: DataTypes.ENUM(
+          "Single",
+          "Double",
+          "Triple",
+          "3 Sharing",
+          "4 Sharing"
+        ),
         allowNull: true,
       },
 

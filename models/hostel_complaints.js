@@ -5,8 +5,8 @@ module.exports = function (sequelize, DataTypes) {
     "hostel_complaints",
     {
       complaint_id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
         primaryKey: true,
       },
 
@@ -14,7 +14,7 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: false,
         references: {
-          model: "student", // FK to students table
+          model: "student",
           key: "admission_no",
         },
       },
@@ -42,7 +42,6 @@ module.exports = function (sequelize, DataTypes) {
       },
 
       attachment_url: {
-        // optional image/pdf uploaded by student
         type: DataTypes.STRING,
         allowNull: true,
       },
@@ -53,14 +52,12 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
       },
 
-      // Management Response Fields
       response_message: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
 
       responded_by: {
-        // Employee ID of admin/warden who replied
         type: DataTypes.STRING,
         allowNull: true,
         references: {

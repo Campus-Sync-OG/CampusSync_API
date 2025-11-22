@@ -4,9 +4,10 @@ module.exports = function (sequelize, DataTypes) {
     "hostel_meal_bookings",
     {
       booking_id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       admission_no: {
@@ -19,7 +20,7 @@ module.exports = function (sequelize, DataTypes) {
       },
 
       menu_id: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER,  // changed from UUID to INTEGER
         allowNull: false,
         references: {
           model: "hostel_meal_menu",

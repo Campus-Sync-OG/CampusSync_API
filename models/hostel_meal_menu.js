@@ -4,9 +4,10 @@ module.exports = function (sequelize, DataTypes) {
     "hostel_meal_menu",
     {
       menu_id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       meal_type: {
@@ -21,7 +22,7 @@ module.exports = function (sequelize, DataTypes) {
 
       items: {
         type: DataTypes.JSON,
-        allowNull: false, // ["Rice", "Dal", "Curd"]
+        allowNull: false,
       },
     },
     {

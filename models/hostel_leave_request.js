@@ -4,9 +4,10 @@ module.exports = function (sequelize, DataTypes) {
     "hostel_leave_requests",
     {
       leave_id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       admission_no: {

@@ -4,9 +4,10 @@ module.exports = function (sequelize, DataTypes) {
     "hostel_blocks",
     {
       id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       block_name: {

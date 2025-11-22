@@ -4,13 +4,14 @@ module.exports = function (sequelize, DataTypes) {
     "hostel_rooms",
     {
       room_id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       block_id: {
-        type: DataTypes.UUID,
+        type: DataTypes.INTEGER,   // updated because hostel_blocks.id is INTEGER
         allowNull: false,
         references: {
           model: "hostel_blocks",
