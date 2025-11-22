@@ -1,5 +1,5 @@
 // redisClient.js
-const { createClient } = require('redis');
+/*const { createClient } = require('redis');
 
 const redisClient = createClient();
 
@@ -9,4 +9,4 @@ redisClient.on('error', (err) => console.error('Redis Client Error:', err));
   if (!redisClient.isOpen) await redisClient.connect();
 })();
 
-module.exports = redisClient;
+module.exports = redisClient;*/
