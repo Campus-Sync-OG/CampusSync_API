@@ -1,31 +1,31 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('hostel_complaints', {
+    await queryInterface.createTable("hostel_complaints", {
       complaint_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
+        autoIncrement: true,
       },
 
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'student',
-          key: 'admission_no',
+          model: "student",
+          key: "admission_no",
         },
       },
 
       complaint_type: {
         type: Sequelize.ENUM(
-          'Hostel',
-          'Food',
-          'Cleanliness',
-          'Discipline',
-          'Maintenance',
-          'Other'
+          "Hostel",
+          "Food",
+          "Cleanliness",
+          "Discipline",
+          "Maintenance",
+          "Other"
         ),
         allowNull: false,
       },
@@ -46,9 +46,9 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('Pending', 'In Review', 'Resolved', 'Rejected'),
+        type: Sequelize.ENUM("Pending", "In Review", "Resolved", "Rejected"),
         allowNull: false,
-        defaultValue: 'Pending',
+        defaultValue: "Pending",
       },
 
       response_message: {
@@ -60,8 +60,8 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
         references: {
-          model: 'employee',
-          key: 'emp_id',
+          model: "user",
+          key: "unique_id",
         },
       },
 
@@ -83,7 +83,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('hostel_complaints');
+  async down(queryInterface) {
+    await queryInterface.dropTable("hostel_complaints");
   },
 };

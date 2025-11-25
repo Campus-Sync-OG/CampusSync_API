@@ -61,8 +61,8 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.STRING,
         allowNull: true,
         references: {
-          model: "employee",
-          key: "emp_id",
+          model: "user",
+          key: "unique_id",
         },
       },
 

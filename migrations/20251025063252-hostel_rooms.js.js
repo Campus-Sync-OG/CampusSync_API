@@ -1,21 +1,24 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('hostel_rooms', {
+    await queryInterface.createTable("hostel_rooms", {
       room_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       block_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'hostel_blocks',
-          key: 'id',
+          model: "hostel_blocks",
+          key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
 
       room_number: {
@@ -24,7 +27,7 @@ module.exports = {
       },
 
       sharing_type: {
-        type: Sequelize.ENUM('Single', '2 Sharing', '3 Sharing', '4 Sharing'),
+        type: Sequelize.ENUM("Single", "2 Sharing", "3 Sharing", "4 Sharing"),
         allowNull: false,
       },
 
@@ -36,7 +39,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('hostel_rooms');
+  async down(queryInterface) {
+    await queryInterface.dropTable("hostel_rooms");
   },
 };

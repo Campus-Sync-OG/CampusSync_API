@@ -1,17 +1,17 @@
-// models/hostel_registration.js
-module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
-    "hostel_registration",
-    {
+"use strict";
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable("hostel_registration", {
       registration_id: {
-        type: DataTypes.INTEGER,
+        type: Sequelize.INTEGER,
+        allowNull: false,
         primaryKey: true,
         autoIncrement: true,
-        allowNull: false,
       },
 
       admission_no: {
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: "student",
@@ -20,7 +20,7 @@ module.exports = function (sequelize, DataTypes) {
       },
 
       // hostel_id: {
-      //   type: DataTypes.INTEGER,
+      //   type: Sequelize.INTEGER,
       //   allowNull: true,
       //   references: {
       //     model: "hostel",
@@ -29,14 +29,13 @@ module.exports = function (sequelize, DataTypes) {
       // },
 
       premium_room: {
-        type: DataTypes.BOOLEAN,
+        type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
       },
 
       preferred_sharing: {
-        // stores user selection like 'Single','Double','Triple','3 Sharing'
-        type: DataTypes.ENUM(
+        type: Sequelize.ENUM(
           "Single",
           "Double",
           "Triple",
@@ -47,55 +46,64 @@ module.exports = function (sequelize, DataTypes) {
       },
 
       payment_type: {
-        // you can expand this list to suit your payment modes
-        type: DataTypes.ENUM("Online", "Offline", "Cash", "UPI", "Netbanking"),
+        type: Sequelize.ENUM(
+          "Online",
+          "Offline",
+          "Cash",
+          "UPI",
+          "Netbanking"
+        ),
         allowNull: true,
       },
 
       total_fee: {
-        type: DataTypes.DECIMAL(12, 2),
+        type: Sequelize.DECIMAL(12, 2),
         allowNull: false,
         defaultValue: 0.0,
       },
 
       caution_fee: {
-        type: DataTypes.DECIMAL(12, 2),
+        type: Sequelize.DECIMAL(12, 2),
         allowNull: false,
         defaultValue: 0.0,
       },
 
       is_rejoiner: {
-        // if student is a re-joiner (caution deposit not applicable)
-        type: DataTypes.BOOLEAN,
+        type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false,
       },
 
       status: {
-        type: DataTypes.ENUM("Pending", "Registered", "Rejected", "Cancelled"),
+        type: Sequelize.ENUM(
+          "Pending",
+          "Registered",
+          "Rejected",
+          "Cancelled"
+        ),
         allowNull: false,
         defaultValue: "Pending",
       },
 
       remarks: {
-        type: DataTypes.TEXT,
+        type: Sequelize.TEXT,
         allowNull: true,
       },
 
       registered_on: {
-        type: DataTypes.DATE,
+        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW,
+        defaultValue: Sequelize.NOW,
       },
 
       updated_at: {
-        type: DataTypes.DATE,
+        type: Sequelize.DATE,
         allowNull: true,
       },
-    },
-    {
-      tableName: "hostel_registration",
-      timestamps: false,
-    }
-  );
+    });
+  },
+
+  async down(queryInterface) {
+    await queryInterface.dropTable("hostel_registration");
+  },
 };

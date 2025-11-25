@@ -1,21 +1,24 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('hostel_leave_requests', {
+    await queryInterface.createTable("hostel_leave_requests", {
       leave_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'student',
-          key: 'admission_no',
+          model: "student",
+          key: "admission_no",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
 
       reason: {
@@ -44,14 +47,14 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('Pending', 'Approved', 'Rejected'),
+        type: Sequelize.ENUM("Pending", "Approved", "Rejected"),
         allowNull: false,
-        defaultValue: 'Pending',
+        defaultValue: "Pending",
       },
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('hostel_leave_requests');
+  async down(queryInterface) {
+    await queryInterface.dropTable("hostel_leave_requests");
   },
 };

@@ -1,30 +1,35 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('hostel_allotments', {
+    await queryInterface.createTable("hostel_allotments", {
       allotment_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
+        autoIncrement: true,
+        allowNull: false,
       },
 
       admission_no: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'student',
-          key: 'admission_no',
+          model: "student",
+          key: "admission_no",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
 
       room_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'hostel_rooms',
-          key: 'room_id',
+          model: "hostel_rooms",
+          key: "room_id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
 
       request_number: {
@@ -33,9 +38,9 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('Requested', 'Room Allotted', 'Rejected'),
+        type: Sequelize.ENUM("Requested", "Room Allotted", "Rejected"),
         allowNull: false,
-        defaultValue: 'Requested',
+        defaultValue: "Requested",
       },
 
       start_date: {
@@ -50,7 +55,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('hostel_allotments');
+  async down(queryInterface) {
+    await queryInterface.dropTable("hostel_allotments");
   },
 };

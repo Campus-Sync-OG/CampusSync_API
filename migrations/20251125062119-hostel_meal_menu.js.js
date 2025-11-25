@@ -1,16 +1,16 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('hostel_meal_menu', {
+    await queryInterface.createTable("hostel_meal_menu", {
       menu_id: {
-        type: Sequelize.UUID,
+        type: Sequelize.INTEGER,
         primaryKey: true,
-        defaultValue: Sequelize.UUIDV4,
+        autoIncrement: true,
       },
 
       meal_type: {
-        type: Sequelize.ENUM('Breakfast', 'Lunch', 'Dinner'),
+        type: Sequelize.ENUM("Breakfast", "Lunch", "Dinner"),
         allowNull: false,
       },
 
@@ -26,7 +26,7 @@ module.exports = {
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('hostel_meal_menu');
+  async down(queryInterface) {
+    await queryInterface.dropTable("hostel_meal_menu");
   },
 };
