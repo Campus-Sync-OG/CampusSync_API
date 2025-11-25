@@ -43,6 +43,7 @@ const busRoutes = require('./routes/BusRoutes');
 const driverRoutes = require('./routes/DriverRoutes');
 
 const payrollRoutes = require('./routes/PayrollRoute');
+const marksRoutes = require('./routes/MarksRoute');
 
 
 const server = http.createServer(app);
@@ -88,6 +89,7 @@ app.use('/api/promotion', promotionRoutes);
 app.use('/api/studentdocuments', studentDocumentRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/circulars', circularRoutes);
+app.use('/api/marks', marksRoutes);
 
 app.use('/api/payroll', payrollRoutes);
 app.listen(PORT, () => {

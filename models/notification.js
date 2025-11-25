@@ -15,7 +15,7 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
       },
       message: {
-        type: DataTypes.STRING,
+        type: DataTypes.JSON,
         allowNull: false,
       },
        class_id: {

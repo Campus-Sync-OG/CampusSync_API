@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
       },
       message: {
-        type: Sequelize.STRING,
+        type: Sequelize.JSON,
         allowNull: false,
       },
        class_id: {
