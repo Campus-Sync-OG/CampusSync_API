@@ -15,7 +15,7 @@ module.exports = {
         allowNull: false,
       },
 
-      gender: {
+      block_type: {
         type: Sequelize.ENUM("Male", "Female"),
         allowNull: false,
       },

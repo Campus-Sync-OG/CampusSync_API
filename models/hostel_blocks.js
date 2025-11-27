@@ -15,7 +15,7 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
       },
 
-      gender: {
+      block_type: {
         type: DataTypes.ENUM("Male", "Female"),
         allowNull: false,
       },

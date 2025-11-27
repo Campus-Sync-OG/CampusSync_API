@@ -2,17 +2,17 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("wardens", {
+    await queryInterface.createTable("warden", {
       warden_id: {
-        type: Sequelize.STRING,
+         type: Sequelize.STRING,
         allowNull: false,
-        primaryKey: true,
+        unique: true,
         references: {
-          model: "user",
-          key: "unique_id",
+          model: 'user',
+          key: 'unique_id'
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       warden_name: {
         type: Sequelize.STRING,
@@ -58,6 +58,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("wardens");
+    await queryInterface.dropTable("warden");
   },
 };

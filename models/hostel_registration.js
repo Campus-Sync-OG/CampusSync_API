@@ -19,14 +19,14 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
 
-      // hostel_id: {
-      //   type: DataTypes.INTEGER,
-      //   allowNull: true,
-      //   references: {
-      //     model: "hostel",
-      //     key: "hostel_id",
-      //   },
-      // },
+      hostel_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: "hostel",
+          key: "hostel_id",
+        },
+      },
 
       premium_room: {
         type: DataTypes.BOOLEAN,
