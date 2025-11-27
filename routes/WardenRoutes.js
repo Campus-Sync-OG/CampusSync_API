@@ -1,29 +1,31 @@
 const express = require("express");
 const router = express.Router();
-const wardenController = require("../controllers/warden.controller");
 
-// ---------------- Warden ----------------
-router.post("/create", wardenController.createWarden);
-router.get("/", wardenController.getWardens);
-router.get("/:id", wardenController.getWardenById);
-router.put("/:id", wardenController.updateWarden);
-router.delete("/:id", wardenController.deleteWarden);
+const {
+  createWarden,
+  createBlock,
+  createRoom,
+  allotRoom,
+  markAttendance,
+  getStudentsInBlock,
+} = require("../controllers/WardenController");
 
-// ---------------- Blocks ----------------
-router.post("/blocks/create", wardenController.createBlock);
-router.get("/blocks", wardenController.getBlocks);
+// ➤ Create warden
+router.post("/warden/create", createWarden);
 
-// ---------------- Rooms ----------------
-router.post("/rooms/create", wardenController.createRoom);
-router.get("/rooms/:block_id", wardenController.getRoomsByBlock);
+// ➤ Create hostel block
+router.post("/block/create", createBlock);
 
-// ---------------- Room Allotment ----------------
-router.post("/rooms/allot", wardenController.allotRoom);
+// ➤ Create room inside a block
+router.post("/room/create", createRoom);
 
-// ---------------- Attendance ----------------
-router.post("/attendance/mark", wardenController.markAttendance);
+// ➤ Allot room to a student
+router.post("/room/allot", allotRoom);
 
-// ---------------- Students in Block ----------------
-router.get("/students/:block_id", wardenController.getStudentsInBlock);
+// ➤ Mark daily attendance
+router.post("/attendance/mark", markAttendance);
+
+// ➤ Get all students in a specific block
+router.get("/block/:block_id/students", getStudentsInBlock);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const hostelRegController = require("../controllers/hostelRegistration.controller");
+const hostelRegController = require("../controllers/HostelRegisterController");
 
 router.post("/apply", hostelRegController.applyHostel);
 router.get("/pending", hostelRegController.getPendingApplications);
