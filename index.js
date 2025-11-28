@@ -43,6 +43,8 @@ const busRoutes = require('./routes/BusRoutes');
 const driverRoutes = require('./routes/DriverRoutes');
 
 const payrollRoutes = require('./routes/PayrollRoute');
+const wardenRoutes = require('./routes/WardenRoutes');
+const hostelRegRoutes = require('./routes/HostelRegRoutes');
 
 
 const server = http.createServer(app);
@@ -90,6 +92,8 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/circulars', circularRoutes);
 
 app.use('/api/payroll', payrollRoutes);
+app.use('/api/warden', wardenRoutes);
+app.use('/api/hostel', hostelRegRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });

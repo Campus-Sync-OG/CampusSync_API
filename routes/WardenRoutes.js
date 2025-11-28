@@ -11,7 +11,7 @@ const {
 } = require("../controllers/WardenController");
 
 // ➤ Create warden
-router.post("/warden/create", createWarden);
+router.post("/create", createWarden);
 
 // ➤ Create hostel block
 router.post("/block/create", createBlock);

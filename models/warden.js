@@ -1,21 +1,12 @@
-const { Sequelize } = require("sequelize");
-const sequelize = require('../config/sequelize');
-const { on } = require("pdfkit");
-
-
 module.exports = (sequelize, DataTypes) => {
   const Warden = sequelize.define(
-    "warden",
+    "warden",             // <-- model name EXACTLY as you wanted
     {
       warden_id: {
         type: DataTypes.STRING,
         primaryKey: true,
         allowNull: false,
         unique: true,
-        references: {
-          model: 'user',
-          key: 'unique_id',
-        }
       },
       name: {
         type: DataTypes.STRING,
@@ -25,20 +16,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        validate: {
-          len: [10, 15],
-        },
       },
       email: {
         type: DataTypes.STRING,
         allowNull: true,
         unique: true,
-        validate: {
-          isEmail: true,
-        },
       },
       gender: {
-        type: DataTypes.ENUM("male", "female", "other"),
+        type: DataTypes.ENUM("Male", "Female"),
         allowNull: false,
       },
       address: {
@@ -48,23 +33,21 @@ module.exports = (sequelize, DataTypes) => {
       assigned_block_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        references: {
-          model: "hostel_blocks",
-          key: "id",
-        },
       },
     },
     {
-      sequelize,
       tableName: "warden",
-      timestamps: false,
+      timestamps: false, // because your migration has timestamps but model disabled them
     }
   );
 
+  // Associations
   Warden.associate = (models) => {
     Warden.belongsTo(models.hostel_blocks, {
       foreignKey: "assigned_block_id",
       as: "block",
     });
   };
+
+  return Warden;   // <-- THIS WAS MISSING (mandatory)
 };
