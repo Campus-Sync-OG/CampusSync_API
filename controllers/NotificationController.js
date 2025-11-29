@@ -1,5 +1,6 @@
 const { notification, user } = require('../models');
 const NotificationService = require('../services/notificationService');
+const { emitNewNotificationForUser } = require('../services/notificationService');
 
 exports.createNotification = async (req, res) => {
   try {
@@ -137,5 +138,69 @@ exports.getNotifications = async (req, res) => {
   } catch (error) {
     console.error('Error in getNotifications:', error);
     return res.status(500).json({ error: 'Failed to fetch notifications.' });
+  }
+};
+
+
+exports.markAllRead = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    if (!user_id) return res.status(400).json({ error: "user_id required" });
+
+    await notification.update(
+      { is_read: true },
+      { where: { user_id, is_read: false } }
+    );
+
+    // emit unread=0 to user clients
+    await emitNewNotificationForUser(user_id, null);
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("markAllRead error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.markAsRead = async (req, res) => {
+  try {
+    const { id } = req.params; // notification id
+    if (!id) return res.status(400).json({ error: "id required" });
+
+    const noti = await notification.findOne({ where: { id } });
+    if (!noti) return res.status(404).json({ error: "Notification not found" });
+
+    if (!noti.is_read) {
+      await noti.update({ is_read: true });
+      // emit updated unread count for this user
+      await emitNewNotificationForUser(noti.user_id, null);
+    }
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("markAsRead error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+
+    if (!user_id) {
+      return res.status(400).json({ error: "user_id is required" });
+    }
+
+    const unread = await notification.count({
+      where: {
+        user_id,
+        is_read: false
+      }
+    });
+
+    return res.status(200).json({ unread });
+  } catch (error) {
+    console.error("Error in getUnreadCount:", error);
+    return res.status(500).json({ error: "Failed to get unread count" });
   }
 };

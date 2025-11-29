@@ -17,14 +17,14 @@ module.exports = {
         type: Sequelize.JSON,
         allowNull: false,
       },
-       class_id: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-    },
-    section_id: {
-      type: Sequelize.INTEGER,
-      allowNull: true,
-    },
+      class_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
+      section_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
       user_id: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -35,6 +35,11 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
+      is_read: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

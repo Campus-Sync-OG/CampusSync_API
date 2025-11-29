@@ -4,6 +4,44 @@ const { User } = require("../models");
 
 // Initialize Twilio client
 const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+let getIo;
+try {
+  // try to require your socket module
+  ({ getIo } = require("../socket"));
+} catch (e) {
+  // if socket not setup, we'll fallback silently
+  getIo = null;
+}
+
+async function emitNewNotificationForUser(userId, createdNotification = null) {
+  try {
+    // count unread notifications for this user
+    const unread = await notification.count({
+      where: { user_id: userId, is_read: false },
+    });
+
+    // build payload
+    const payload = {
+      unread,
+      notification: createdNotification || null,
+    };
+
+    // emit via socket if available
+    if (getIo) {
+      try {
+        const io = getIo();
+        io.to(`user_${userId}`).emit("new_notification", payload);
+      } catch (e) {
+        console.warn("Socket emit failed:", e.message || e);
+      }
+    }
+
+    return payload;
+  } catch (err) {
+    console.error("emitNewNotificationForUser error:", err);
+    return null;
+  }
+}
 
 class NotificationService {
   static async sendWhatsApp(to, message) {
@@ -67,4 +105,4 @@ class NotificationService {
   }
 }
 
-module.exports = NotificationService;
+module.exports = NotificationService, {emitNewNotificationForUser};

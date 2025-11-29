@@ -1,6 +1,3 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/sequelize");
-
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
     "notification",
@@ -18,21 +15,27 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.JSON,
         allowNull: false,
       },
-       class_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    section_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+      class_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      section_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       user_id: {
         type: DataTypes.STRING,
         allowNull: false,
         references: {
-          model: "user", // Table name
+          model: "user",
           key: "unique_id",
         },
+      },
+
+      // NEW FIELD ↓
+      is_read: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
     {
