@@ -34,6 +34,11 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
         defaultValue: 1,
       },
+      status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue:true,
+      },
     },
     {
       tableName: "hostel_rooms",

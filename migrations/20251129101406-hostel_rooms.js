@@ -36,6 +36,13 @@ module.exports = {
         allowNull: false,
         defaultValue: 1,
       },
+
+      status: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: true,
+      },
+
     });
   },
 

@@ -8,6 +8,8 @@ const {
   allotRoom,
   markAttendance,
   getStudentsInBlock,
+  createAllotment,
+  vacateAllotment
 } = require("../controllers/WardenController");
 
 // ➤ Create warden
@@ -27,5 +29,8 @@ router.post("/attendance/mark", markAttendance);
 
 // ➤ Get all students in a specific block
 router.get("/block/:block_id/students", getStudentsInBlock);
+
+router.post("/allot/create", createAllotment);
+router.put("/allot/vacate", vacateAllotment);
 
 module.exports = router;

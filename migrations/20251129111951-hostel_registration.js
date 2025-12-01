@@ -28,12 +28,6 @@ module.exports = {
       //   },
       // },
 
-      premium_room: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-
       preferred_sharing: {
         type: Sequelize.ENUM(
           "Single",

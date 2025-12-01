@@ -32,13 +32,8 @@ module.exports = {
         onDelete: "SET NULL",
       },
 
-      request_number: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-
       status: {
-        type: Sequelize.ENUM("Requested", "Room Allotted", "Rejected"),
+        type: Sequelize.ENUM("Requested","Room Allotted","Vacated"),
         allowNull: false,
         defaultValue: "Requested",
       },

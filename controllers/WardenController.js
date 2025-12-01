@@ -155,3 +155,119 @@ exports.getStudentsInBlock = async (req, res) => {
     return res.status(500).json({ message: "Error fetching students", error: error.message || error });
   }
 };
+
+// allotment.controller.js
+
+
+exports.createAllotment = async (req, res) => {
+  try {
+    const { registration_id, room_id, start_date, end_date } = req.body;
+
+    if (!registration_id || !room_id) {
+      return res.status(400).json({ message: "registration_id and room_id are required" });
+    }
+
+    const registration = await hostel_registration.findOne({ where: { registration_id } });
+    if (!registration) return res.status(404).json({ message: "Registration not found" });
+
+    const room = await hostel_rooms.findOne({ where: { room_id } });
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    const sharingCapacityMap = {
+      "Single": 1,
+      "2 Sharing": 2,
+      "3 Sharing": 3,
+      "4 Sharing": 4,
+    };
+    const maxCapacity = sharingCapacityMap[room.sharing_type];
+
+    // Don’t allot if room is already full
+    if (room.capacity >= maxCapacity) {
+      return res.status(400).json({ message: "Room capacity exceeded" });
+    }
+
+    const allotment = await hostel_allotments.create({
+      registration_id,
+      room_id,
+      admission_no: registration.admission_no,
+      status: "Room Allotted",
+      start_date,
+      end_date
+    });
+
+    const updatedCapacity = room.capacity + 1;
+
+    // Update room capacity (+1)
+    const updateData = { capacity: updatedCapacity };
+
+    // If room becomes full → set status = false
+    if (updatedCapacity === maxCapacity) {
+      updateData.status = false;
+    }
+
+    await hostel_rooms.update(updateData, { where: { room_id } });
+
+    await hostel_registration.update(
+      { status: "Registered", updated_at: new Date() },
+      { where: { registration_id } }
+    );
+
+    return res.status(201).json({
+      message: "Hostel allotment completed successfully",
+      data: allotment,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong", error: error.message });
+  }
+};
+
+exports.vacateAllotment = async (req, res) => {
+  try {
+    const { allotment_id } = req.body;
+
+    if (!allotment_id) {
+      return res.status(400).json({ message: "allotment_id is required" });
+    }
+
+    const allotment = await hostel_allotments.findOne({ where: { allotment_id } });
+    if (!allotment) return res.status(404).json({ message: "Allotment not found" });
+
+    if (allotment.status === "Vacated") {
+      return res.status(400).json({ message: "Student is already vacated" });
+    }
+
+    const room = await hostel_rooms.findOne({ where: { room_id: allotment.room_id } });
+    const sharingCapacityMap = {
+        "Single": 1,
+        "2 Sharing": 2,
+        "3 Sharing": 3,
+        "4 Sharing": 4,
+      };
+    const newCapacity = room.capacity - 1;
+
+    const updateData = { capacity: newCapacity };
+    // Room becomes available again
+    if (newCapacity < sharingCapacityMap[room.sharing_type]) {
+      updateData.status = true;
+    }
+
+    await hostel_rooms.update(updateData, { where: { room_id: room.room_id } });
+
+    await hostel_allotments.update(
+      { status: "Vacated", vacated_at: new Date() },
+      { where: { allotment_id } }
+    );
+
+    return res.status(200).json({
+      message: "Room vacated successfully",
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong", error: error.message });
+  }
+};
+
+

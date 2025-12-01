@@ -28,13 +28,8 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
 
-      request_number: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-
       status: {
-        type: DataTypes.ENUM("Requested", "Room Allotted", "Rejected"),
+        type: DataTypes.ENUM("Requested","Room Allotted","Vacated"),
         allowNull: false,
         defaultValue: "Requested",
       },

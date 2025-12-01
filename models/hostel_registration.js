@@ -19,12 +19,6 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
 
-      premium_room: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-
       preferred_sharing: {
         // stores user selection like 'Single','Double','Triple','3 Sharing'
         type: DataTypes.ENUM(
