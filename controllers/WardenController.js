@@ -34,10 +34,17 @@ exports.createWarden = async (req, res) => {
       assigned_block_id,
     });
 
-    res.status(201).json({ message: "Warden created successfully", data: newWarden });
+    res
+      .status(201)
+      .json({ message: "Warden created successfully", data: newWarden });
   } catch (error) {
     console.error("Error creating warden:", error);
-    res.status(500).json({ message: "Error creating warden", error: error.message || error });
+    res
+      .status(500)
+      .json({
+        message: "Error creating warden",
+        error: error.message || error,
+      });
   }
 };
 
@@ -47,12 +54,17 @@ exports.createWarden = async (req, res) => {
 exports.createBlock = async (req, res) => {
   try {
     const { block_name, block_type } = req.body;
-    if (!block_name || !block_type) return res.status(400).json({ message: "Block name and type required" });
+    if (!block_name || !block_type)
+      return res.status(400).json({ message: "Block name and type required" });
 
     const newBlock = await hostel_blocks.create({ block_name, block_type });
-    return res.status(201).json({ message: "Hostel block created successfully", block: newBlock });
+    return res
+      .status(201)
+      .json({ message: "Hostel block created successfully", block: newBlock });
   } catch (error) {
-    return res.status(500).json({ message: "Error creating block", error: error.message || error });
+    return res
+      .status(500)
+      .json({ message: "Error creating block", error: error.message || error });
   }
 };
 
@@ -63,16 +75,30 @@ exports.createRoom = async (req, res) => {
   try {
     const { block_id, room_number, sharing_type, capacity } = req.body;
     if (!block_id || !room_number || !sharing_type || !capacity) {
-      return res.status(400).json({ message: "block_id, room_number, sharing_type, capacity are required" });
+      return res
+        .status(400)
+        .json({
+          message: "block_id, room_number, sharing_type, capacity are required",
+        });
     }
 
     const blockExists = await hostel_blocks.findByPk(block_id);
-    if (!blockExists) return res.status(404).json({ message: "Block not found" });
+    if (!blockExists)
+      return res.status(404).json({ message: "Block not found" });
 
-    const newRoom = await hostel_rooms.create({ block_id, room_number, sharing_type, capacity });
-    return res.status(201).json({ message: "Room created successfully", room: newRoom });
+    const newRoom = await hostel_rooms.create({
+      block_id,
+      room_number,
+      sharing_type,
+      capacity,
+    });
+    return res
+      .status(201)
+      .json({ message: "Room created successfully", room: newRoom });
   } catch (error) {
-    return res.status(500).json({ message: "Error creating room", error: error.message || error });
+    return res
+      .status(500)
+      .json({ message: "Error creating room", error: error.message || error });
   }
 };
 
@@ -82,22 +108,41 @@ exports.createRoom = async (req, res) => {
 exports.allotRoom = async (req, res) => {
   try {
     const { admission_no, room_id } = req.body;
-    if (!admission_no || !room_id) return res.status(400).json({ message: "admission_no and room_id are required" });
+    if (!admission_no || !room_id)
+      return res
+        .status(400)
+        .json({ message: "admission_no and room_id are required" });
 
-    const registration = await hostel_registration.findOne({ where: { admission_no, status: "Registered" } });
-    if (!registration) return res.status(404).json({ message: "Student not registered for hostel" });
+    const registration = await hostel_registration.findOne({
+      where: { admission_no, status: "Registered" },
+    });
+    if (!registration)
+      return res
+        .status(404)
+        .json({ message: "Student not registered for hostel" });
 
     const room = await hostel_rooms.findByPk(room_id);
     if (!room) return res.status(404).json({ message: "Room not found" });
 
     // Check if room capacity allows
-    const currentAllotments = await hostel_allotments.count({ where: { room_id } });
-    if (currentAllotments >= room.capacity) return res.status(400).json({ message: "Room is full" });
+    const currentAllotments = await hostel_allotments.count({
+      where: { room_id },
+    });
+    if (currentAllotments >= room.capacity)
+      return res.status(400).json({ message: "Room is full" });
 
-    const allotment = await hostel_allotments.create({ admission_no, room_id, status: "Room Allotted" });
-    return res.status(201).json({ message: "Room allotted successfully", allotment });
+    const allotment = await hostel_allotments.create({
+      admission_no,
+      room_id,
+      status: "Room Allotted",
+    });
+    return res
+      .status(201)
+      .json({ message: "Room allotted successfully", allotment });
   } catch (error) {
-    return res.status(500).json({ message: "Error allotting room", error: error.message || error });
+    return res
+      .status(500)
+      .json({ message: "Error allotting room", error: error.message || error });
   }
 };
 
@@ -114,14 +159,20 @@ exports.markAttendance = async (req, res) => {
      * ]
      */
 
-    if (!block_id || !date || !attendance) return res.status(400).json({ message: "block_id, date and attendance are required" });
+    if (!block_id || !date || !attendance)
+      return res
+        .status(400)
+        .json({ message: "block_id, date and attendance are required" });
 
     const blockExists = await hostel_blocks.findByPk(block_id);
-    if (!blockExists) return res.status(404).json({ message: "Block not found" });
+    if (!blockExists)
+      return res.status(404).json({ message: "Block not found" });
 
     const results = [];
     for (const record of attendance) {
-      const student = await hostel_registration.findOne({ where: { admission_no: record.admission_no } });
+      const student = await hostel_registration.findOne({
+        where: { admission_no: record.admission_no },
+      });
       if (!student) continue;
 
       const att = await hostel_attendance.create({
@@ -132,9 +183,16 @@ exports.markAttendance = async (req, res) => {
       results.push(att);
     }
 
-    return res.status(201).json({ message: "Attendance marked successfully", attendance: results });
+    return res
+      .status(201)
+      .json({ message: "Attendance marked successfully", attendance: results });
   } catch (error) {
-    return res.status(500).json({ message: "Error marking attendance", error: error.message || error });
+    return res
+      .status(500)
+      .json({
+        message: "Error marking attendance",
+        error: error.message || error,
+      });
   }
 };
 
@@ -144,7 +202,8 @@ exports.markAttendance = async (req, res) => {
 exports.getStudentsInBlock = async (req, res) => {
   try {
     const { block_id } = req.params;
-    if (!block_id) return res.status(400).json({ message: "block_id required" });
+    if (!block_id)
+      return res.status(400).json({ message: "block_id required" });
 
     const students = await hostel_registration.findAll({
       where: { hostel_id: block_id, status: "Registered" },
@@ -152,29 +211,38 @@ exports.getStudentsInBlock = async (req, res) => {
 
     return res.status(200).json(students);
   } catch (error) {
-    return res.status(500).json({ message: "Error fetching students", error: error.message || error });
+    return res
+      .status(500)
+      .json({
+        message: "Error fetching students",
+        error: error.message || error,
+      });
   }
 };
 
 // allotment.controller.js
-
 
 exports.createAllotment = async (req, res) => {
   try {
     const { registration_id, room_id, start_date, end_date } = req.body;
 
     if (!registration_id || !room_id) {
-      return res.status(400).json({ message: "registration_id and room_id are required" });
+      return res
+        .status(400)
+        .json({ message: "registration_id and room_id are required" });
     }
 
-    const registration = await hostel_registration.findOne({ where: { registration_id } });
-    if (!registration) return res.status(404).json({ message: "Registration not found" });
+    const registration = await hostel_registration.findOne({
+      where: { registration_id },
+    });
+    if (!registration)
+      return res.status(404).json({ message: "Registration not found" });
 
     const room = await hostel_rooms.findOne({ where: { room_id } });
     if (!room) return res.status(404).json({ message: "Room not found" });
 
     const sharingCapacityMap = {
-      "Single": 1,
+      Single: 1,
       "2 Sharing": 2,
       "3 Sharing": 3,
       "4 Sharing": 4,
@@ -192,7 +260,7 @@ exports.createAllotment = async (req, res) => {
       admission_no: registration.admission_no,
       status: "Room Allotted",
       start_date,
-      end_date
+      end_date,
     });
 
     const updatedCapacity = room.capacity + 1;
@@ -216,10 +284,11 @@ exports.createAllotment = async (req, res) => {
       message: "Hostel allotment completed successfully",
       data: allotment,
     });
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Something went wrong", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
   }
 };
 
@@ -231,20 +300,25 @@ exports.vacateAllotment = async (req, res) => {
       return res.status(400).json({ message: "allotment_id is required" });
     }
 
-    const allotment = await hostel_allotments.findOne({ where: { allotment_id } });
-    if (!allotment) return res.status(404).json({ message: "Allotment not found" });
+    const allotment = await hostel_allotments.findOne({
+      where: { allotment_id },
+    });
+    if (!allotment)
+      return res.status(404).json({ message: "Allotment not found" });
 
     if (allotment.status === "Vacated") {
       return res.status(400).json({ message: "Student is already vacated" });
     }
 
-    const room = await hostel_rooms.findOne({ where: { room_id: allotment.room_id } });
+    const room = await hostel_rooms.findOne({
+      where: { room_id: allotment.room_id },
+    });
     const sharingCapacityMap = {
-        "Single": 1,
-        "2 Sharing": 2,
-        "3 Sharing": 3,
-        "4 Sharing": 4,
-      };
+      Single: 1,
+      "2 Sharing": 2,
+      "3 Sharing": 3,
+      "4 Sharing": 4,
+    };
     const newCapacity = room.capacity - 1;
 
     const updateData = { capacity: newCapacity };
@@ -263,11 +337,63 @@ exports.vacateAllotment = async (req, res) => {
     return res.status(200).json({
       message: "Room vacated successfully",
     });
-
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Something went wrong", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
   }
 };
 
+exports.getAvailableRooms = async (req, res) => {
+  try {
+    const { block_id, sharing_type } = req.query;
 
+    const where = {};
+
+    if (block_id) where.block_id = block_id;
+    if (sharing_type) where.sharing_type = sharing_type;
+
+    const rooms = await hostel_rooms.findAll({ where });
+
+    if (!rooms || rooms.length === 0) {
+      return res.status(200).json({
+        message: "No rooms found",
+        data: [],
+      });
+    }
+
+    const sharingCapacityMap = {
+      Single: 1,
+      "2 Sharing": 2,
+      "3 Sharing": 3,
+      "4 Sharing": 4,
+    };
+
+    const result = rooms.map((room) => {
+      const maxCapacity = sharingCapacityMap[room.sharing_type] || 0;
+      const remaining = maxCapacity - room.capacity;
+
+      return {
+        room_id: room.room_id,
+        block_id: room.block_id,
+        sharing_type: room.sharing_type,
+        max_capacity: maxCapacity,
+        filled: room.capacity,
+        remaining_beds: remaining,
+        available: remaining > 0,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Room availability fetched successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
+};
