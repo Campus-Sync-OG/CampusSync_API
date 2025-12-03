@@ -43,8 +43,8 @@ const busRoutes = require('./routes/BusRoutes');
 const driverRoutes = require('./routes/DriverRoutes');
 
 const payrollRoutes = require('./routes/PayrollRoute');
-const wardenRoutes = require('./routes/WardenRoutes');
-const hostelRegRoutes = require('./routes/HostelRegRoutes');
+const wardenRoutes = require('./routes/WardenRoute');
+const hostelRegRoutes = require('./routes/HostelRegRoute');
 
 
 const server = http.createServer(app);

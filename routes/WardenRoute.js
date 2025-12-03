@@ -1,28 +1,25 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
 const WardenController = require("../controllers/WardenController");
 
-router.post("/warden/create", WardenController.createWarden);
-
+// Blocks
 router.post("/block/create", WardenController.createBlock);
 
+// Rooms
 router.post("/room/create", WardenController.createRoom);
 router.get("/rooms/available", WardenController.getAvailableRooms);
-router.get("/rooms/available/grouped", WardenController.getAvailableRoomsGrouped);
 
-router.post("/room/allot", WardenController.allotRoom);
-router.post("/room/vacate", WardenController.vacateAllotment);
+// Allotment
+router.post("/allotment/create", WardenController.createAllotment);
+router.post("/allotment/vacate", WardenController.vacateAllotment);
 
-router.post("/attendance/mark", WardenController.markAttendance);
-
-router.get("/block/:block_id/students", WardenController.getStudentsInBlock);
-
-router.post("/maintenance/create", WardenController.createComplaint);
-router.get("/maintenance/all", WardenController.getAllComplaints);
-router.post("/maintenance/:complaint_id/update", WardenController.updateComplaintStatus);
-
-router.post("/leave/request", WardenController.requestLeave);
+// Leave Requests
+router.post("/leave/create", WardenController.requestLeave);
 router.get("/leave/all", WardenController.getAllLeaveRequests);
-router.post("/leave/:leave_id/update", WardenController.updateLeaveStatus);
+router.put("/leave/update/:leave_id", WardenController.updateLeaveStatus);
+
+// Complaints
+router.post("/complaint/create", WardenController.submitComplaint);
+router.get("/complaints/all", WardenController.getAllComplaints);
+router.put("/complaint/update/:complaint_id", WardenController.updateComplaintStatus);
 
 module.exports = router;
