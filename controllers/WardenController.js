@@ -2,7 +2,7 @@ const {
   hostel_blocks,
   hostel_rooms,
   hostel_allotments,
-  hostel_leave_requests: LeaveRequests,
+  hostel_leave_request: LeaveRequests,
   hostel_complaints: Complaints,
   student: Student,
   user: User,
@@ -36,9 +36,9 @@ exports.createBlock = async (req, res) => {
 // -----------------------------
 exports.createRoom = async (req, res) => {
   try {
-    const { block_id, room_no, sharing_type, floor } = req.body;
+    const { block_id, room_number, sharing_type } = req.body;
 
-    if (!block_id || !room_no || !sharing_type) {
+    if (!block_id || !room_number || !sharing_type) {
       return res.status(400).json({ message: "Missing fields" });
     }
 
@@ -51,9 +51,8 @@ exports.createRoom = async (req, res) => {
 
     const room = await hostel_rooms.create({
       block_id,
-      room_no,
+      room_number,
       sharing_type,
-      floor,
       capacity: capacityMap[sharing_type],
       status: true,
     });
@@ -75,7 +74,7 @@ exports.getAvailableRooms = async (req, res) => {
   try {
     const rooms = await hostel_rooms.findAll({
       where: { status: true },
-      attributes: ["room_id", "room_no", "sharing_type", "capacity"],
+      attributes: ["room_id", "room_number", "sharing_type", "capacity"],
       order: [["sharing_type", "ASC"]],
     });
 
@@ -131,7 +130,7 @@ exports.createAllotment = async (req, res) => {
     const allot = await hostel_allotments.create({
       admission_no,
       room_id,
-      status: "Active",
+      status: "Room Allotted",
     });
 
     return res.status(201).json({
@@ -243,20 +242,35 @@ exports.getAllLeaveRequests = async (req, res) => {
       include: [
         {
           model: Student,
-          attributes: ["name", "class", "admission_no"],
+          as: 'student',                     // <-- alias used when defining association
+          attributes: ['student_name', 'class', 'admission_no'],
         },
+        {
+          model: hostel_allotments,
+          as: 'allotment',                   // <-- alias used when defining association
+          attributes: ['allotment_id', 'room_id', 'status', 'start_date', 'end_date'],
+          required: false,                   // don't require an allotment (leave may exist without one)
+          include: [
+            {
+              model: hostel_rooms,
+              as: 'room',                    // <-- alias used when defining allotment->room
+              attributes: ['room_id', 'room_number'],
+              required: false
+            }
+          ]
+        }
       ],
-      order: [["leave_id", "DESC"]],
+      order: [['leave_id', 'DESC']],
     });
 
     return res.status(200).json({
-      message: "Leave requests fetched successfully",
+      message: 'Leave requests fetched successfully',
       count: leaves.length,
       data: leaves,
     });
   } catch (error) {
-    console.error("Fetch Leaves Error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error('Fetch Leaves Error:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
 
@@ -339,7 +353,8 @@ exports.getAllComplaints = async (req, res) => {
       include: [
         {
           model: Student,
-          attributes: ["name", "admission_no", "class"],
+          as: "student", 
+          attributes: ["student_name", "admission_no", "class"],
         },
       ],
       order: [["complaint_id", "DESC"]],
@@ -352,9 +367,12 @@ exports.getAllComplaints = async (req, res) => {
     });
   } catch (error) {
     console.error("Fetch Complaints Error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 // -----------------------------
 // Warden: Update Complaint Status

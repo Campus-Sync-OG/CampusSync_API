@@ -235,6 +235,44 @@ payroll_record.belongsTo(user, {
   as: 'user', // Important for eager loading
 });
 
+hostel_leave_request.belongsTo(student, {
+  foreignKey: "admission_no",
+  targetKey: "admission_no"
+});
+
+hostel_leave_request.belongsTo(hostel_allotments, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+  as: 'allotment'
+});
+// And if helpful:
+hostel_allotments.hasMany(hostel_leave_request, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no',
+  as: 'leaves'
+});
+
+hostel_allotments.belongsTo(hostel_rooms, {
+  foreignKey: 'room_id',
+  targetKey: 'room_id',
+  as: 'room'
+});
+hostel_rooms.hasMany(hostel_allotments, {
+  foreignKey: 'room_id',
+  sourceKey: 'room_id',
+  as: 'allotments'
+});
+
+hostel_complaints.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+  as: 'student'   // choose this alias and reuse it in include
+});
+student.hasMany(hostel_complaints, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no',
+  as: 'complaints'
+});
 
 // Export all models
 module.exports = {
