@@ -39,12 +39,10 @@ exports.createWarden = async (req, res) => {
       .json({ message: "Warden created successfully", data: newWarden });
   } catch (error) {
     console.error("Error creating warden:", error);
-    res
-      .status(500)
-      .json({
-        message: "Error creating warden",
-        error: error.message || error,
-      });
+    res.status(500).json({
+      message: "Error creating warden",
+      error: error.message || error,
+    });
   }
 };
 
@@ -75,11 +73,9 @@ exports.createRoom = async (req, res) => {
   try {
     const { block_id, room_number, sharing_type, capacity } = req.body;
     if (!block_id || !room_number || !sharing_type || !capacity) {
-      return res
-        .status(400)
-        .json({
-          message: "block_id, room_number, sharing_type, capacity are required",
-        });
+      return res.status(400).json({
+        message: "block_id, room_number, sharing_type, capacity are required",
+      });
     }
 
     const blockExists = await hostel_blocks.findByPk(block_id);
@@ -187,12 +183,10 @@ exports.markAttendance = async (req, res) => {
       .status(201)
       .json({ message: "Attendance marked successfully", attendance: results });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        message: "Error marking attendance",
-        error: error.message || error,
-      });
+    return res.status(500).json({
+      message: "Error marking attendance",
+      error: error.message || error,
+    });
   }
 };
 
@@ -211,12 +205,10 @@ exports.getStudentsInBlock = async (req, res) => {
 
     return res.status(200).json(students);
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        message: "Error fetching students",
-        error: error.message || error,
-      });
+    return res.status(500).json({
+      message: "Error fetching students",
+      error: error.message || error,
+    });
   }
 };
 
@@ -388,6 +380,63 @@ exports.getAvailableRooms = async (req, res) => {
     return res.status(200).json({
       message: "Room availability fetched successfully",
       data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
+};
+
+exports.getAvailableRoomsGrouped = async (req, res) => {
+  try {
+    const rooms = await hostel_rooms.findAll();
+
+    if (!rooms || rooms.length === 0) {
+      return res.status(200).json({
+        message: "No rooms found",
+        data: {},
+      });
+    }
+
+    const sharingCapacityMap = {
+      Single: 1,
+      "2 Sharing": 2,
+      "3 Sharing": 3,
+      "4 Sharing": 4,
+    };
+
+    // GROUPING STRUCTURE
+    const grouped = {
+      Single: [],
+      "2 Sharing": [],
+      "3 Sharing": [],
+      "4 Sharing": [],
+    };
+
+    rooms.forEach((room) => {
+      const maxCapacity = sharingCapacityMap[room.sharing_type] || 0;
+      const remaining = maxCapacity - room.capacity;
+
+      // ONLY show available rooms
+      if (remaining > 0) {
+        grouped[room.sharing_type].push({
+          room_id: room.room_id,
+          block_id: room.block_id,
+          sharing_type: room.sharing_type,
+          max_capacity: maxCapacity,
+          filled: room.capacity,
+          remaining_beds: remaining,
+          available: true,
+        });
+      }
+    });
+
+    return res.status(200).json({
+      message: "Available rooms grouped by sharing type",
+      data: grouped,
     });
   } catch (error) {
     console.error(error);
