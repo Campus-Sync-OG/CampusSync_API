@@ -19,6 +19,7 @@ function buildSubmissionMessage(submission, submittedBy) {
  * POST /api/marks/submit
  * body: { class_grade, section, subject, exam_format, academic_year, exam_date, marks: [{admission_no, roll_no, student_name, marks_obtained, total_marks}], emp_id? }
  */
+// controllers/marksController.js
 async function submitMarks(req, res) {
   const payload = req.body;
   const emp_id = (req.user && req.user.unique_id) || payload.emp_id;
@@ -29,31 +30,68 @@ async function submitMarks(req, res) {
     return res.status(400).json({ success: false, message: 'Missing required fields or marks' });
   }
 
+  const t = await sequelize.transaction();
   try {
-    // Build message storing full submission
     const submission = { class_grade, section, subject, exam_format, academic_year, exam_date, marks };
     const message = buildSubmissionMessage(submission, emp_id);
 
-    // Find principals to notify (you have principal table)
-    const principals = await principal.findAll({ attributes: ['p_id'] });
+    // Find principals to notify
+    const principals = await principal.findAll({ transaction: t }); // fetch full rows
+    console.log('submitMarks: principals found:', principals.length);
 
-    // create notification entries for all principals
-    const notifs = principals.map(p => ({
-      title: `Marks submitted: ${subject} (${class_grade}-${section})`,
-      message,
-      class_id: class_grade,
-      section_id: section,
-      user_id: p.p_id // principal user id according to your notification model
-    }));
+    if (!Array.isArray(principals) || principals.length === 0) {
+      await t.rollback();
+      return res.status(500).json({ success: false, message: 'No principals found to notify (check principal table)' });
+    }
 
-    await Notification.bulkCreate(notifs);
+    const notifs = principals.map((p) => {
+      // normalize possible id fields
+      const principalUserId = p.p_id ?? p.unique_id ?? p.id ?? null;
+      return {
+        title: `Marks submitted: ${subject} (${class_grade}-${section})`,
+        message,
+        class_id: class_grade,
+        section_id: section,
+        user_id: principalUserId
+      };
+    });
 
-    return res.status(201).json({ success: true, message: 'Submitted for principal approval' });
+    // basic validation: ensure we have at least one usable user_id
+    const badOnes = notifs.filter(n => !n.user_id);
+    if (badOnes.length) {
+      console.warn('submitMarks: some principals missing identifier, check principal model fields', badOnes);
+      // still attempt to create notifications for valid principals
+    }
+    const validNotifs = notifs.filter(n => n.user_id);
+
+    // bulk create with transaction; returning may be supported (Postgres) to get inserted rows
+    const created = await Notification.bulkCreate(validNotifs, { transaction: t, returning: true });
+
+    // commit only after successful create
+    await t.commit();
+
+    // extract created IDs (handle Sequelize return shapes)
+    const createdIds = Array.isArray(created)
+      ? created.map(c => c.id ?? c.notification_id ?? null).filter(Boolean)
+      : [];
+
+    console.log('submitMarks: created notifications count:', createdIds.length);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Submitted for principal approval',
+      notificationIds: createdIds,
+      createdCount: createdIds.length
+    });
   } catch (err) {
+    await t.rollback();
     console.error('submitMarks error', err);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    // surface underlying validation error if present
+    const detail = err?.errors?.map(e => e.message).join('; ') || err.message || '';
+    return res.status(500).json({ success: false, message: 'Server error creating notifications', detail });
   }
 }
+
 
 /**
  * Principal lists pending submissions (reads notifications and returns those with message.type === 'marks_submission' && status === 'pending')
