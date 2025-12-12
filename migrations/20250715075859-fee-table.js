@@ -94,17 +94,42 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      tally_reference: {
+        type: Sequelize.STRING(128),
+        allowNull: true,
+      },
+
+      tally_sync_status: {
+        type: Sequelize.STRING,
+        defaultValue: "pending",
+      },
+
+      tally_sync_tried_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+
+      tally_sync_error: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+
+      tally_voucher_no: {
+        type: Sequelize.STRING(128),
+        allowNull: true,
+      },
+
       deletedAt: {
         type: Sequelize.DATE,
         allowNull: true,
       },
-  
+
     });
   },
 
   down: async (queryInterface, Sequelize) => {
     // Drop ENUMs first if your dialect requires it
     await queryInterface.dropTable('fee');
-    
+
   }
 };

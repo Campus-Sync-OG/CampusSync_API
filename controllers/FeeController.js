@@ -6,6 +6,9 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const { Op } = require("sequelize"); // ✅ Fix: import Sequelize Op
 const { chromium } = require("playwright");
+// at the top of the file (~with other requires)
+const { emitPayment } = require('../services/cloudSocket'); // adjust path if needed
+
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_TEST_KEY_ID,
@@ -233,6 +236,7 @@ exports.verifyPayment = async (req, res) => {
     const randomPart = Math.floor(1000 + Math.random() * 9000);
     const receiptNo = `REC-${dateStr}-${randomPart}`;
 
+    // create fee record
     const newFee = await fee.create({
       admission_no: notes.admission_no,
       pay_date: new Date(),
@@ -255,6 +259,44 @@ exports.verifyPayment = async (req, res) => {
       razorpay_signature,
     });
 
+    // --- NEW: mark Tally fields and emit to agent (non-blocking, safe) ---
+    try {
+      // Ensure tally status and reference are set (use existing receipt_no)
+      await newFee.update({
+        tally_sync_status: 'pending',
+        tally_reference: newFee.receipt_no || `ERP_${newFee.sl_no || newFee.id}`
+      });
+
+      // Build payload the agent expects
+      const paymentPayload = {
+        payment_id: newFee.sl_no || newFee.id,
+        receipt_no: newFee.receipt_no,
+        pay_date: newFee.pay_date,
+        paid_amount: Number(newFee.paid_amount),
+        feestype: newFee.feestype,
+        admission_no: newFee.admission_no,
+        student_name: newFee.student_name || studentRecord.student_name || null,
+        payment_mode: newFee.pay_method || 'Online',
+        bank_name: newFee.bank_name || null,
+        payment_notes: newFee.payment_notes || null
+      };
+
+      // emit to agent (real-time). If agent is offline, agent polling will pick it up.
+      // emitPayment is synchronous/logging in cloudSocket; if it throws, we catch it here.
+      emitPayment(paymentPayload);
+    } catch (emitErr) {
+      // Important: don't fail the payment because emission failed.
+      console.error('Tally emit failed (non-fatal):', emitErr && (emitErr.message || emitErr));
+      // Optional: persist emitErr somewhere (tally_sync_error table/log) for later investigation.
+      try {
+        await newFee.update({ tally_sync_error: (emitErr && (emitErr.message || String(emitErr))) || 'emit_failed' });
+      } catch (uErr) {
+        console.error('Failed to write tally_sync_error', uErr && (uErr.message || uErr));
+      }
+    }
+    // --- END new block ---
+
+    // Respond to client normally — payment flow remains unaffected.
     return res.json({
       status: "success",
       message: "Payment verified and saved",
@@ -266,6 +308,7 @@ exports.verifyPayment = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 // Get Fees by Admission No (Student)
 exports.getFeesByAdmissionNo = async (req, res) => {

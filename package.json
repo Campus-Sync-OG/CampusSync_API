@@ -16,12 +16,14 @@
   "license": "ISC",
   "dependencies": {
     "@azure/storage-blob": "^12.26.0",
+    "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
+    "body-parser": "^2.2.1",
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "exceljs": "^4.4.0",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^4.2.0",
@@ -32,15 +34,16 @@
     "puppeteer": "^24.10.1",
     "razorpay": "^2.9.6",
     "redis": "^5.5.6",
-    "sequelize": "^6.37.5",
+    "sequelize": "^6.37.7",
     "sharp": "^0.33.5",
     "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "streamifier": "^0.1.1",
     "twilio": "^5.4.5",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9",
+    "nodemon": "^3.1.11",
     "sequelize-cli": "^6.6.2"
   }
 }

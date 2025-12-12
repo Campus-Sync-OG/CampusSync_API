@@ -102,6 +102,31 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    tally_reference: {
+      type: DataTypes.STRING(128),
+      allowNull: true,
+    },
+
+    tally_sync_status: {
+      type: DataTypes.STRING,
+      defaultValue: "pending",
+    },
+
+    tally_sync_tried_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+
+    tally_sync_error: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    tally_voucher_no: {
+      type: DataTypes.STRING(128),
+      allowNull: true,
+    },
+
 
     deletedAt: {
       type: DataTypes.DATE,
@@ -112,6 +137,6 @@ module.exports = function (sequelize, DataTypes) {
     freezeTableName: true,
     paranoid: true,
     tableName: "fee",
-    timestamps:false,
+    timestamps: false,
   });
 };
