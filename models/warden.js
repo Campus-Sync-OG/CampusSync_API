@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
       assigned_block_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: {
+          model: "hostel_blocks",
+          key: "id",
+        },
       },
     },
     {
