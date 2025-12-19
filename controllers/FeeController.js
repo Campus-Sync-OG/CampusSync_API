@@ -269,8 +269,8 @@ exports.verifyPayment = async (req, res) => {
 
       // Build payload the agent expects
       const paymentPayload = {
-        payment_id: newFee.sl_no || newFee.id,
-        receipt_no: newFee.receipt_no,
+        sl_no: newFee.sl_no,              
+        receipt_no: newFee.receipt_no,    
         pay_date: newFee.pay_date,
         paid_amount: Number(newFee.paid_amount),
         feestype: newFee.feestype,
@@ -778,3 +778,4 @@ exports.getStudentFeeDetails = async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+

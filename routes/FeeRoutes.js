@@ -31,4 +31,6 @@ router.get('/student-fee-status/:admission_no', feeController.getStudentFeeStatu
 router.get("/student-fee/:admission_no", feeController.getStudentFeeDetails);
 
 
+
+
 module.exports = router;
