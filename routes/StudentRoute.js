@@ -34,7 +34,7 @@ router.get('/circulars/:admission_no', studentController.getCircularByAdmissionN
 router.get('/', Auth.verifyToken, studentController.getStudentsByClassAndSection);
 
 //add feedback 
-router.post("/add", Auth.verifyToken, studentController.createFeedback);
+router.post("/add",  studentController.createFeedback);
 
 router.post("/assignment-upload/:admission_no", upload.single("file"), studentController.studentUploadAssignment);
 
