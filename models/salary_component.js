@@ -8,7 +8,7 @@ module.exports = function (sequelize, DataTypes) {
     role: {
         type: DataTypes.ENUM("teacher", "principal", "admin", "operator"),
         allowNull: false,
-       // unique: true, // Ensure only one component set per role
+        //unique: true, // Ensure only one component set per role
       },
     component_values: {
       type: DataTypes.JSONB, // or JSON

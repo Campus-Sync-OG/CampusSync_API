@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
       },
       role: {
-        type: Sequelize.ENUM("admin", "operator", "student", "teacher", "principal"),
+        type: Sequelize.ENUM("admin", "operator", "student", "teacher", "principal", "warden"),
         allowNull: false,
       },
       name: {

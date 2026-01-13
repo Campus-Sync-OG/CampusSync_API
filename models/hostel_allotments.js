@@ -1,0 +1,52 @@
+// models/hostel_allotments.js
+module.exports = function (sequelize, DataTypes) {
+  return sequelize.define(
+    "hostel_allotments",
+    {
+      allotment_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+      },
+
+      admission_no: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: "student",
+          key: "admission_no",
+        },
+      },
+
+      room_id: {
+        type: DataTypes.INTEGER,  // changed from UUID → INTEGER
+        allowNull: false,
+        references: {
+          model: "hostel_rooms",
+          key: "room_id",
+        },
+      },
+
+      status: {
+        type: DataTypes.ENUM("Requested","Room Allotted","Vacated"),
+        allowNull: false,
+        defaultValue: "Requested",
+      },
+
+      start_date: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+
+      end_date: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+    },
+    {
+      tableName: "hostel_allotments",
+      timestamps: false,
+    }
+  );
+};

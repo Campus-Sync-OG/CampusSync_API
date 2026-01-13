@@ -48,6 +48,19 @@ module.exports = {
         type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
       },
+      roll_no: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      images: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      is_hosteller: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     });
   },
 

@@ -40,6 +40,17 @@ const _salary_component =require('./salary_component');
 const _payroll_record = require('./payroll_record');
 const _component_type = require('./component_type');
 
+
+
+const _hostel_registration   = require("./hostel_registration");
+const _hostel_rooms          = require("./hostel_rooms");
+const _hostel_blocks         = require("./hostel_blocks");
+const _hostel_allotments     = require("./hostel_allotments");
+const _hostel_leave_request  = require("./hostel_leave_request");
+const _hostel_complaints     = require("./hostel_complaints");
+const _warden                = require("./warden");
+
+
 // Initialize models
 const user = _user(sequelize, DataTypes);
 const teacher = _teacher(sequelize, DataTypes);
@@ -77,6 +88,13 @@ const calendar = _calendar(sequelize, DataTypes); // Assuming this is needed
 const salary_component = _salary_component(sequelize, DataTypes);
 const payroll_record = _payroll_record(sequelize, DataTypes);
 const component_type = _component_type(sequelize, DataTypes);
+const hostel_registration   = _hostel_registration(sequelize, DataTypes);
+const hostel_rooms          = _hostel_rooms(sequelize, DataTypes);
+const hostel_blocks         = _hostel_blocks(sequelize, DataTypes);
+const hostel_allotments     = _hostel_allotments(sequelize, DataTypes);
+const hostel_leave_request = _hostel_leave_request(sequelize, DataTypes);
+const hostel_complaints     = _hostel_complaints(sequelize, DataTypes);
+const warden                 = _warden(sequelize, DataTypes);
 // Define associations between models
 
 // User to role mapping
@@ -213,6 +231,44 @@ payroll_record.belongsTo(user, {
   as: 'user', // Important for eager loading
 });
 
+hostel_leave_request.belongsTo(student, {
+  foreignKey: "admission_no",
+  targetKey: "admission_no"
+});
+
+hostel_leave_request.belongsTo(hostel_allotments, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+  as: 'allotment'
+});
+// And if helpful:
+hostel_allotments.hasMany(hostel_leave_request, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no',
+  as: 'leaves'
+});
+
+hostel_allotments.belongsTo(hostel_rooms, {
+  foreignKey: 'room_id',
+  targetKey: 'room_id',
+  as: 'room'
+});
+hostel_rooms.hasMany(hostel_allotments, {
+  foreignKey: 'room_id',
+  sourceKey: 'room_id',
+  as: 'allotments'
+});
+
+hostel_complaints.belongsTo(student, {
+  foreignKey: 'admission_no',
+  targetKey: 'admission_no',
+  as: 'student'   // choose this alias and reuse it in include
+});
+student.hasMany(hostel_complaints, {
+  foreignKey: 'admission_no',
+  sourceKey: 'admission_no',
+  as: 'complaints'
+});
 
 // Export all models
 module.exports = {
@@ -254,5 +310,12 @@ module.exports = {
   
   salary_component,
   payroll_record,
-  component_type
+  component_type,
+  hostel_registration,
+  hostel_rooms,
+  hostel_blocks,
+  hostel_allotments,  
+  hostel_leave_request,
+  hostel_complaints,
+  warden,
 };

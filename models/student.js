@@ -66,6 +66,11 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    is_hosteller:{
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+   },
   }, {
     sequelize,
     tableName: 'student',

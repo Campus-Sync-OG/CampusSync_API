@@ -10,7 +10,14 @@ module.exports = function (sequelize) {
         primaryKey: true,
       },
       role: {
-        type: DataTypes.ENUM("admin", "operator", "student", "teacher", "principal"),
+        type: DataTypes.ENUM(
+          "admin",
+          "operator",
+          "student",
+          "teacher",
+          "principal",
+          "warden"
+        ),
         allowNull: false,
       },
       name: {
@@ -60,7 +67,7 @@ module.exports = function (sequelize) {
         beforeValidate: async (user, options) => {
           if (!user.unique_id) {
             let prefix;
-      
+
             switch (user.role) {
               case "student":
                 prefix = "S";
@@ -77,15 +84,19 @@ module.exports = function (sequelize) {
               case "operator":
                 prefix = "O"; // Use 'O' for Operator
                 break;
+              case "warden":
+                prefix = "W";
+                break;
               default:
                 throw new Error("Invalid role");
             }
-      
+
             const year = new Date().getFullYear();
-      
+
             // Start a transaction (if not already started)
-            const transaction = options.transaction || (await sequelize.transaction());
-      
+            const transaction =
+              options.transaction || (await sequelize.transaction());
+
             try {
               // Query to get the max serial number for the given role and year
               const result = await sequelize.query(
@@ -98,13 +109,15 @@ module.exports = function (sequelize) {
                   transaction,
                 }
               );
-      
+
               const maxSerial = result[0]?.max_serial || 0;
               const newSerialNumber = maxSerial + 1;
-      
+
               // Set the new unique_id
-              user.unique_id = `${prefix}-${year}-${String(newSerialNumber).padStart(4, "0")}`;
-      
+              user.unique_id = `${prefix}-${year}-${String(
+                newSerialNumber
+              ).padStart(4, "0")}`;
+
               // Commit the transaction if it was started within this hook
               if (!options.transaction) {
                 await transaction.commit();
@@ -118,9 +131,6 @@ module.exports = function (sequelize) {
           }
         },
       },
-      
     }
   );
-
- 
 };
