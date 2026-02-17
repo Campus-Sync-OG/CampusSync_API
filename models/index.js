@@ -217,8 +217,6 @@ certificates.belongsTo(student, {
 
 });
 
-
-
 user.hasMany(payroll_record, {
   foreignKey: 'employee_id',
   sourceKey: 'unique_id',
@@ -269,6 +267,60 @@ student.hasMany(hostel_complaints, {
   sourceKey: 'admission_no',
   as: 'complaints'
 });
+
+// ✅ Hostel Block ↔ Rooms relation
+hostel_blocks.hasMany(hostel_rooms, {
+  foreignKey: 'block_id',
+  sourceKey: 'id',
+  as: 'rooms',
+});
+
+hostel_rooms.belongsTo(hostel_blocks, {
+  foreignKey: 'block_id',
+  targetKey: 'id',
+  as: 'block',
+});
+
+// 🔗 Hostel Registration ↔ Student
+hostel_registration.belongsTo(student, {
+  foreignKey: "admission_no",
+  targetKey: "admission_no",
+  as: "student",
+});
+
+student.hasMany(hostel_registration, {
+  foreignKey: "admission_no",
+  sourceKey: "admission_no",
+  as: "hostelRegistrations",
+});
+
+// hostel_allotments.js
+hostel_allotments.belongsTo(student, {
+  foreignKey: "admission_no",
+  targetKey: "admission_no",
+});
+
+hostel_allotments.belongsTo(hostel_rooms, {
+  foreignKey: "room_id",
+});
+
+// hostel_rooms.js
+hostel_rooms.belongsTo(hostel_blocks, {
+  foreignKey: "block_id",
+});
+
+warden.belongsTo(hostel_blocks, {
+  foreignKey: "hostel_block_id",
+  as: "hostel_block",
+});
+
+hostel_blocks.hasMany(warden, {
+  foreignKey: "hostel_block_id",
+  as: "wardens",
+});
+
+
+
 
 // Export all models
 module.exports = {

@@ -1,3 +1,5 @@
+const { ref } = require("pdfkit");
+
 module.exports = (sequelize, DataTypes) => {
   const Warden = sequelize.define(
     "warden",             // <-- model name EXACTLY as you wanted
@@ -7,6 +9,10 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         allowNull: false,
         unique: true,
+        references: {
+          model: "user",
+          key: "unique_id",
+        },
       },
       name: {
         type: DataTypes.STRING,
