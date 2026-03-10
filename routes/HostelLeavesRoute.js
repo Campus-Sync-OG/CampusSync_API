@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const LeaveController = require("../controllers/HostelLeavesController");
+const HostelLeavesController = require("../controllers/HostelLeavesController");
 
 // Student
-router.post("/request", LeaveController.requestLeave);
+router.post("/request", HostelLeavesController.requestLeave);
 
 // Warden
-router.get("/all", LeaveController.getAllLeaveRequests);
-router.put("/update/:leave_id", LeaveController.updateLeaveStatus);
+router.get("/all", HostelLeavesController.getAllLeaveRequests);
+router.put("/update/:leave_id", HostelLeavesController.updateLeaveStatus);
 
 // Optional student history
-router.get("/student/:admission_no", LeaveController.getLeaveHistory);
+router.get("/student/:admission_no", HostelLeavesController.getLeaveHistory);
 
 module.exports = router;

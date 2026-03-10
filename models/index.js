@@ -49,7 +49,7 @@ const _hostel_allotments     = require("./hostel_allotments");
 const _hostel_leave_request  = require("./hostel_leave_request");
 const _hostel_complaints     = require("./hostel_complaints");
 const _warden                = require("./warden");
-
+const _hostel_attendance       = require("./hostel_attendance");
 
 // Initialize models
 const user = _user(sequelize, DataTypes);
@@ -95,6 +95,7 @@ const hostel_allotments     = _hostel_allotments(sequelize, DataTypes);
 const hostel_leave_request = _hostel_leave_request(sequelize, DataTypes);
 const hostel_complaints     = _hostel_complaints(sequelize, DataTypes);
 const warden                 = _warden(sequelize, DataTypes);
+const hostel_attendance       = _hostel_attendance(sequelize, DataTypes);
 // Define associations between models
 
 // User to role mapping
@@ -322,6 +323,7 @@ hostel_blocks.hasMany(warden, {
 
 
 
+
 // Export all models
 module.exports = {
   sequelize,
@@ -370,4 +372,5 @@ module.exports = {
   hostel_leave_request,
   hostel_complaints,
   warden,
+  hostel_attendance,
 };

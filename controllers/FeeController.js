@@ -130,7 +130,7 @@ exports.createPayment = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields." });
     }
 
-    const validFeeTypes = ["Tuition", "Books", "Transport", "Uniform", "Multiple"];
+    const validFeeTypes = ["Tuition", "Books", "Transport", "Uniform", "Multiple","Hostel"];
     if (!validFeeTypes.includes(feestype)) {
       return res.status(400).json({ error: "Invalid feestype." });
     }

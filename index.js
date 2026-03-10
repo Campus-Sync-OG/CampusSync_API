@@ -47,6 +47,8 @@ const marksRoutes = require('./routes/MarksRoute');
 const wardenRoutes = require('./routes/WardenRoute');
 const hostelRegRoutes = require('./routes/HostelRegRoute');
 const hostelAttendanceRoutes = require('./routes/HostelAttendanceRoute');
+const hostelLeaveRoutes = require('./routes/HostelLeavesRoute');
+const hostelComplaintRoutes = require('./routes/HostelComplaintRoute');
 
 
 const server = http.createServer(app);
@@ -98,6 +100,8 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/warden', wardenRoutes);
 app.use('/api/hostel', hostelRegRoutes);
 app.use('/api/hostel-attendance', hostelAttendanceRoutes);
+app.use('/api/hostel-leaves', hostelLeaveRoutes);
+app.use('/api/hostel-complaints', hostelComplaintRoutes);
 app.listen(PORT, () => {
   console.log(`Server is up and running on Port: ${PORT}`);
 });

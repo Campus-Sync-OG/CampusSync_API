@@ -38,7 +38,7 @@ module.exports = {
         allowNull: false,
       },
       feestype: {
-        type: Sequelize.ENUM("Tuition", "Books", "Transport", "Uniform", "Multiple"),
+        type: Sequelize.ENUM("Tuition", "Books", "Transport", "Uniform", "Multiple","Hostel"),
         allowNull: false,
       },
       class_name: {

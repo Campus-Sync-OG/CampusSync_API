@@ -22,7 +22,7 @@ module.exports = function (sequelize, DataTypes) {
       }
     },
     feestype: {
-      type: DataTypes.ENUM("Tuition", "Books", "Transport", "Uniform", "All"),
+      type: DataTypes.ENUM("Tuition", "Books", "Transport", "Uniform", "All","Hostel"),
       allowNull: false,
     },
     total_fee: {

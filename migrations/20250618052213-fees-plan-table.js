@@ -27,7 +27,7 @@ module.exports = {
         onDelete: 'SET NULL'
       },
       feestype: {
-        type: Sequelize.ENUM('Tuition', 'Books', 'Transport', 'Uniform', 'All'),
+        type: Sequelize.ENUM('Tuition', 'Books', 'Transport', 'Uniform', 'All','Hostel'),
         allowNull: false
       },
       total_fee: {

@@ -1,8 +1,8 @@
 // controllers/LeaveController.js
 
-const { hostel_leave_requests, student, user } = require("../models");
+const { hostel_leave_request, student, user } = require("../models");
 
-const LeaveRequests = hostel_leave_requests;
+const LeaveRequests = hostel_leave_request;
 const Student = student;
 const User = user;
 
@@ -53,8 +53,8 @@ exports.getAllLeaveRequests = async (req, res) => {
     const leaves = await LeaveRequests.findAll({
       include: [
         {
-          model: Student,
-          attributes: ["name", "class", "admission_no"],
+          model: student,
+          attributes: ["student_name", "class", "admission_no"],
         },
       ],
       order: [["leave_id", "DESC"]],
@@ -103,3 +103,27 @@ exports.updateLeaveStatus = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// ---------------------------------------------
+// 📌 Student: Get Leave History
+// ---------------------------------------------
+exports.getLeaveHistory = async (req, res) => {
+  try {
+    const { admission_no } = req.params;
+
+    const leaves = await LeaveRequests.findAll({
+      where: { admission_no },
+      order: [["leave_id", "DESC"]],
+    });
+
+    return res.status(200).json({
+      message: "Leave history fetched successfully",
+      count: leaves.length,
+      data: leaves,
+    });
+  } catch (error) {
+    console.error("Leave History Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+

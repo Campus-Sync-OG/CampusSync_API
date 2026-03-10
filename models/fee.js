@@ -40,7 +40,7 @@ module.exports = function (sequelize, DataTypes) {
 
     // ✅ Updated to ENUM type
     feestype: {
-      type: DataTypes.ENUM("Tuition", "Books", "Transport", "Uniform", "Multiple"),
+      type: DataTypes.ENUM("Tuition", "Books", "Transport", "Uniform", "Multiple","Hostel"),
       allowNull: false,
     },
 
