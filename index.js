@@ -53,7 +53,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "https://polite-glacier-010030c00.3.azurestaticapps.net",
+      "https://blue-mud-05f8b9e00.7.azurestaticapps.net",
       "http://127.0.0.1:3000",
       "http://localhost:3000",
       "http://localhost:5173",
