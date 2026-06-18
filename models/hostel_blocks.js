@@ -1,0 +1,28 @@
+// models/hostel_blocks.js
+module.exports = function (sequelize, DataTypes) {
+  return sequelize.define(
+    "hostel_blocks",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+      },
+
+      block_name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+
+      block_type: {
+        type: DataTypes.ENUM("Male", "Female"),
+        allowNull: false,
+      },
+    },
+    {
+      tableName: "hostel_blocks",
+      timestamps: false,
+    }
+  );
+};
