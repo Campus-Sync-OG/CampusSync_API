@@ -5,7 +5,7 @@ const config = {
   username: "zaroor",
   password: "Karthik@0306",
   database: "schooldb_prod",
-  host: "locateus-projects.postgres.database.azure.com",
+  host: "locateus-comman.postgres.database.azure.com",
   port: 5432, // Default PostgreSQL port
   dialect: "postgres",
   dialectOptions: {
